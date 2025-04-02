@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <th:block th:replace="~{common/client/using-resource-header.jsp}"></th:block>
+  <title>DDD. - Thanh toán</title>
+</head>
+<body>
+<th:block th:replace="~{common/client/header.jsp}"></th:block>
+
+<!-- Start Hero Section -->
+<div class="hero checkout position-relative-top-84px">
+  <div class="container">
+    <div class="row justify-content-between">
+      <div class="col-lg-5">
+        <div class="intro-excerpt">
+          <h1>Kiểm tra mua hàng</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Hero Section -->
+
+<div class="untree_co-section position-relative-top-84px">
+  <div class="container">
+    <div th:if="${insertError != null}">
+      <div class="alert alert-danger">Lỗi hệ thống, không thể thêm Order!</div>
+    </div>
+    <th:block th:with="user=${session.user}, cart=${session.cart}, errors=${errors}">
+      <form th:action="@{/checkout}" method="post">
+        <div class="row">
+          <div class="col-md-6 mb-5 mb-md-0">
+            <h2 class="h3 mb-3 text-black">Thông tin hóa đơn</h2>
+            <div class="border bg-white p-3 p-lg-5">
+              <div class="form-group row">
+                <div class="col-md-6">
+                  <label for="c_fname" class="text-black">Họ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_fname" name="firstName" th:value="${user.firstName}" required>
+                  <div th:if="${errors != null and errors[0] != null}" class="error-message">Không được để trống!</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="c_lname" class="text-black">Tên <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_lname" name="lastName" th:value="${user.lastName}" required>
+                  <div th:if="${errors != null and errors[1] != null}" class="error-message">Không được để trống!</div>
+                </div>
+
+                <div class="col-md-12">
+                  <label for="c_email_address" class="text-black">Email <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_email_address" name="email" th:value="${user.email}" readonly>
+                </div>
+              </div>
+
+              <div class="form-group row">
+                <div class="col-md-12">
+                  <label for="c_address" class="text-black">Số nhà/Tên đường <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_address" name="addressLine" th:value="${user.addressLine}" required>
+                  <div th:if="${errors != null and errors[2] != null}" class="error-message">Không được để trống!</div>
+                </div>
+
+                <div class="col-md-12">
+                  <label for="c_state_country" class="text-black">Phường/Xã <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_state_country" name="addressWard" th:value="${user.addressWard}" required>
+                </div>
+                <div th:if="${errors != null and errors[3] != null}" class="error-message">Không được để trống!</div>
+
+                <div class="col-md-12">
+                  <label for="c_postal_zip" class="text-black">Quận/Huyện <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="c_postal_zip" name="addressDistrict" th:value="${user.addressDistrict}" required>
+                  <div th:if="${errors != null and errors[4] != null}" class="error-message">Không được để trống!</div>
+                </div>
+
+                <div class="col-md-12">
+                  <label for="province" class="text-black">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="province" name="addressProvince" th:value="${user.addressProvince}">
+                  <div th:if="${errors != null and errors[5] != null}" class="error-message">Không được để trống!</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row mb-5">
+              <div class="col-md-12">
+                <h2 class="h3 mb-3 text-black">Đơn hàng của bạn</h2>
+                <div class="p-3 p-lg-5 border bg-white">
+                  <table class="table site-block-order-table mb-5">
+                    <thead>
+                    <th>Sản phẩm</th>
+                    <th>Thành tiền</th>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="item : ${cart.items}">
+                      <tr>
+                        <td th:text="${item.product.name} + ' x ' + ${item.quantity}"></td>
+                        <td th:text="${#numbers.formatDecimal(item.totalWithDiscount, 0, 'COMMA', 'POINT')} + ' đ'"></td>
+                      </tr>
+                    </th:block>
+                    <tr>
+                      <td class="text-black font-weight-bold"><strong>Tổng cộng</strong></td>
+                      <td class="text-danger font-weight-bold"><strong th:text="${#numbers.formatDecimal(cart.discountPriceTotal, 0, 'COMMA', 'POINT')} + ' đ'"></strong></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                  <div><h5>Phương thức thanh toán</h5></div>
+
+                  <!-- Payment methods -->
+                  <div class="border p-3 mb-3">
+                    <h3 class="h6 mb-0">
+                      <label class="d-block">
+                        <input type="radio" name="paymentMethod" value="paymentOnDelivery"
+                               data-bs-toggle="collapse" href="#paymentOnDelivery" role="button"
+                               aria-expanded="false" aria-controls="paymentOnDelivery" checked>
+                        Thanh toán khi nhận hàng
+                      </label>
+                    </h3>
+
+                    <div class="collapse" id="paymentOnDelivery">
+                      <div class="py-2">
+                        <p class="mb-0">Thanh toán trực tiếp sau khi đã nhận hàng. Hoàn tiền trong vòng 30 ngày kể từ khi đặt hàng nếu có sự cố do chúng tôi.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="border p-3 mb-3">
+                    <h3 class="h6 mb-0">
+                      <label class="d-block">
+                        <input type="radio" name="paymentMethod" value="paymentByBanking"
+                               data-bs-toggle="collapse" href="#paymentByBanking" role="button"
+                               aria-expanded="false" aria-controls="paymentByBanking" disabled>
+                        Thanh toán bằng Internet Banking (sắp có)
+                      </label>
+                    </h3>
+
+                    <div class="collapse" id="paymentByBanking">
+                      <div class="py-2">
+                        <p class="mb-0">Thanh toán thông qua Internet Banking. Hoàn tiền trong vòng 30 ngày kể từ khi đặt hàng nếu có sự cố do chúng tôi.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <button class="btn btn-outline-secondary btn-lg py-3 btn-block" type="submit">Đặt hàng</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </th:block>
+  </div>
+</div>
+
+<th:block th:replace="~{common/client/footer.jsp}"></th:block>
+
+<script>
+  $(document).ready(function () {
+    $('input[name="paymentMethod"]').click(function () {
+      if ($(this).val() === 'paymentByBanking' && $(this).is(':checked')) {
+        $('input[name="paymentMethod"][value="paymentOnDelivery"]').closest('.collapse').collapse('hide');
+      }
+    });
+  });
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<th:block th:replace="~{common/client/using-resource-footer.jsp}"></th:block>
+</body>
+</html>
