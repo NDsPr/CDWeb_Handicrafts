@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DDD. - Homepage</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Trang chủ</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div class="row">
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-area me-1"></i>
+                                Tài khoản
+                            </div>
+                            <div class="card-body">
+                                <h6>Tổng số tài khoản: <span th:text="${countUser[0]}"></span></h6>
+                                <h6>Số tài khoản còn hoạt động: <span th:text="${countUser[1]}"></span></h6>
+                                <h6>Số tài khoản bị vô hiệu hóa: <span th:text="${countUser[2]}"></span></h6>
+                                <h6>Số tài khoản người dùng: <span th:text="${countUser[3]}"></span></h6>
+                                <h6>Số tài khoản quản trị viên: <span th:text="${countUser[4]}"></span></h6>
+                                <a th:href="@{/admin/account-management}" class="to-manage-link">Quản lý tài khoản</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-area me-1"></i>
+                                Sản phẩm
+                            </div>
+                            <div class="card-body">
+                                <h6>Tổng số loại sản phẩm: <span th:text="${countProduct[0]}"></span></h6>
+                                <h6>Số sản phẩm khả dụng: <span th:text="${countProduct[1]}"></span></h6>
+                                <h6>Số sản phẩm hết hàng: <span th:text="${countProduct[2]}"></span></h6>
+                                <h6 class="missing-1-row">Số sản phẩm vô hiệu hóa: <span th:text="${countProduct[3]}"></span></h6>
+                                <a th:href="@{/admin/product-management}" class="to-manage-link">Quản lý sản phẩm</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-chart-area me-1"></i>
+                                Đơn hàng
+                            </div>
+                            <div class="card-body">
+                                <h6>Tổng số đơn hàng: <span th:text="${countOrder[0]}"></span></h6>
+                                <h6>Số đơn hàng đang vận chuyển: <span th:text="${countOrder[1]}"></span></h6>
+                                <h6>Số đơn hàng thành công: <span th:text="${countOrder[2]}"></span></h6>
+                                <h6 class="missing-1-row">Số đơn hàng hủy: <span th:text="${countOrder[3]}"></span></h6>
+                                <a th:href="@{/admin/order-management}" class="to-manage-link">Quản lý đơn hàng</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="py-4 bg-light mt-auto">
+            <div class="container-fluid px-4">
+                <div class="d-flex align-items-center justify-content-between small">
+                    <div class="text-muted">Copyright &copy; Your Website 2023</div>
+                    <div>
+                        <a href="#">Privacy Policy</a>
+                        &middot;
+                        <a href="#">Terms &amp; Conditions</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+</body>
+</html>

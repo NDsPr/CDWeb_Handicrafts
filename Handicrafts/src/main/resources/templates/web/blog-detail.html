@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:include="/common/client/using-resource-header.html"></th:block>
+    <title>DDD. - [[${blogdetails.title}]]</title>
+</head>
+
+<body>
+
+<th:block th:include="/common/client/header.html"></th:block>
+
+<!-- Start Hero Section -->
+<div class="hero blog position-relative-top-84px">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-12">
+                <div class="intro-excerpt">
+                    <h1>Tin tức</h1>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<div class="blog-content position-relative-top-84px">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-8">
+                <div class="author-n-date">
+                    <h5>[[${blogdetails.author}]]</h5>
+                </div>
+
+                <div class="title">
+                    <h2>[[${blogdetails.title}]]</h2>
+                </div>
+
+                <div class="blog-img">
+                    <img th:src="@{${blogdetails.profilePic}}" alt="Blog Image">
+                </div>
+
+                <div class="news-content">
+                    <p>[[${blogdetails.content}]]</p>
+                </div>
+
+                <div class="row justify-content-center">
+                    <a th:href="@{/blog}">
+                        <h5 style="color: #e3bd74">Quay về trang blog</h5>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:include="/common/client/footer.html"></th:block>
+
+<th:block th:include="/common/client/using-resource-footer.html"></th:block>
+</body>
+</html>

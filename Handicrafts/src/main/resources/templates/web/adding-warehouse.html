@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DDD. Admin - Thêm kho</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm kho</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div th:if="${msg != null}">
+                    <div th:class="${msg == 'success' ? 'alert alert-success' : 'alert alert-danger'}">
+                        <span th:text="${msg == 'success' ? 'Thay đổi thành công!' : 'Thay đổi thất bại!'}"></span>
+                    </div>
+                </div>
+
+                <form action="#" th:action="@{/admin/warehouse-management/adding}" method="post">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="shippingFrom">Gửi từ</label>
+                            <input type="text" id="shippingFrom" name="shippingFrom" required="required">
+                            <div th:if="${errors[0] != null}" class="error" id="error0">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="shippingStart">Ngày bắt đầu gửi</label>
+                            <input type="datetime-local" id="shippingStart" name="shippingStart" required="required">
+                            <div th:if="${errors[1] != null}" class="error" id="error1">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="shippingDone">Ngày kết thúc gửi</label>
+                            <input type="datetime-local" id="shippingDone" name="shippingDone" required="required">
+                            <div th:if="${errors[2] != null}" class="error" id="error2">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description">Mô tả</label>
+                            <input type="text" id="description" name="description" required="required">
+                            <div th:if="${errors[3] != null}" class="error" id="error3">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="createdBy">Tạo bởi</label>
+                            <input type="text" id="createdBy" name="createdBy" required="required">
+                            <div th:if="${errors[4] != null}" class="error" id="error4">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm kho" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/warehouse-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+</body>
+</html>

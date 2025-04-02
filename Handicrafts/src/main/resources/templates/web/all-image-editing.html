@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Chỉnh sửa ảnh sản phẩm</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Chỉnh sửa ảnh</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <th:block th:if="${success != null}">
+                    <div class="alert alert-success">
+                        Chỉnh sửa ảnh thành công!
+                    </div>
+                </th:block>
+
+                <th:block th:if="${image != null}">
+                    <form th:action="@{/admin/all-image-editing(id=${image.id})}" method="post" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-12">
+                                <label for="name">Tên ảnh</label>
+                                <input type="text" id="name" name="name" th:value="${image.name}" required>
+                                <th:block th:if="${errors != null and errors[0] != null}">
+                                    <div class="error" id="error1">Không được để trống!</div>
+                                </th:block>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="productId">Mã sản phẩm</label>
+                                <input type="text" id="productId" name="productId" th:value="${image.productId}" required>
+                                <th:block th:if="${errors != null and errors[1] != null}">
+                                    <div class="error" id="error2">Không được để trống!</div>
+                                </th:block>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="presentationImg">Thể hiện ảnh</label>
+                                <img th:src="${image.link}" alt="" id="presentationImg" class="img-fluid">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="imageFile">Link</label>
+                                <input type="file" id="imageFile" name="imageFile">
+                            </div>
+
+                            <input type="hidden" name="link" th:value="${image.link}">
+                        </div>
+
+                        <input type="submit" value="Chỉnh sửa ảnh" class="adding button">
+                        <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                        <a th:href="@{/admin/all-image-management}">Quay về trang quản lý</a>
+                        <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                    </form>
+                </th:block>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+</body>
+</html>

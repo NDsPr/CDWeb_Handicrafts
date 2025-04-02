@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm đơn hàng</title>
+    <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+<div id="layoutSidenav">
+    <th:block th:replace="common/admin/left-navigation :: sidebar"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm đơn hàng</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display success message -->
+                <div th:if="${success != null}">
+                    <div th:class="${success == 'true' ? 'alert alert-success' : 'alert alert-danger'}">
+                        <span th:text="${success == 'true' ? 'Thêm đơn hàng thành công!' : 'Thêm đơn hàng thất bại!'}"></span>
+                    </div>
+                </div>
+
+                <form th:action="@{/admin/order-management/adding}" method="post">
+                    <div class="row">
+                        <div class="col-5">
+                            <label for="userId">Mã người dùng</label>
+                            <input type="text" id="userId" name="userId" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-5">
+                            <label for="total">Tổng trị giá</label>
+                            <input type="text" id="total" name="total" disabled>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-2">
+                            <label for="status">Trạng thái</label>
+                            <input type="text" id="status" name="status" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="paymentMethod">Phương thức thanh toán</label>
+                            <input type="text" id="paymentMethod" name="paymentMethod" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm đơn hàng" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/order-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+</body>
+</html>

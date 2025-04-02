@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Quản lý ảnh sản phẩm</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Quản lý tất cả ảnh sản phẩm</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+                <div class="card mb-4 mt-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        Quản lý ảnh
+                    </div>
+                    <div class="list-button">
+                        <a th:href="@{/admin/all-image-adding}" data-bs-toggle="tooltip" title="Thêm ảnh" class="add">
+                            <i class="fa-solid fa-plus" style="color: #e3bd74;"></i>Thêm ảnh
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="manageAccountTable">
+                            <thead>
+                            <tr>
+                                <th>ID Ảnh</th>
+                                <th>Tên</th>
+                                <th>Link</th>
+                                <th>Mã loại sản phẩm</th>
+                                <th>Tạo ngày</th>
+                                <th>Tạo bởi</th>
+                                <th>Sửa ngày</th>
+                                <th>Sửa bởi</th>
+                                <th>Chức năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <th:block th:each="image : ${allImages}">
+                                <tr>
+                                    <td th:text="${image.id}"></td>
+                                    <td th:text="${image.name}"></td>
+                                    <td><img th:src="${image.link}" alt="image" class="img-fluid"></td>
+                                    <td th:text="${image.productId}"></td>
+                                    <td th:text="${image.createdDate}"></td>
+                                    <td th:text="${image.createdBy}"></td>
+                                    <td th:text="${image.modifiedDate}"></td>
+                                    <td th:text="${image.modifiedBy}"></td>
+                                    <td>
+                                        <a th:href="@{/admin/all-image-editing(id=${image.id})}" data-bs-toggle="tooltip" title="Chỉnh sửa ảnh" class="edit">
+                                            <i class="fa-regular fa-pen-to-square" style="color: #e3bd74;"></i>
+                                        </a>
+                                        <a th:href="@{/admin/all-image-delete(id=${image.id})}" data-bs-toggle="tooltip" title="Xóa ảnh" class="delete">
+                                            <i class="fa-solid fa-trash" style="color: #e3bd74;"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </th:block>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+</body>
+</html>

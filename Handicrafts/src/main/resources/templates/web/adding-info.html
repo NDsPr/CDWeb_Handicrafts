@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm tài khoản</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thông tin cá nhân</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+                <form action="@{/admin-info?editing}" method="post">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="firstName">Họ</label>
+                            <input type="text" id="firstName" name="firstName" th:value="${user.firstName}" required>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="lastName">Tên</label>
+                            <input type="text" id="lastName" name="lastName" th:value="${user.lastName}" required>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" th:value="${user.email}" disabled>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="roleId">Phân quyền</label>
+                            <select name="roleId" id="roleId">
+                                <option value="1" th:selected="${user.status == 1}">Người dùng</option>
+                                <option value="2" th:selected="${user.status == 2}">Quản trị viên</option>
+                            </select>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="status">Trạng Thái</label>
+                            <select name="status" id="status">
+                                <option value="1" th:selected="${user.status == 1}">Đã active</option>
+                                <option value="2" th:selected="${user.status == 2}">Chưa xác thực</option>
+                                <option value="3" th:selected="${user.status == 3}">Vô hiệu hóa</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressLine">Số nhà/Tên đường</label>
+                            <input type="text" id="addressLine" name="addressLine" th:value="${user.addressLine}">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressWard">Phường/Xã</label>
+                            <input type="text" id="addressWard" name="addressWard" th:value="${user.addressWard}">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressDistrict">Quận/Huyện</label>
+                            <input type="text" id="addressDistrict" name="addressDistrict" th:value="${user.addressDistrict}">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressProvince">Tỉnh/Thành phố</label>
+                            <input type="text" id="addressProvince" name="addressProvince" th:value="${user.addressProvince}">
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Chỉnh sửa tài khoản" class="adding button">
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                    <a th:href="@{/admin/change-password}" class="changing-password-link">Bạn muốn đổi mật khẩu? Click vào đây</a>
+                </form>
+            </div>
+        </main>
+        <footer class="py-4 bg-light mt-auto">
+            <div class="container-fluid px-4">
+                <div class="d-flex align-items-center justify-content-between small">
+                    <div class="text-muted">Copyright &copy; Your Website 2023</div>
+                    <div>
+                        <a href="#">Privacy Policy</a>
+                        &middot;
+                        <a href="#">Terms &amp; Conditions</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+<script th:src="@{/templates/admin/js/scripts.js}"></script>
+</body>
+</html>
