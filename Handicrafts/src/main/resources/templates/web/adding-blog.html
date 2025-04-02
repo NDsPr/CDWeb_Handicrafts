@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm bài viết</title>
+    <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+<div id="layoutSidenav">
+    <th:block th:replace="common/admin/left-navigation :: sidebar"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm bài viết</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display success message -->
+                <div th:if="${success != null}">
+                    <div th:class="${success == 'true' ? 'alert alert-success' : 'alert alert-danger'}">
+                        <span th:text="${success == 'true' ? 'Thêm bài viết thành công!' : 'Thêm bài viết thất bại!'}"></span>
+                    </div>
+                </div>
+
+                <form th:action="@{/admin/blog-management/adding}" method="post">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="title">Tiêu đề bài viết</label>
+                            <input type="text" id="title" name="title" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description">Mô tả ngắn</label>
+                            <input type="text" id="description" name="description" required>
+                            <div th:if="${errors != null and errors[1] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="categoryID">Mã loại sản phẩm</label>
+                            <input type="text" id="categoryID" name="categoryID" required>
+                            <div th:if="${errors != null and errors[2] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="status">Trạng thái</label>
+                            <input type="text" id="status" name="status" required>
+                            <div th:if="${errors != null and errors[3] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="content">Nội dung</label>
+                            <textarea name="content" id="content"></textarea>
+                            <div th:if="${errors != null and errors[4] != null}" class="error" id="error5">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm bài viết" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/blog-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+</body>
+</html>

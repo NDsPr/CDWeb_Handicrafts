@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm sản phẩm</title>
+    <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+<div id="layoutSidenav">
+    <th:block th:replace="common/admin/left-navigation :: sidebar"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm sản phẩm</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display success message -->
+                <div th:if="${msg != null}">
+                    <div th:class="${msg == 'success' ? 'alert alert-success' : 'alert alert-danger'}">
+                        <span th:text="${msg == 'success' ? 'Thêm thành công!' : 'Thêm thất bại!'}"></span>
+                    </div>
+                </div>
+
+                <form th:action="@{/admin/product-management/adding}" method="post">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="name">Tên sản phẩm</label>
+                            <input type="text" id="name" name="name" placeholder="Tên sản phẩm" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error1">Không được để trống!</div>
+                            <div th:if="${nameErr != null}" class="error" id="nameErr">Trùng tên sản phẩm!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description">Mô tả</label>
+                            <textarea name="description" id="description" placeholder="Mô tả"></textarea>
+                            <div th:if="${errors != null and errors[1] != null}" class="error" id="error2">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="categoryTypeId">Mã phân loại sản phẩm</label>
+                            <input type="text" id="categoryTypeId" placeholder="Mã phân loại" name="categoryTypeId" required>
+                            <div th:if="${errors != null and errors[2] != null}" class="error" id="error3">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="originalPrice">Giá gốc</label>
+                            <input type="text" id="originalPrice" placeholder="Chia phần nghìn (.) hoặc không" name="originalPrice" required>
+                            <div th:if="${errors != null and errors[3] != null}" class="error" id="error4">Không được để trống!</div>
+                            <div th:if="${oPrErr != null}" class="error" id="oPrError">Phải là số và lớn hơn 0!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="discountPrice">Giá giảm</label>
+                            <input type="text" id="discountPrice" placeholder="Chia phần nghìn (.) hoặc không" name="discountPrice" required>
+                            <div th:if="${errors != null and errors[4] != null}" class="error" id="error5">Không được để trống!</div>
+                            <div th:if="${dPrErr != null}" class="error" id="dPrError">Phải là số và lớn hơn 0!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="discountPercent">Phần trăm giảm</label>
+                            <input type="text" id="discountPercent" placeholder="Không chứa thập phân" name="discountPercent" required>
+                            <div th:if="${errors != null and errors[5] != null}" class="error" id="error6">Không được để trống!</div>
+                            <div th:if="${dPeErr != null}" class="error" id="dPeError">Phải là số lớn hơn 0 và nhỏ hơn 100!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="quantity">Số lượng còn</label>
+                            <input type="text" id="quantity" placeholder="Chia phần nghìn (.) hoặc không" name="quantity" required>
+                            <div th:if="${errors != null and errors[6] != null}" class="error" id="error7">Không được để trống!</div>
+                            <div th:if="${qErr != null}" class="error" id="qError">Phải là số nguyên lớn hơn 0!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="size">Size</label>
+                            <input type="text" id="size" placeholder="Kích thước" name="size" required>
+                            <div th:if="${errors != null and errors[7] != null}" class="error" id="error8">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="otherSpec">Thông số khác</label>
+                            <input type="text" id="otherSpec" name="otherSpec" placeholder="Thông số khác">
+                        </div>
+
+                        <div class="col-3">
+                            <label for="status">Trạng thái</label>
+                            <select id="status" name="status">
+                                <option value="1">Còn hàng</option>
+                                <option value="2">Hết hàng</option>
+                                <option value="3">Vô hiệu hóa</option>
+                            </select>
+                            <div th:if="${errors != null and errors[8] != null}" class="error" id="error10">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="keyword">Từ khóa tìm kiếm</label>
+                            <input type="text" id="keyword" name="keyword" placeholder="Phân cách từ khóa bằng dấu phẩy">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="imgUrls">Các ảnh của sản phẩm</label>
+                            <input type="text" id="imgUrls" name="imgUrls" placeholder="Phân cách url bằng dấu phẩy" required>
+                            <div th:if="${errors != null and errors[9] != null}" class="error" id="error12">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm sản phẩm" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/product-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+</body>
+</html>

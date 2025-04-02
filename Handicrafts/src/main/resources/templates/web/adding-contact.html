@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm liên hệ</title>
+    <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+<div id="layoutSidenav">
+    <th:block th:replace="common/admin/left-navigation :: sidebar"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm liên hệ</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display success message -->
+                <div th:if="${success != null}">
+                    <div th:class="${success == 'true' ? 'alert alert-success' : 'alert alert-danger'}">
+                        <span th:text="${success == 'true' ? 'Thêm liên hệ thành công!' : 'Thêm liên hệ thất bại!'}"></span>
+                    </div>
+                </div>
+
+                <form th:action="@{/admin/contact-management/adding}" method="post">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error" id="error1">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="firstName">Họ</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                            <div th:if="${errors != null and errors[1] != null}" class="error" id="error2">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="lastName">Tên</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                            <div th:if="${errors != null and errors[2] != null}" class="error" id="error3">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="message">Tin nhắn</label>
+                            <textarea id="message" name="message" rows="4" cols="50" required></textarea>
+                            <div th:if="${errors != null and errors[3] != null}" class="error" id="error4">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm liên hệ" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/contact-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+</body>
+</html>
