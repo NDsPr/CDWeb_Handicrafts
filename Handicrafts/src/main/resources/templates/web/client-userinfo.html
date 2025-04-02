@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <th:block th:include="common/client/using-resource-header :: header"/>
+    <title>DDD. - Thông tin tài khoản</title>
+</head>
+
+<body>
+
+<!-- Start Header/Navigation -->
+<th:block th:include="common/client/header :: header"/>
+<!-- End Header/Navigation -->
+
+<!-- Start Hero Section -->
+<div class="hero home position-relative-top-84px">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-12">
+                <div class="intro-excerpt">
+                    <h1>Thông tin người dùng</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Start update username -->
+<div class="update-info position-relative-top-84px">
+    <div class="container">
+        <div class="contain-form p-4">
+            <div class="dp-flex flex-column justify-content-center">
+                <div class="update-info-title">
+                    <h3>Thông tin</h3>
+                </div>
+
+                <th:block th:if="${fnErr != null}">
+                    <p th:text="${fnErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+                <th:block th:if="${lnErr != null}">
+                    <p th:text="${lnErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+                <th:block th:if="${alErr != null}">
+                    <p th:text="${alErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+                <th:block th:if="${awErr != null}">
+                    <p th:text="${awErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+                <th:block th:if="${adErr != null}">
+                    <p th:text="${adErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+                <th:block th:if="${apErr != null}">
+                    <p th:text="${apErr == 'e' ? 'Không được để trống!' : ''}" class="error"></p>
+                </th:block>
+
+                <form th:action="@{/user-info?action=update}" method="post" id="updateInfoForm" accept-charset="UTF-8">
+                    <th:block th:if="${msg != null}">
+                        <p th:text="${msg == 'success' ? 'Cập nhật tài khoản thành công!' : 'Cập nhật tài khoản thất bại!'}" class="success"></p>
+                    </th:block>
+
+                    <!-- Cập nhật firstname -->
+                    <div class="firsttname">
+                        <label for="newFirsttname">Họ </label>
+                        <input type="text" name="firstName" id="newFirsttname" th:value="${userInfo.firstName != null ? userInfo.firstName : ''}">
+                    </div>
+
+                    <!-- Cập nhật lastname -->
+                    <div class="lastname">
+                        <label for="newLastname">Tên </label>
+                        <input type="text" name="lastName" id="newLastname" th:value="${userInfo.lastName != null ? userInfo.lastName : ''}">
+                    </div>
+
+                    <!-- Cập nhật email -->
+                    <div class="email">
+                        <label for="newEmaill">Email </label>
+                        <input type="email" name="email" id="newEmaill" th:value="${userInfo.email}" readonly>
+                    </div>
+
+                    <!-- Cập nhật AddressLine -->
+                    <div class="addressLine">
+                        <label for="newAddressLine">Đường/Số nhà </label>
+                        <input type="text" name="addressLine" id="newAddressLine" th:value="${userInfo.addressLine != null ? userInfo.addressLine : ''}">
+                    </div>
+
+                    <!-- Cập nhật AddressWard -->
+                    <div class="addressWard">
+                        <label for="newAddressWard">Phường </label>
+                        <input type="text" name="addressWard" id="newAddressWard" th:value="${userInfo.addressWard != null ? userInfo.addressWard : ''}">
+                    </div>
+
+                    <!-- Cập nhật AddressDistrict -->
+                    <div class="addressDistrict">
+                        <label for="newAddressDistrict">Quận/huyện </label>
+                        <input type="text" name="addressDistrict" id="newAddressDistrict" th:value="${userInfo.addressDistrict != null ? userInfo.addressDistrict : ''}">
+                    </div>
+
+                    <!-- Cập nhật AddressProvince -->
+                    <div class="addressProvince">
+                        <label for="newAddressProvince">Tỉnh </label>
+                        <input type="text" name="addressProvince" id="newAddressProvince" th:value="${userInfo.addressProvince != null ? userInfo.addressProvince : ''}">
+                    </div>
+
+                    <input type="hidden" name="originalEmail" th:value="${originalEmail}">
+
+                    <div class="dp-flex justify-content-between renew-button-group">
+                        <button type="submit" class="infom-button a-btn">Cập nhật tài khoản</button>
+                        <a th:href="@{/home}" class="infom-button a-btn">Quay lại trang chủ</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Renew Password -->
+
+<th:block th:include="common/client/footer :: footer"/>
+<th:block th:include="common/client/using-resource-footer :: footer"/>
+
+</body>
+</html>

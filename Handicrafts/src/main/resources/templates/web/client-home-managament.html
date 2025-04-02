@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>DDD. Admin - Quản lý giao diện client</title>
+    <!-- Include common header -->
+    <th:block th:include="common/admin/using-resource-header :: header"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<!-- Start top header -->
+<th:block th:include="common/admin/top-header :: header"></th:block>
+<!-- End top header -->
+
+<div id="layoutSidenav">
+    <!-- Start left navigation -->
+    <th:block th:include="common/admin/left-navigation :: navigation"></th:block>
+    <!-- End left navigation -->
+
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Quản lý giao diện người dùng</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display Error if any -->
+                <div th:if="${notEqualError}">
+                    <div class="alert alert-danger">Số lượng icon, tiêu đề nội dung và nội dung phải bằng nhau!</div>
+                </div>
+
+                <div th:if="${success != null}">
+                    <div class="alert alert-success">
+                        Thêm sản phẩm thành công!
+                    </div>
+                </div>
+
+                <form id="client-home-management" action="#" th:action="@{/admin/client-home-management}" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+                    <div class="row">
+                        <hr>
+                        <h5>Hiển thị riêng trên trang chủ</h5>
+                        <hr>
+
+                        <!-- Title input for welcome -->
+                        <div class="col-12">
+                            <label for="welcomeTitle">Tiêu đề giới thiệu</label>
+                            <input type="text" id="welcomeTitle" name="welcomeTitle" th:value="${customizeBean != null ? customizeBean.welcomeTitle : ''}" required>
+                            <div th:if="${errors != null and errors[0] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Description for welcome -->
+                        <div class="col-12">
+                            <label for="welcomeDes">Mô tả giới thiệu</label>
+                            <textarea name="welcomeDes" id="welcomeDes" placeholder="Mô tả" required th:text="${customizeBean != null ? customizeBean.welcomeDes : ''}"></textarea>
+                            <div th:if="${errors != null and errors[1] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Product Title -->
+                        <div class="col-12">
+                            <label for="productTitle">Tiêu đề khu vực sản phẩm</label>
+                            <input type="text" id="productTitle" name="productTitle" th:value="${customizeBean != null ? customizeBean.productTitle : ''}" required>
+                            <div th:if="${errors != null and errors[2] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Product Description -->
+                        <div class="col-12">
+                            <label for="productDes">Mô tả khu vực sản phẩm</label>
+                            <textarea name="productDes" id="productDes" placeholder="Mô tả" required th:text="${customizeBean != null ? customizeBean.productDes : ''}"></textarea>
+                            <div th:if="${errors != null and errors[3] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Other fields for prTitle1, prDes1, etc. -->
+                        <!-- Repeat similar structure for the rest of the fields (prTitle1, prDes1, prContentTitle1, prContentDes1, etc.) -->
+
+                        <div class="col-4">
+                            <label for="prLink1">Thay đổi ảnh</label>
+                            <input type="file" name="prLink1" id="prLink1">
+                        </div>
+
+                        <div class="col-4">
+                            <label for="updatingImg1">Ảnh bạn muốn đổi 1</label>
+                            <img id="updatingImg1" src="" alt="">
+                        </div>
+
+                        <div class="col-4">
+                            <label for="nowImg1">Ảnh hiện tại 1</label>
+                            <img id="nowImg1" src="" alt="">
+                        </div>
+
+                        <!-- Footer Section -->
+                        <hr>
+                        <h5>Hiển thị chung cho các trang client</h5>
+                        <hr>
+
+                        <div class="col-4">
+                            <label for="background">Thay đổi background</label>
+                            <input type="file" name="background" id="background">
+                        </div>
+
+                        <div class="col-4">
+                            <label for="updatingBg">Ảnh bạn muốn đổi</label>
+                            <img id="updatingBg" src="" alt="">
+                        </div>
+
+                        <div class="col-4">
+                            <label for="nowBg">Ảnh hiện tại</label>
+                            <img id="nowBg" src="" alt="">
+                        </div>
+
+                        <!-- Footer Left description -->
+                        <div class="col-12">
+                            <label for="footerLeft">Miêu tả dưới logo footer</label>
+                            <textarea name="footerLeft" id="footerLeft" placeholder="Miêu tả bên trái cuối trang (Dưới logo)" required th:text="${customizeBean != null ? customizeBean.footerLeft : ''}"></textarea>
+                            <div th:if="${errors != null and errors[12] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="footerMiddle">Miêu tả giữa (Về chúng tôi)</label>
+                            <textarea name="footerMiddle" id="footerMiddle" placeholder="Miêu tả giữa của cuối trang (Về chúng tôi)" required th:text="${customizeBean != null ? customizeBean.footerMiddle : ''}"></textarea>
+                            <div th:if="${errors != null and errors[13] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Social Media Links -->
+                        <div class="col-6">
+                            <label for="facebookLink">Đường dẫn Facebook của trang</label>
+                            <input type="text" id="facebookLink" name="facebookLink" placeholder="Đường dẫn Facebook" th:value="${customizeBean != null ? customizeBean.facebookLink : ''}">
+                        </div>
+
+                        <div class="col-6">
+                            <label for="twitterLink">Đường dẫn Twitter của trang</label>
+                            <input type="text" id="twitterLink" name="twitterLink" placeholder="Đường dẫn Twitter" th:value="${customizeBean != null ? customizeBean.twitterLink : ''}">
+                        </div>
+
+                        <div class="col-6">
+                            <label for="instagramLink">Đường dẫn Instagram của trang</label>
+                            <input type="text" id="instagramLink" name="instagramLink" placeholder="Đường dẫn Instagram" th:value="${customizeBean != null ? customizeBean.instagramLink : ''}">
+                        </div>
+
+                        <div class="col-6">
+                            <label for="linkedinLink">Đường dẫn Linkedin của trang</label>
+                            <input type="text" id="linkedinLink" name="linkedinLink" placeholder="Đường dẫn Linkedin" th:value="${customizeBean != null ? customizeBean.linkedinLink : ''}">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="prLink1InStorage" th:value="${customizeBean != null ? customizeBean.prLink1InStorage : ''}">
+                    <input type="hidden" name="prLink2InStorage" th:value="${customizeBean != null ? customizeBean.prLink2InStorage : ''}">
+                    <input type="hidden" name="backgroundInStorage" th:value="${customizeBean != null ? customizeBean.backgroundInStorage : ''}">
+
+                    <input type="submit" value="Cập nhật thay đổi" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Include footer -->
+<th:block th:include="common/admin/using-resource-footer :: footer"></th:block>
+</body>
+</html>
