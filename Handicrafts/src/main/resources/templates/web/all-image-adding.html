@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Thêm ảnh sản phẩm</title>
+    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:include="/common/admin/top-header.html"></th:block>
+<div id="layoutSidenav">
+    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Thêm ảnh</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <th:block th:if="${success != null}">
+                    <div class="alert alert-success">
+                        Thêm ảnh thành công!
+                    </div>
+                </th:block>
+
+                <form action="@{/admin/all-image-adding}" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="name">Tên ảnh</label>
+                            <input type="text" id="name" name="name" required>
+                            <th:block th:if="${errors != null and errors[0] != null}">
+                                <div class="error" id="error1">Không được để trống!</div>
+                            </th:block>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="productId">Mã sản phẩm</label>
+                            <input type="text" id="productId" name="productId" required>
+                            <th:block th:if="${errors != null and errors[1] != null}">
+                                <div class="error" id="error2">Không được để trống!</div>
+                            </th:block>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="imageFile">Link</label>
+                            <input type="file" id="imageFile" name="imageFile" required>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Thêm ảnh" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/all-image-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+</body>
+</html>
