@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DDD. Admin - Manage Account</title>
+    <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+<div id="layoutSidenav">
+    <th:block th:replace="common/admin/left-navigation :: nav"></th:block>
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Quản lý tài khoản</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+                <div class="card mb-4 mt-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        Quản lý tài khoản
+                    </div>
+                    <div class="list-button">
+                        <a th:href="@{/admin/account-management/adding}" data-bs-toggle="tooltip"
+                           title="Thêm tài khoản" class="add">
+                            <i class="fa-solid fa-plus" style="color: #e3bd74;"></i>Thêm tài khoản</a>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <table id="userData" class="table table-striped" style="width:100%">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Email</th>
+                                    <th>Họ</th>
+                                    <th>Tên</th>
+                                    <th>Phân quyền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Địa chỉ đầy đủ</th>
+                                    <th>Tạo ngày</th>
+                                    <th>Chức năng</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Email</th>
+                                    <th>Họ</th>
+                                    <th>Tên</th>
+                                    <th>Phân quyền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Địa chỉ đầy đủ</th>
+                                    <th>Tạo ngày</th>
+                                    <th>Chức năng</th>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+<script th:src="@{/templates/logic-datatable/admin/datatable-account.js}"></script>
+<script th:src="@{/templates/logic-datatable/service-logic.js}"></script>
+</body>
+</html>
