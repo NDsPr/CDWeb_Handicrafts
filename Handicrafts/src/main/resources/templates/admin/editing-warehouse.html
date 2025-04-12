@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>DDD. Admin - Chỉnh sửa kho</title>
+  <th:block th:replace="common/admin/using-resource-header :: header"/>
+</head>
+<body class="sb-nav-fixed">
+<th:block th:replace="common/admin/top-header :: topHeader"/>
+<div id="layoutSidenav">
+  <th:block th:replace="common/admin/left-navigation :: leftNav"/>
+
+  <div id="layoutSidenav_content" class="gray-bg">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Chỉnh sửa kho</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item active">DDD. Administrator</li>
+        </ol>
+
+        <div th:if="${msg != null}">
+          <div th:if="${msg == 'success'}" class="alert alert-success">Thay đổi thành công!</div>
+          <div th:if="${msg != 'success'}" class="alert alert-danger">Thay đổi thất bại!</div>
+        </div>
+
+        <form th:action="@{/admin/warehouse-management/editing}" method="post" th:if="${displayWarehouse != null}">
+          <div class="row">
+            <div class="col-12">
+              <label for="shippingFrom">Gửi từ</label>
+              <input type="text" id="shippingFrom" name="shippingFrom" th:value="${displayWarehouse.shippingFrom}" required>
+            </div>
+
+            <div class="col-6">
+              <label for="shippingStart">Ngày bắt đầu gửi</label>
+              <input type="datetime-local" id="shippingStart" name="shippingStart" th:value="${displayWarehouse.shippingStart}" required>
+            </div>
+
+            <div class="col-6">
+              <label for="shippingDone">Ngày kết thúc gửi</label>
+              <input type="datetime-local" id="shippingDone" name="shippingDone" th:value="${displayWarehouse.shippingDone}" required>
+            </div>
+
+            <div class="col-12">
+              <label for="description">Mô tả</label>
+              <input type="text" id="description" name="description" th:value="${displayWarehouse.description}" required>
+            </div>
+
+            <div class="col-12">
+              <label for="createdBy">Tạo bởi</label>
+              <input type="text" id="createdBy" name="createdBy" th:value="${displayWarehouse.createdBy}" required>
+            </div>
+          </div>
+
+          <input type="hidden" name="id" th:value="${displayWarehouse.id}">
+          <input type="submit" value="Chỉnh sửa kho" class="adding button">
+          <a th:href="@{/admin/warehouse-management}">Quay về trang quản lý</a>
+          <a th:href="@{/admin/home}">Quay về trang chủ</a>
+        </form>
+
+        <div th:if="${displayWarehouse == null}" class="alert alert-danger">Lỗi hệ thống!</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer"/>
+</body>
+</html>
