@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DDD. Admin - Chỉnh sửa tài khoản</title>
+    <th:block th:replace="common/admin/using-resource-header :: head-resources"/>
+</head>
+<body class="sb-nav-fixed">
+
+<th:block th:replace="common/admin/top-header :: top-header"/>
+
+<div id="layoutSidenav">
+    <div id="layoutSidenav_nav">
+        <th:block th:replace="common/admin/left-navigation :: left-navigation"/>
+    </div>
+
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Chỉnh sửa bài viết</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div th:if="${param.success}">
+                    <div class="alert alert-success">Thay đổi thành công!</div>
+                </div>
+
+                <form th:action="@{/admin/blog-management/editing}" method="post" th:object="${blogBean}">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="title">Tiêu đề bài viết</label>
+                            <input type="text" id="title" name="title" th:value="*{title}" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="description">Mô tả ngắn</label>
+                            <textarea id="description" name="description" required
+                                      th:text="*{description}"></textarea>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="categoryID">Mã loại sản phẩm</label>
+                            <input type="text" id="categoryID" name="categoryID" th:value="*{categoryID}" required>
+                        </div>
+
+                        <div class="col-6">
+                            <label for="status">Trạng thái</label>
+                            <select name="status" id="status">
+                                <option value="1" th:selected="*{status == 1}">Ẩn</option>
+                                <option value="2" th:selected="*{status == 2}">Hiện</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="content">Nội dung</label>
+                            <textarea name="content" id="content" th:text="*{content}"></textarea>
+                        </div>
+                    </div>
+
+                    <input type="submit" value="Chỉnh sửa bài viết" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/blog-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"/>
+</body>
+</html>

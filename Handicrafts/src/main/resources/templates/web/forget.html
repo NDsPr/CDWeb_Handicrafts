@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style data-styles="">ion-icon {
+        visibility: hidden;
+    }
+    .hydrated {
+        visibility: inherit;
+    }</style>
+    <title>Quên mật khẩu</title>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule="" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap">
+    <link rel="stylesheet" th:href="@{/templates/login-signup-forget/forget/css/QuenMatKhau.css}" />
+</head>
+<style>
+    .error-message {
+        color: red;
+        font-size: 80%;
+    }
+</style>
+<body>
+<div class="screen-1">
+    <div class="logo">
+        <h1>DDD.</h1>
+    </div>
+    <div class="header">
+        <h2>Quên mật khẩu</h2>
+    </div>
+
+    <!-- Lỗi khi đổi mật khẩu -->
+    <div th:if="${error != null}" class="alert alert-danger">
+        Đổi mật khẩu thất bại!
+    </div>
+
+    <form th:action="@{/forget}" method="post" accept-charset="UTF-8">
+        <div class="email">
+            <label for="email">Địa chỉ Email</label>
+            <div class="sec-2">
+                <ion-icon name="mail-outline" role="img" class="md hydrated" aria-label="mail outline"></ion-icon>
+                <input type="email" name="email" id="email" placeholder="Nhập địa chỉ email" th:oninput="checkEmail()" />
+
+                <!-- Lỗi email nếu có -->
+                <div id="emailError" class="error-message" th:text="${emailError}"></div>
+            </div>
+        </div>
+
+        <button class="sending" type="submit">Gửi</button>
+        <div class="back-to-login d-flex justify-content-center mt-3">
+            <a th:href="@{/signin}" class="link">Quay về trang đăng nhập</a>
+        </div>
+    </form>
+</div>
+
+<script th:src="@{/templates/login-signup-forget/forget/js/QuenMatKhau.js}"></script>
+</body>
+</html>
