@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DDD. - Chi tiết lịch sử mua hàng</title>
+    <th:block th:replace="~{/common/client/using-resource-header :: header}"></th:block>
+</head>
+
+<body>
+<!-- HEADER -->
+<th:block th:replace="~{/common/client/header :: header}"></th:block>
+
+<!-- Start Hero Section -->
+<div class="hero home position-relative-top-84px">
+    <div class="container">
+        <div class="row justify-content-between">
+            <div class="col-12">
+                <div class="intro-excerpt">
+                    <h1>Lịch sử đơn hàng</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Start Renew Password -->
+<div class="renew-password position-relative-top-84px" style="background-color: #eeeeee; padding-top: 2rem">
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <div class="table table-striped">
+                    <table id="orderDetailHistory" class="table table-striped" style="width: 100%;">
+                        <thead>
+                        <tr>
+                            <th>Mã sản phẩm</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá gốc</th>
+                            <th>Giá giảm</th>
+                            <th>Phần trăm giảm</th>
+                            <th>Số lượng</th>
+                            <th>Trạng thái đánh giá</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th>Mã sản phẩm</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Giá gốc</th>
+                            <th>Giá giảm</th>
+                            <th>Phần trăm giảm</th>
+                            <th>Số lượng</th>
+                            <th>Trạng thái đánh giá</th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="return-btn">
+            <a th:href="@{/order-history}" class="checking-order-detail">Quay về đơn hàng</a>
+            <a th:href="@{/home}" class="checking-order-detail">Quay về trang chủ</a>
+        </div>
+    </div>
+</div>
+<!-- End Renew Password -->
+
+<!-- Truyền orderId từ server vào JS -->
+<script th:inline="javascript">
+    const orderId = /*[[${orderId}]]*/ 0;
+</script>
+
+<!-- FOOTER -->
+<th:block th:replace="~{/common/client/footer :: footer}"></th:block>
+<th:block th:replace="~{/common/client/using-resource-footer :: footer}"></th:block>
+
+<!-- Scripts -->
+<script th:src="@{/templates/DataTables/datatables.min.js}"></script>
+<script th:src="@{/templates/logic-datatable/client/dt-order-detail-history.js}"></script>
+<script th:src="@{/templates/logic-datatable/service-logic.js}"></script>
+</body>
+</html>
