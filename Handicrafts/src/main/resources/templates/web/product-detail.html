@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>DDD. - <span th:text="${productDetail.name}"></span></title>
+  <th:block th:replace="~{/common/client/using-resource-header :: header}"></th:block>
+</head>
+<body>
+
+<!-- HEADER -->
+<th:block th:replace="~{/common/client/header :: header}"></th:block>
+
+<!-- Start Product Detail Section -->
+<div class="product position-relative-top-84px">
+  <div class="container">
+    <div class="product-content product-wrap clearfix product-detail">
+      <div class="row">
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          <div class="product-image">
+            <div id="carouselExampleIndicators" class="carousel carousel-dark slide">
+              <div class="carousel-indicators">
+                <th:block th:each="image, iterStat : ${productDetail.images}">
+                  <button th:attr="data-bs-target='#carouselExampleIndicators'
+         data-bs-slide-to='${iterStat.index}'
+         th:classappend='${iterStat.index == 0 ? 'active' : ''}'"></button>
+
+                </th:block>
+              </div>
+              <div class="carousel-inner">
+                <th:block th:each="image, iterStat : ${productDetail.images}">
+                  <div th:class="'carousel-item' + ${iterStat.index == 0 ? ' active' : ''}">
+                    <img th:src="@{${image.link}}" class="d-block fixed-height-img" alt="...">
+                  </div>
+                </th:block>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="btn-back" class="button-back dp-flex flex-row justify-content-between">
+            <a th:href="@{/shop}" class="back">Quay lại sản phẩm</a>
+            <a th:href="@{/home}" class="back">Quay lại trang chủ</a>
+          </div>
+        </div>
+
+        <div class="col-md-7 offset-md-1 col-sm-12 col-xs-12">
+          <h2 class="name" th:text="${productDetail.name}"></h2>
+
+          <div class="d-flex align-items-center mt-2">
+            <div class="me-2">
+              <h3 th:text="${productDetail.avgRate}"></h3>
+            </div>
+            <div class="me-2">
+              <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                <i th:class="${i <= productDetail.avgRate ? 'fa-solid fa-star' : 'fa-regular fa-star'} fa-sm" style="color: #FFD43B;"></i>
+              </th:block>
+            </div>
+            <div><h5 style="margin: 0" th:text="|(${productDetail.numReviews} đánh giá)|"></h5></div>
+          </div>
+
+          <hr/>
+
+          <h3 class="price-container">
+            <span class="discount-price" th:text="${#numbers.formatDecimal(productDetail.discountPrice, '#,##0.##')} + ' đ'"></span>
+            <del th:text="${#numbers.formatDecimal(productDetail.originalPrice, '#,##0.##')} + ' đ'"></del>
+            <span class="discount-percent" th:text="'-' + ${productDetail.discountPercent} + '%'"></span>
+          </h3>
+
+          <div class="certified">
+            <ul>
+              <li>
+                <a href="javascript:void(0);">
+                  Số lượng hàng còn
+                  <span th:text="${productDetail.quantity}"></span>
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);">
+                  Tình trạng hàng
+                  <span th:text="${productDetail.status == 1 ? 'Còn hàng' : 'Hết hàng'}"></span>
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);">
+                  Số lượng đã bán
+                  <span style="color: red" th:text="${productDetail.soldQuantity}"></span>
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <hr/>
+
+          <div class="col-12">
+            <div class="list-group list-group-horizontal" id="myList" role="tablist">
+              <a class="list-group-item list-group-item-action active darkred-active" th:href="@{/product-detail#description}" role="tab">Giới thiệu</a>
+              <a class="list-group-item list-group-item-action" th:href="@{/product-detail#size}" role="tab">Thuộc tính</a>
+            </div>
+          </div>
+
+          <div class="col-12 content">
+            <div class="tab-content">
+              <div class="tab-pane fade active show" id="description" role="tabpanel">
+                <br/>
+                <strong>Chi tiết sản phẩm</strong>
+                <p th:text="${productDetail.description}"></p>
+              </div>
+              <div class="tab-pane fade" id="size" role="tabpanel">
+                <strong>Chiều cao x Đáy bé x Đáy lớn</strong>
+                <p th:text="${productDetail.size}"></p>
+                <strong>Chất liệu</strong>
+                <p th:text="${productDetail.otherSpec}"></p>
+                <strong>Từ khóa</strong>
+                <p th:text="${productDetail.keyword}"></p>
+              </div>
+            </div>
+          </div>
+
+          <hr/>
+
+          <div class="row">
+            <div class="col-sm-12 col-md-6 col-lg-6 dp-flex justify-content-center align-items-center cart-div">
+              <input type="hidden" name="productId" th:value="${productDetail.id}">
+              <button class="btn-pop-mini left add-cart">
+                <i class="fa-solid fa-cart-plus fa-xl"></i>
+                <p class="content-btn-mini">Thêm vào giỏ hàng</p>
+              </button>
+            </div>
+            <div class="col-sm-12 col-md-6 col-lg-6 dp-flex justify-content-start align-content-center">
+              <div class="btn-group-vertical">
+                <a th:href="@{/contact}"><i class="fa fa-envelope"></i> Liên hệ với người bán</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Review Section -->
+    <div class="product-review" style="margin-bottom: 16px">
+      <div class="card">
+        <div class="card-body p-5">
+          <div class="suggest-title-wrap">
+            <h2 class="mb-4">Đánh giá của khách hàng</h2>
+          </div>
+
+          <!-- Filter Ratings -->
+          <label for="filter-rating" class="me-2">Lọc đánh giá theo số sao</label>
+          <select name="filter-rating" id="filter-rating">
+            <option value="0" selected>Tất cả</option>
+            <option value="5">5 sao</option>
+            <option value="4">4 sao</option>
+            <option value="3">3 sao</option>
+            <option value="2">2 sao</option>
+            <option value="1">1 sao</option>
+          </select>
+
+          <hr>
+
+          <div class="rate-list mt-5">
+            <th:block th:each="review : ${reviews}">
+              <div class="rate-item">
+                <div class="name-date d-flex">
+                  <div class="name me-2" style="font-weight: bold" th:text="${review.username}"></div>
+                  <div class="date" th:text="${#dates.format(review.createdDate, 'dd/MM/yyyy')}"></div>
+                </div>
+
+                <div class="rating">
+                  <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                    <i th:class="${i <= review.rating ? 'fa-solid fa-star' : 'fa-regular fa-star'}" style="color: #FFD43B;"></i>
+                  </th:block>
+                </div>
+
+                <div class="comment" th:text="${review.content}"></div>
+              </div>
+              <hr>
+            </th:block>
+          </div>
+
+          <div class="d-flex justify-content-center align-items-center">
+            <div id="pagination"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Product Detail -->
+
+<!-- FOOTER -->
+<th:block th:replace="~{/common/client/footer :: footer}"></th:block>
+<th:block th:replace="~{/common/client/using-resource-footer :: footer}"></th:block>
+
+<!-- Scripts -->
+<script th:src="@{/templates/client/js/render-rating.js}"></script>
+<script th:src="@{/templates/client/js/ajax/cart/cart-add.js}"></script>
+<script th:src="@{/templates/client/js/ajax/cart/cart-action.js}"></script>
+
+</body>
+</html>
