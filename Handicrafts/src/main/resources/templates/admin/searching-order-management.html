@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>DDD. Admin - Tìm kiếm chi tiết đơn hàng</title>
+  <th:block th:replace="common/admin/using-resource-header :: head"></th:block>
+</head>
+<body class="sb-nav-fixed">
+<!-- Include top header -->
+<th:block th:replace="common/admin/top-header :: header"></th:block>
+
+<div id="layoutSidenav">
+  <!-- Include left navigation -->
+  <th:block th:replace="common/admin/left-navigation :: nav"></th:block>
+
+  <div id="layoutSidenav_content" class="gray-bg">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Kiểm tra chi tiết đơn hàng</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item active">DDD. Administrator</li>
+        </ol>
+        <form id="searching-order-detail" th:action="@{/admin/order-detail-search}" method="post">
+          <div class="row">
+            <!-- Thêm input nhớ xóa mb-4 -->
+            <div class="col-12 mb-4">
+              <label for="orderId">ID Đơn hàng</label>
+              <input type="text" id="orderId" name="orderId">
+            </div>
+            <div id="error"></div>
+          </div>
+
+          <!-- Làm với backend sẽ sử dụng input -->
+          <input type="submit" value="Kiểm tra" class="adding button">
+          <a th:href="@{/admin/home}">Quay về trang chủ</a>
+        </form>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Include footer -->
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"></th:block>
+</body>
+</html>

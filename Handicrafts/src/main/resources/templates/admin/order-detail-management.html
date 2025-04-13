@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>DDD. Admin - Quản lý chi tiết đơn hàng</title>
+  <th:block th:replace="~{/common/admin/using-resource-header :: header}"></th:block>
+</head>
+<body>
+<!-- Top Header -->
+<th:block th:replace="~{/common/admin/top-header :: topHeader}"></th:block>
+
+<div id="layoutSidenav">
+  <!-- Left Navigation -->
+  <th:block th:replace="~{/common/admin/left-navigation :: leftNav}"></th:block>
+
+  <div id="layoutSidenav_content" class="gray-bg">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Chỉnh sửa chi tiết đơn hàng</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item active">DDD. Administrator</li>
+        </ol>
+
+        <div class="card mb-4 mt-4">
+          <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Chi tiết đơn hàng
+          </div>
+
+          <div class="table-responsive">
+            <table id="manageAccountTable" class="table table-striped">
+              <thead>
+              <tr>
+                <th>ID Sản phẩm</th>
+                <th>Tên sản phẩm</th>
+                <th>Giá gốc</th>
+                <th>Giá giảm</th>
+                <th>Phần trăm</th>
+                <th>Số lượng</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="orderDetail : ${orderDetailList}">
+                <td th:text="${orderDetail.productId}">123</td>
+                <td th:text="${orderDetail.productName}">Sản phẩm A</td>
+                <td th:text="${#numbers.formatDecimal(orderDetail.originalPrice, 0, 'COMMA', 2, 'POINT')} + 'đ'">10.000đ</td>
+                <td th:text="${#numbers.formatDecimal(orderDetail.discountPrice, 0, 'COMMA', 2, 'POINT')} + 'đ'">8.000đ</td>
+                <td th:text="${#numbers.formatDecimal(orderDetail.discountPercent, 0, 2)} + '%'">20%</td>
+                <td th:text="${#numbers.formatDecimal(orderDetail.quantity, 0, 'COMMA', 2, 'POINT')}">2</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <a th:href="@{/admin/order-management}" class="checking-order-detail">Quay về trang quản lý</a>
+        <a th:href="@{/admin/order-detail-search}" class="checking-order-detail">Quay về trang tìm đơn hàng</a>
+        <a th:href="@{/admin/home}" class="checking-order-detail">Quay về trang chủ</a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<th:block th:replace="~{/common/admin/using-resource-footer :: footer}"></th:block>
+</body>
+</html>
