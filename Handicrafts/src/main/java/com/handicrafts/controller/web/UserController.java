@@ -47,7 +47,7 @@ public class UserController {
             UserDTO userDTO = userService.confirmEmail(id);
             mav = new ModelAndView("redirect:/dang-nhap");
         } else {
-            mav = new ModelAndView("web/confirmCode.html");
+            mav = new ModelAndView("web/code-verify.html");
             mav.addObject("userId", id);
             mav.addObject("message", "Mã không trùng khớp. Vui lòng kiểm tra mail và thử lại");
 
@@ -57,12 +57,12 @@ public class UserController {
 
     @GetMapping("/quen-mat-khau")
     public ModelAndView getForgetPassword() {
-        return new ModelAndView("web/forgetPassword.html");
+        return new ModelAndView("web/forget.html");
     }
 
     @PostMapping("/gui-mail-quen-mat-khau")
     public ModelAndView sendMailForgetPassword(@RequestParam(name = "mailForgot") String email) {
-        ModelAndView mav = new ModelAndView("web/forgetPassword.html");
+        ModelAndView mav = new ModelAndView("web/forget.html");
         UserDTO result = userService.sendMailForgotPassword(email);
         if (result == null) mav.addObject("message", "Tài khoản không tồn tại.");
         else mav.addObject("message", "Vui lòng kiểm tra email để nhận mật khẩu");
@@ -88,13 +88,13 @@ public class UserController {
 
     @GetMapping("/thong-tin-tai-khoan")
     public ModelAndView information() {
-        ModelAndView mav = new ModelAndView("web/information.html");
+        ModelAndView mav = new ModelAndView("web/client-userinfo.html");
         return mav;
     }
 
     @PostMapping("/cap-nhat-thong-tin")
     public ModelAndView changeInformation(@ModelAttribute(name = "user") UserDTO user, Authentication authentication) {
-        ModelAndView mav = new ModelAndView("web/information.html");
+        ModelAndView mav = new ModelAndView("web/client-userinfo.html");
         userService.changeInformation(user);
         mav.addObject("message", "Cập nhật thông tin thành công");
         if (authentication != null) return mav;
@@ -113,7 +113,7 @@ public class UserController {
 
     @PostMapping("/doi-mat-khau")
     public ModelAndView changePassword(@RequestParam(name = "password") String newPass, Authentication authentication) {
-        ModelAndView mav = new ModelAndView("web/information.html");
+        ModelAndView mav = new ModelAndView("web/client-userinfo.html");
         String userEmail = "";
         if (authentication.getPrincipal() instanceof CustomOAuth2User) {
             CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
