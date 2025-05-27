@@ -28,7 +28,7 @@ public class HandicraftDTO {
     private boolean new_arrival;
 
     private CategoryDTO category;
-    private Category_typeDTO category_tpye;
+    private Category_typeDTO category_type;
     private List<HandicraftImageDTO> images = new ArrayList<>();
     private List<OrderlineDTO> orderlines = new ArrayList<>();
 

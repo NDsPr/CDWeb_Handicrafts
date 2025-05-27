@@ -28,7 +28,7 @@ public class UserController {
 
     @PostMapping("/dang-ky")
     public ModelAndView postRegister(@ModelAttribute("User") UserDTO user) {
-        ModelAndView mav = new ModelAndView("web/confirmCode.html");
+        ModelAndView mav = new ModelAndView("web/code-verify.html");
         UserDTO userDTO = userService.sendMail(user);
         if (userDTO != null) {
             //neu sendmail thanh cong thi gui id de xac dinh confirm token
@@ -38,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/confirm-account")
-    public ModelAndView confirmAccount(@RequestParam(name = "confirmCode") String code, @RequestParam(name = "userId") int id) {
+    public ModelAndView confirmAccount(@RequestParam(name = "code-verify") String code, @RequestParam(name = "userId") int id) {
         ModelAndView mav = null;
         //request sẽ gồm code người dùng nhập vào và id dc gửi qua
         //lấy code đó so sánh với code được lấy ra từ user tìm dc theo id
