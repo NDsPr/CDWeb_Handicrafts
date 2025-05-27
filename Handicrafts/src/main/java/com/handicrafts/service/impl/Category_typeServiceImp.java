@@ -1,5 +1,4 @@
 package com.handicrafts.service.impl;
-import com.handicrafts.service.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.handicrafts.converter.AuthorConverter;
@@ -11,7 +10,7 @@ import com.handicrafts.service.IAuthorService;
 import java.util.ArrayList;
 import java.util.List;
 @Service
-public class Category_typeImpl implements ICategory_typeService {
+public class Category_typeServiceImp implements ICategory_typeService {
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired

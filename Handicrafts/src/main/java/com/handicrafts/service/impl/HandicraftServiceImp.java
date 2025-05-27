@@ -8,7 +8,6 @@ import com.handicrafts.dto.HandicraftDTO;
 import com.handicrafts.dto.HandicraftImageDTO;
 import com.handicrafts.entity.HandicraftEntity;
 import com.handicrafts.entity.HandicraftImageEntity;
-import com.handicrafts.repository.CategoryRepository;
 import com.handicrafts.repository.HandicraftImageRepository;
 import com.handicrafts.repository.HandicraftRepository;
 import com.handicrafts.repository.CategoryRepository;
@@ -18,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class HandicraftServiceImpl implements IHandicraftService{
+public class HandicraftServiceImp implements IHandicraftService{
     @Autowired
     private HandicraftRepository handicraftRepo;
     @Autowired
