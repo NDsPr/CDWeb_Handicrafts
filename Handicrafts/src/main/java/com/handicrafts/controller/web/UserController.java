@@ -14,7 +14,7 @@ import java.security.Principal;
 public class UserController {
     @Autowired
     private IUserService userService;
-
+    
     @GetMapping("/check-mail")
     public String findByEmailAndIsEnable(@RequestParam(name = "email", required = false) String email) {
         UserDTO user = userService.findByEmailAndIsEnable(email);
