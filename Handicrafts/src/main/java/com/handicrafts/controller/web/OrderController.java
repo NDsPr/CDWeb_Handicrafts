@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import com.handicrafts.api.input.OrderInput;
 import com.handicrafts.api.output.CartOutput;
-import com.handicrafts.dto.BookDTO;
+import com.handicrafts.dto.HandicraftDTO;
 import com.handicrafts.dto.CartDTO;
 import com.handicrafts.dto.OrderDTO;
 import com.handicrafts.dto.OrderlineDTO;
