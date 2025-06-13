@@ -8,7 +8,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class WebController {
     @GetMapping(value = {"/", "/trang-chu"})
     public ModelAndView index() {
-        ModelAndView mav = new ModelAndView("web/index.html");
+        ModelAndView mav = new ModelAndView("web/client-home.html");
         return mav;
     }
 
