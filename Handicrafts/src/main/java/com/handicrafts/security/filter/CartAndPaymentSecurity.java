@@ -1,4 +1,4 @@
-package com.handicrafts.security;
+package com.handicrafts.security.filter;
 
 import com.ltw.bean.UserBean;
 import com.ltw.util.SessionUtil;
