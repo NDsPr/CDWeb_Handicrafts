@@ -1,29 +1,35 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.BlogBean;
-import com.ltw.bean.CustomizeBean;
-import com.ltw.dao.BlogDAO;
-import com.ltw.dao.CustomizeDAO;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import com.handicrafts.dto.BlogDTO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.repository.BlogRepository;
+import com.handicrafts.repository.CustomizeRepository;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
 import java.util.List;
-@WebServlet(value = {"/blog"})
-public class BlogController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final BlogDAO BlogDAO = new BlogDAO();
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<BlogBean> listBlogs = BlogDAO.findAllBlogs();
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
+@Controller
+public class BlogController {
 
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.setAttribute("listBlogs", listBlogs);
-        req.getRequestDispatcher("blog.jsp").forward(req, resp);
+    private final CustomizeRepository customizeRepository;
+    private final BlogRepository blogRepository;
+
+    public BlogController(CustomizeRepository customizeRepository, BlogRepository blogRepository) {
+        this.customizeRepository = customizeRepository;
+        this.blogRepository = blogRepository;
+    }
+
+    @GetMapping("/blog")
+    public String showBlogPage(Model model) {
+        List<BlogDTO> listBlogs = blogRepository.findAllBlogs();
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+
+        model.addAttribute("customizeInfo", customizeInfo);
+        model.addAttribute("listBlogs", listBlogs);
+
+        return "blog";
     }
 }

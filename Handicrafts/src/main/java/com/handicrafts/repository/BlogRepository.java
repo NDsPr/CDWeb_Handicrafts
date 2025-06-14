@@ -1,9 +1,12 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.BlogBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+
+
+import com.handicrafts.dto.BlogDTO;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
+import org.springframework.stereotype.Repository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,10 +14,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
+@Repository
 public class BlogRepository {
 
-    public BlogBean findBlogById(int id) {
+    public BlogDTO findBlogById(int id) {
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT id, author, title, profilePic, content, categoryId, createdDate ")
                 .append("FROM blogs ")
@@ -24,7 +27,7 @@ public class BlogRepository {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
-        BlogBean blogBean = null;
+        BlogDTO blog = null;
         try {
             connection = OpenConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql.toString());
@@ -32,26 +35,25 @@ public class BlogRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                blogBean = new BlogBean();
-                blogBean.setId(resultSet.getInt("id"));
-                blogBean.setAuthor(resultSet.getString("author"));
-                blogBean.setTitle(resultSet.getString("title"));
-                blogBean.setProfilePic(resultSet.getString("profilePic"));
-                blogBean.setContent(resultSet.getString("content"));
-                blogBean.setCategoryId(resultSet.getInt("categoryId"));
-                blogBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
+                blog = new BlogDTO();
+                blog.setId(resultSet.getInt("id"));
+                blog.setAuthor(resultSet.getString("author"));
+                blog.setTitle(resultSet.getString("title"));
+                blog.setProfilePic(resultSet.getString("profilePic"));
+                blog.setContent(resultSet.getString("content"));
+                blog.setCategoryId(resultSet.getInt("categoryId"));
+                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return blogBean;
+        return blog;
     }
 
-    // TODO: Thay đổi lại câu SQL khi thêm status trong bảng Category
-    public List<BlogBean> findThreeBlogs() {
-        List<BlogBean> result = new ArrayList<>();
+    public List<BlogDTO> findThreeBlogs() {
+        List<BlogDTO> result = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT id, title, author, categoryId, createdDate ")
                 .append("FROM blogs ")
@@ -67,14 +69,14 @@ public class BlogRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                BlogBean blogBean = new BlogBean();
-                blogBean.setId(resultSet.getInt("id"));
-                blogBean.setTitle(resultSet.getString("title"));
-                blogBean.setAuthor(resultSet.getString("author"));
-                blogBean.setCategoryId(resultSet.getInt("categoryId"));
-                blogBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
+                BlogDTO blog = new BlogDTO();
+                blog.setId(resultSet.getInt("id"));
+                blog.setTitle(resultSet.getString("title"));
+                blog.setAuthor(resultSet.getString("author"));
+                blog.setCategoryId(resultSet.getInt("categoryId"));
+                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
 
-                result.add(blogBean);
+                result.add(blog);
             }
             return result;
         } catch (SQLException e) {
@@ -85,8 +87,8 @@ public class BlogRepository {
         }
     }
 
-    public List<BlogBean> findAllBlogs() {
-        List<BlogBean> result = new ArrayList<>();
+    public List<BlogDTO> findAllBlogs() {
+        List<BlogDTO> result = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT id, title, author, categoryId, createdDate ")
                 .append("FROM blogs ")
@@ -102,14 +104,14 @@ public class BlogRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                BlogBean blogBean = new BlogBean();
-                blogBean.setId(resultSet.getInt("id"));
-                blogBean.setTitle(resultSet.getString("title"));
-                blogBean.setAuthor(resultSet.getString("author"));
-                blogBean.setCategoryId(resultSet.getInt("categoryId"));
-                blogBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
+                BlogDTO blog = new BlogDTO();
+                blog.setId(resultSet.getInt("id"));
+                blog.setTitle(resultSet.getString("title"));
+                blog.setAuthor(resultSet.getString("author"));
+                blog.setCategoryId(resultSet.getInt("categoryId"));
+                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
 
-                result.add(blogBean);
+                result.add(blog);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -119,9 +121,9 @@ public class BlogRepository {
         return result;
     }
 
-    public void createBlog(BlogBean blogBean) {
+    public void createBlog(BlogDTO blog) {
         String sql = "INSERT INTO blogs(title,author, description, content, categoryID, status,createdDate, createdBy) " +
-                "VALUES (?,?, ?, ?, ?, ?,?,?,)";
+                "VALUES (?,?, ?, ?, ?, ?,?,?)";
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -130,8 +132,10 @@ public class BlogRepository {
             connection = OpenConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, blogBean.getTitle(),blogBean.getAuthor(), blogBean.getDescription(),
-                    blogBean.getContent(), blogBean.getCategoryId(), blogBean.getStatus());
+            SetParameterUtil.setParameter(preparedStatement,
+                    blog.getTitle(), blog.getAuthor(), blog.getDescription(),
+                    blog.getContent(), blog.getCategoryId(), blog.getStatus(),
+                    blog.getCreatedDate(), blog.getCreatedBy());
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -145,10 +149,9 @@ public class BlogRepository {
         }
     }
 
-
-    public List<BlogBean> getBlogsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<BlogBean> blogs = new ArrayList<>();
-        String sql = "SELECT id, title, author, description, content, categoryId, status, profilePic, createdDate, createdBy, modifiedDate,modifiedBy FROM blogs";
+    public List<BlogDTO> getBlogsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
+        List<BlogDTO> blogs = new ArrayList<>();
+        String sql = "SELECT id, title, author, description, content, categoryId, status, profilePic, createdDate, createdBy, modifiedDate, modifiedBy FROM blogs";
         int index = 1;
 
         Connection conn = null;
@@ -166,25 +169,16 @@ public class BlogRepository {
 
             preStat = conn.prepareStatement(sql);
             if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
+                for (int i = 0; i < 12; i++) {
+                    preStat.setString(index++, "%" + searchValue + "%");
+                }
             }
             preStat.setInt(index++, start);
             preStat.setInt(index, length);
 
             rs = preStat.executeQuery();
             while (rs.next()) {
-                BlogBean blog = new BlogBean();
+                BlogDTO blog = new BlogDTO();
                 blog.setId(rs.getInt("id"));
                 blog.setTitle(rs.getString("title"));
                 blog.setAuthor(rs.getString("author"));
@@ -234,46 +228,38 @@ public class BlogRepository {
 
     public int getRecordsFiltered(String searchValue){
         int recordsFiltered = -1;
-    String sql = "SELECT COUNT(id) FROM blogs";
+        String sql = "SELECT COUNT(id) FROM blogs";
 
-    Connection conn = null;
-    PreparedStatement preStat = null;
-    ResultSet rs = null;
+        Connection conn = null;
+        PreparedStatement preStat = null;
+        ResultSet rs = null;
 
         try {
-        conn = OpenConnectionUtil.openConnection();
-        if (searchValue != null && !searchValue.isEmpty()) {
-            sql += " WHERE (id LIKE ? OR title LIKE ? OR author LIKE ? OR description LIKE ? OR content LIKE ? OR categoryId LIKE ? " +
-                    "OR status LIKE ? OR profilePic LIKE ? OR createDate LIKE ? OR createBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
-        }
-        preStat = conn.prepareStatement(sql);
-        int index = 1;
-        if (searchValue != null && !searchValue.isEmpty()) {
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index, "%" + searchValue + "%");
-        }
-        rs = preStat.executeQuery();
+            conn = OpenConnectionUtil.openConnection();
+            if (searchValue != null && !searchValue.isEmpty()) {
+                sql += " WHERE (id LIKE ? OR title LIKE ? OR author LIKE ? OR description LIKE ? OR content LIKE ? OR categoryId LIKE ? " +
+                        "OR status LIKE ? OR profilePic LIKE ? OR createDate LIKE ? OR createBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
+            }
+            preStat = conn.prepareStatement(sql);
+            int index = 1;
+            if (searchValue != null && !searchValue.isEmpty()) {
+                for (int i = 0; i < 12; i++) {
+                    preStat.setString(index++, "%" + searchValue + "%");
+                }
+            }
+            rs = preStat.executeQuery();
 
-        if (rs.next()) {
-            recordsFiltered = rs.getInt(1);
+            if (rs.next()) {
+                recordsFiltered = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            CloseResourceUtil.closeResource(rs, preStat, conn);
         }
-    } catch (SQLException e) {
-        throw new RuntimeException(e);
-    } finally {
-        CloseResourceUtil.closeResource(rs, preStat, conn);
-    }
         return recordsFiltered;
-}
+    }
+
     public int deleteBlog(int id) {
         int affectRows;
         String sql = "DELETE FROM blogs WHERE id = ?";
@@ -301,7 +287,8 @@ public class BlogRepository {
         }
         return affectRows;
     }
-    public int updateBlog(BlogBean blog) {
+
+    public int updateBlog(BlogDTO blog) {
         int affectedRows = -1;
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE blogs ")
@@ -316,8 +303,10 @@ public class BlogRepository {
             connection = OpenConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement, blog.getTitle(), blog.getAuthor(),
-                    blog.getDescription(), blog.getContent(), blog.getProfilePic(), blog.getId());
+            SetParameterUtil.setParameter(preparedStatement,
+                    blog.getTitle(), blog.getAuthor(),
+                    blog.getDescription(), blog.getContent(),
+                    blog.getProfilePic(), blog.getId());
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -331,5 +320,4 @@ public class BlogRepository {
         }
         return affectedRows;
     }
-
 }

@@ -1,10 +1,10 @@
 package com.handicrafts.repository.impl;
 
-import com.ltw.bean.LogBean;
-import com.ltw.dao.intf.IDaoNonUpdate;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.dto.LogDTO;
+import com.handicrafts.repository.intf.IRepositoryNonUpdate;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,14 +13,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LogDTO implements IDaoNonUpdate<LogBean> {
+public class LogRepository implements IRepositoryNonUpdate<LogDTO> {
     @Override
-    public List<LogBean> getAll() {
+    public List<LogDTO> getAll() {
         return null;
     }
 
     @Override
-    public int create(LogBean logBean) {
+    public int create(LogDTO logDTO) {
         int record = -1;
         String sql = "INSERT INTO logs (ip, national, level, address, " +
                 "previousValue, currentValue, createdDate) " +
@@ -33,8 +33,8 @@ public class LogDTO implements IDaoNonUpdate<LogBean> {
             connection = OpenConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, logBean.getIp(), logBean.getNational(), logBean.getLevel(),
-                    logBean.getAddress(), logBean.getPreviousValue(), logBean.getCurrentValue(), logBean.getCreatedDate());
+            SetParameterUtil.setParameter(preparedStatement, logDTO.getIp(), logDTO.getNational(), logDTO.getLevel(),
+                    logDTO.getAddress(), logDTO.getPreviousValue(), logDTO.getCurrentValue(), logDTO.getCreatedDate());
             record = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -54,8 +54,8 @@ public class LogDTO implements IDaoNonUpdate<LogBean> {
         return 0;
     }
 
-    public List<LogBean> getUsersDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<LogBean> logs = new ArrayList<>();
+    public List<LogDTO> getUsersDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
+        List<LogDTO> logs = new ArrayList<>();
         String sql = "SELECT id, ip, national, level, address, previousValue, currentValue, createdDate, createdBy " +
                 "FROM logs ";
 
@@ -76,22 +76,16 @@ public class LogDTO implements IDaoNonUpdate<LogBean> {
 
             preStat = conn.prepareStatement(sql);
             if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
+                for (int i = 0; i < 9; i++) {
+                    preStat.setString(index++, "%" + searchValue + "%");
+                }
             }
             preStat.setInt(index++, start);
             preStat.setInt(index, length);
 
             rs = preStat.executeQuery();
             while (rs.next()) {
-                LogBean log = new LogBean();
+                LogDTO log = new LogDTO();
                 log.setId(rs.getInt("id"));
                 log.setIp(rs.getString("ip"));
                 log.setNational(rs.getString("national"));
@@ -115,21 +109,14 @@ public class LogDTO implements IDaoNonUpdate<LogBean> {
         int recordsTotal = -1;
         String sql = "SELECT COUNT(id) FROM logs";
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            preStat = conn.prepareStatement(sql);
-            rs = preStat.executeQuery();
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement preStat = conn.prepareStatement(sql);
+             ResultSet rs = preStat.executeQuery()) {
             if (rs.next()) {
                 recordsTotal = rs.getInt(1);
             }
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
         }
         return recordsTotal;
     }
@@ -151,15 +138,9 @@ public class LogDTO implements IDaoNonUpdate<LogBean> {
             preStat = conn.prepareStatement(sql);
             int index = 1;
             if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index, "%" + searchValue + "%");
+                for (int i = 0; i < 9; i++) {
+                    preStat.setString(index++, "%" + searchValue + "%");
+                }
             }
             rs = preStat.executeQuery();
             if (rs.next()) {

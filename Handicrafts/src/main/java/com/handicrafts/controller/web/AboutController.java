@@ -1,24 +1,20 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.CustomizeBean;
-import com.ltw.dao.CustomizeDAO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.repository.CustomizeRepository;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+@Controller
+public class AboutController {
 
-@WebServlet(value = {"/about-us"})
-public class AboutController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
+    private final CustomizeRepository customizeRepository = new CustomizeRepository();
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.getRequestDispatcher("/about.jsp").forward(req, resp);
+    @GetMapping("/about-us")
+    public String aboutPage(Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        model.addAttribute("customizeInfo", customizeInfo);
+        return "about"; // Tên file Thymeleaf: about.html
     }
 }

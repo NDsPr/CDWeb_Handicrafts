@@ -1,95 +1,84 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.ContactBean;
-import com.ltw.bean.CustomizeBean;
-import com.ltw.constant.LogLevel;
-import com.ltw.constant.LogState;
-import com.ltw.dao.ContactDAO;
-import com.ltw.dao.CustomizeDAO;
-import com.ltw.service.LogService;
-import com.ltw.util.BlankInputUtil;
+import com.handicrafts.constant.LogLevel;
+import com.handicrafts.constant.LogState;
+import com.handicrafts.dto.ContactDTO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.repository.ContactRepository;
+import com.handicrafts.repository.CustomizeRepository;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import com.handicrafts.security.service.LogService;
+import com.handicrafts.util.BlankInputUtil;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ResourceBundle;
 
-@WebServlet(value = {"/contact"})
-public class ContactController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final ContactDAO contactDAO = new ContactDAO();
-    private LogService<ContactBean> logService = new LogService<>();
-    private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+@Controller
+@RequestMapping("/contact")
+public class ContactController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.getRequestDispatcher("contact.jsp").forward(req, resp);
+    private final CustomizeRepository customizeRepository;
+    private final ContactRepository contactRepository;
+    private final LogService<ContactDTO> logService;
+    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+
+    public ContactController(CustomizeRepository customizeRepository, ContactRepository contactRepository, LogService<ContactDTO> logService) {
+        this.customizeRepository = customizeRepository;
+        this.contactRepository = contactRepository;
+        this.logService = logService;
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        String email = req.getParameter("email");
-        String firstName = req.getParameter("firstName");
-        String lastName = req.getParameter("lastName");
-        String message = req.getParameter("message");
+    @GetMapping
+    public String showContactPage(Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        model.addAttribute("customizeInfo", customizeInfo);
+        return "contact";
+    }
 
-        String emailError = "";
-        String firstNameError = "";
-        String lastNameError = "";
-        String messageError = "";
+    @PostMapping
+    public String handleContactForm(@ModelAttribute ContactDTO contactDTO, Model model, HttpServletRequest request) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        model.addAttribute("customizeInfo", customizeInfo);
 
-        String msg = "";
         boolean isValid = true;
 
-        if (BlankInputUtil.isBlank(email)) {
-            req.setAttribute("emailError", emailError);
+        if (BlankInputUtil.isBlank(contactDTO.getEmail())) {
+            model.addAttribute("emailError", "Email không được để trống");
             isValid = false;
         }
-        if (BlankInputUtil.isBlank(firstName)) {
-            req.setAttribute("emailError", firstNameError);
+        if (BlankInputUtil.isBlank(contactDTO.getFirstName())) {
+            model.addAttribute("firstNameError", "Tên không được để trống");
             isValid = false;
         }
-        if (BlankInputUtil.isBlank(lastName)) {
-            req.setAttribute("emailError", lastNameError);
+        if (BlankInputUtil.isBlank(contactDTO.getLastName())) {
+            model.addAttribute("lastNameError", "Họ không được để trống");
             isValid = false;
         }
-        if (BlankInputUtil.isBlank(message)) {
-            req.setAttribute("emailError", messageError);
+        if (BlankInputUtil.isBlank(contactDTO.getMessage())) {
+            model.addAttribute("messageError", "Nội dung không được để trống");
             isValid = false;
         }
 
+        String msg;
         if (!isValid) {
             msg = "error";
-            req.getRequestDispatcher("contact.jsp").forward(req, resp);
-        }
-        // Hợp lệ thì set thành công và forward về trang
-        else {
-            ContactBean contactBean=new ContactBean();
-            contactBean.setEmail(email);
-            contactBean.setFirstName(firstName);
-            contactBean.setLastName(lastName);
-            contactBean.setMessage(message);
+        } else {
+            int id = contactRepository.createContact(contactDTO);
+            ContactDTO savedContact = contactRepository.findContactById(id);
 
-            int id = contactDAO.createContact(contactBean);
-            ContactBean currentContact = contactDAO.findContactById(id);
             if (id <= 0) {
-                logService.log(req, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
+                logService.log(request, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
                 msg = "error";
             } else {
-                logService.log(req, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, currentContact);
+                logService.log(request, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, savedContact);
                 msg = "success";
             }
         }
 
-        req.setAttribute("msg", msg);
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.getRequestDispatcher("/contact.jsp").forward(req, resp);
+        model.addAttribute("msg", msg);
+        return "contact";
     }
 }
