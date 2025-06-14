@@ -1,7 +1,5 @@
 package com.handicrafts.service;
 
-import com.handicrafts.dto.OrderDTO;
-
 import java.util.List;
 
 public interface IOrderService {

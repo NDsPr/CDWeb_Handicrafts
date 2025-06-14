@@ -3,7 +3,6 @@ package com.handicrafts.converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 
 @Component

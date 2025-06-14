@@ -1,7 +1,5 @@
 package com.handicrafts.service;
 
-import com.handicrafts.dto.CartDTO;
-
 import java.util.List;
 
 public interface ICartService {

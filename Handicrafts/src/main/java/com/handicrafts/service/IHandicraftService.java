@@ -1,7 +1,5 @@
 package com.handicrafts.service;
 
-import com.handicrafts.dto.HandicraftDTO;
-
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 

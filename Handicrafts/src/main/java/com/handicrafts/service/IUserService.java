@@ -1,6 +1,5 @@
 package com.handicrafts.service;
 
-import com.handicrafts.dto.UserDTO;
 import java.util.List;
 
 public interface IUserService {

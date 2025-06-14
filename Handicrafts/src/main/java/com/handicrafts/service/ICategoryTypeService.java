@@ -1,7 +1,5 @@
 package com.handicrafts.service;
 
-import com.handicrafts.dto.Category_typeDTO;
-
 import java.util.List;
 
 public interface ICategoryTypeService {
