@@ -3,10 +3,8 @@ package com.handicrafts.service.impl;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import com.handicrafts.converter.CategoryConverter;
-import com.handicrafts.dto.CategoryDTO;
 import com.handicrafts.entity.CategoryEntity;
 import com.handicrafts.repository.CategoryRepository;
 import com.handicrafts.service.ICategoryService;

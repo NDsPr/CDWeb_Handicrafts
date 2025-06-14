@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.handicrafts.converter.HandicraftConverter;
-import com.handicrafts.dto.HandicraftDTO;
-import com.handicrafts.dto.HandicraftImageDTO;
 import com.handicrafts.entity.HandicraftEntity;
 import com.handicrafts.entity.HandicraftImageEntity;
 import com.handicrafts.repository.HandicraftImageRepository;

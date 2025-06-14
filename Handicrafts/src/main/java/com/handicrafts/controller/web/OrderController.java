@@ -1,7 +1,6 @@
 package com.handicrafts.controller.web;
 
 
-import com.handicrafts.dto.HandicraftDTO;
 import com.handicrafts.service.IHandicraftService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -12,14 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import com.handicrafts.api.input.OrderInput;
 import com.handicrafts.api.output.CartOutput;
-import com.handicrafts.dto.HandicraftDTO;
 import com.handicrafts.dto.CartDTO;
-import com.handicrafts.dto.OrderDTO;
 import com.handicrafts.dto.OrderlineDTO;
 import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.*;
 
-import java.security.Principal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

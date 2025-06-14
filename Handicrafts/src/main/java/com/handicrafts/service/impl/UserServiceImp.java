@@ -7,7 +7,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.handicrafts.converter.RoleConverter;
 import com.handicrafts.converter.UserConverter;
-import com.handicrafts.dto.RoleDTO;
 import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.RoleRepository;
