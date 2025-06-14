@@ -1,18 +1,21 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.ProductImageBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
+import org.springframework.stereotype.Repository;
+
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class ImageRepository {
     // TODO: Cần thêm status cho ảnh (Sẽ làm sau)
-    public ProductImageBean findImageById(int id) {
-        ProductImageBean productImageBean = null;
+    public ProductImageDTO findImageById(int id) {
+        ProductImageDTO imageDTO = null;
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT id, name, link, productId ")
                 .append("FROM images WHERE id = ?");
@@ -28,21 +31,21 @@ public class ImageRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                productImageBean = new ProductImageBean();
-                productImageBean.setId(resultSet.getInt("id"));
-                productImageBean.setName(resultSet.getString("name"));
-                productImageBean.setLink(resultSet.getString("link"));
-                productImageBean.setProductId(resultSet.getInt("productId"));
+                imageDTO = new ProductImageDTO();
+                imageDTO.setId(resultSet.getInt("id"));
+                imageDTO.setName(resultSet.getString("name"));
+                imageDTO.setLink(resultSet.getString("link"));
+                imageDTO.setProductId(resultSet.getInt("productId"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return productImageBean;
+        return imageDTO;
     }
 
-    public int insertProductImage(ProductImageBean image) {
+    public int insertProductImage(ProductImageDTO image) {
         int id = -1;
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO images ")
@@ -55,19 +58,16 @@ public class ImageRepository {
 
         try {
             connection = OpenConnectionUtil.openConnection();
-            // Do đây là non-query (Non-query là INSERT, UPDATE, DELETE trong SQL) nên cần setAutoCommit(false)...
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
 
             SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                                                image.getCreatedBy(), image.getModifiedBy());
+                    image.getCreatedBy(), image.getModifiedBy());
             id = preparedStatement.executeUpdate();
 
-            // ... và commit ở đây...
             connection.commit();
         } catch (SQLException e) {
             try {
-                // ... cũng như rollback khi bị lỗi SQL ở đây.
                 connection.rollback();
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
@@ -78,8 +78,8 @@ public class ImageRepository {
         return id;
     }
 
-    public List<ProductImageBean> findAllImages() {
-        List<ProductImageBean> allImages = new ArrayList<>();
+    public List<ProductImageDTO> findAllImages() {
+        List<ProductImageDTO> allImages = new ArrayList<>();
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT id, name, link, productId, nameInStorage, createdDate, ")
                 .append("createdBy, modifiedDate, modifiedBy ")
@@ -95,18 +95,18 @@ public class ImageRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                ProductImageBean productImageBean = new ProductImageBean();
-                productImageBean.setId(resultSet.getInt("id"));
-                productImageBean.setName(resultSet.getString("name"));
-                productImageBean.setLink(resultSet.getString("link"));
-                productImageBean.setProductId(resultSet.getInt("productId"));
-                productImageBean.setNameInStorage(resultSet.getString("nameInStorage"));
-                productImageBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                productImageBean.setCreatedBy(resultSet.getString("createdBy"));
-                productImageBean.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
-                productImageBean.setModifiedBy(resultSet.getString("modifiedBy"));
+                ProductImageDTO imageDTO = new ProductImageDTO();
+                imageDTO.setId(resultSet.getInt("id"));
+                imageDTO.setName(resultSet.getString("name"));
+                imageDTO.setLink(resultSet.getString("link"));
+                imageDTO.setProductId(resultSet.getInt("productId"));
+                imageDTO.setNameInStorage(resultSet.getString("nameInStorage"));
+                imageDTO.setCreatedDate(resultSet.getTimestamp("createdDate"));
+                imageDTO.setCreatedBy(resultSet.getString("createdBy"));
+                imageDTO.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
+                imageDTO.setModifiedBy(resultSet.getString("modifiedBy"));
 
-                allImages.add(productImageBean);
+                allImages.add(imageDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -116,10 +116,9 @@ public class ImageRepository {
         return allImages;
     }
 
-
-    public void updateImage(ProductImageBean image) {
+    public void updateImage(ProductImageDTO image) {
         String sql = "UPDATE images SET name = ?, link = ?, productId = ?, modifiedBy = ? " +
-                     "WHERE id = ?";
+                "WHERE id = ?";
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -130,7 +129,7 @@ public class ImageRepository {
             preparedStatement = connection.prepareStatement(sql);
 
             SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                                                    image.getModifiedBy(), image.getId());
+                    image.getModifiedBy(), image.getId());
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -144,7 +143,7 @@ public class ImageRepository {
         }
     }
 
-    public void updateImageNotPart(ProductImageBean image) {
+    public void updateImageNotPart(ProductImageDTO image) {
         String sql = "UPDATE images SET name = ?, link = ?, productId = ?, modifiedDate = ?, modifiedBy = ? " +
                 "WHERE id = ?";
 
@@ -157,8 +156,8 @@ public class ImageRepository {
             preparedStatement = connection.prepareStatement(sql);
 
             SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                                                    image.getModifiedDate(), image.getModifiedBy(),
-                                                    image.getId());
+                    image.getModifiedDate(), image.getModifiedBy(),
+                    image.getId());
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
@@ -224,8 +223,8 @@ public class ImageRepository {
         return affectRows;
     }
 
-    public ProductImageBean findOneByProductId(int productId) {
-        ProductImageBean productImageBean = new ProductImageBean();
+    public ProductImageDTO findOneByProductId(int productId) {
+        ProductImageDTO imageDTO = new ProductImageDTO();
         String sql = "SELECT id, name, link, productId FROM images " +
                 "WHERE productId = ? " +
                 "LiMIT 1";
@@ -241,21 +240,21 @@ public class ImageRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                productImageBean.setId(resultSet.getInt("id"));
-                productImageBean.setName(resultSet.getString("name"));
-                productImageBean.setLink(resultSet.getString("link"));
-                productImageBean.setProductId(resultSet.getInt("productId"));
+                imageDTO.setId(resultSet.getInt("id"));
+                imageDTO.setName(resultSet.getString("name"));
+                imageDTO.setLink(resultSet.getString("link"));
+                imageDTO.setProductId(resultSet.getInt("productId"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return productImageBean;
+        return imageDTO;
     }
 
-    public List<ProductImageBean> getThumbnailByProductId(int productId) {
-        List<ProductImageBean> thumbnail = new ArrayList<>();
+    public List<ProductImageDTO> getThumbnailByProductId(int productId) {
+        List<ProductImageDTO> thumbnail = new ArrayList<>();
         String sql = "SELECT id, name, link, productId FROM images " +
                 "WHERE productId = ? " +
                 "LiMIT 1";
@@ -271,13 +270,13 @@ public class ImageRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                ProductImageBean productImageBean = new ProductImageBean();
-                productImageBean.setId(resultSet.getInt("id"));
-                productImageBean.setName(resultSet.getString("name"));
-                productImageBean.setLink(resultSet.getString("link"));
-                productImageBean.setProductId(resultSet.getInt("productId"));
+                ProductImageDTO imageDTO = new ProductImageDTO();
+                imageDTO.setId(resultSet.getInt("id"));
+                imageDTO.setName(resultSet.getString("name"));
+                imageDTO.setLink(resultSet.getString("link"));
+                imageDTO.setProductId(resultSet.getInt("productId"));
 
-                thumbnail.add(productImageBean);
+                thumbnail.add(imageDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -287,8 +286,8 @@ public class ImageRepository {
         return thumbnail;
     }
 
-    public List<ProductImageBean> findImagesByProductId(int productId) {
-        List<ProductImageBean> productImageBeans = new ArrayList<>();
+    public List<ProductImageDTO> findImagesByProductId(int productId) {
+        List<ProductImageDTO> imageDTOs = new ArrayList<>();
         String query = "SELECT id, link FROM images WHERE productId = ?";
 
         Connection connection = null;
@@ -302,10 +301,10 @@ public class ImageRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                ProductImageBean productImageBean = new ProductImageBean();
-                productImageBean.setId(resultSet.getInt("id"));
-                productImageBean.setLink(resultSet.getString("link"));
-                productImageBeans.add(productImageBean);
+                ProductImageDTO imageDTO = new ProductImageDTO();
+                imageDTO.setId(resultSet.getInt("id"));
+                imageDTO.setLink(resultSet.getString("link"));
+                imageDTOs.add(imageDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -313,6 +312,6 @@ public class ImageRepository {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
 
-        return productImageBeans;
+        return imageDTOs;
     }
 }
