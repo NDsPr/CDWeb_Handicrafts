@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>DDD. Admin - Management Order</title>
+    <th:block th:replace="~{/common/admin/using-resource-header :: head-resources}"/>
+</head>
+<body class="sb-nav-fixed">
+
+<!-- Include navigation -->
+<th:block th:replace="~{/common/admin/top-header :: top-header}"/>
+
+<div id="layoutSidenav">
+    <th:block th:replace="~{/common/admin/left-navigation :: left-navigation}"/>
+
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Quản lý liên hệ</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div th:if="${success != null}" class="alert alert-success" th:text="${success}"></div>
+                <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+
+                <div class="card mb-4 mt-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        Quản lý liên hệ
+                    </div>
+                    <div class="table-responsive">
+                        <table id="contactData" class="table table-striped" style="width:100%">
+                            <thead>
+                            <tr>
+                                <th>ID Tài khoản</th>
+                                <th>Email</th>
+                                <th>Tên</th>
+                                <th>Họ</th>
+                                <th>Tiêu đề</th>
+                                <th>Tin nhắn</th>
+                                <th>Trạng thái</th>
+                                <th>Tạo ngày</th>
+                                <th>Tạo bởi</th>
+                                <th>Sửa ngày</th>
+                                <th>Sửa bởi</th>
+                                <th>Chức năng</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Dữ liệu sẽ được load bằng JavaScript từ file datatable-contact.js -->
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <th>ID Tài khoản</th>
+                                <th>Email</th>
+                                <th>Tên</th>
+                                <th>Họ</th>
+                                <th>Tiêu đề</th>
+                                <th>Tin nhắn</th>
+                                <th>Trạng thái</th>
+                                <th>Tạo ngày</th>
+                                <th>Tạo bởi</th>
+                                <th>Sửa ngày</th>
+                                <th>Sửa bởi</th>
+                                <th>Chức năng</th>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="~{/common/admin/using-resource-footer :: footer-resources}"/>
+
+<script th:src="@{/templates/logic-datatable/admin/datatable-contact.js}"></script>
+<script th:src="@{/templates/logic-datatable/service-logic.js}"></script>
+</body>
+</html>

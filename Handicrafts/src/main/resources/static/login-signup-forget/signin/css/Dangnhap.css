@@ -1,0 +1,197 @@
+* {
+    font-family: "Inter", sans-serif;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f5f5f5;
+    height: 100vh;
+}
+
+.screen-1 {
+    background: #f0f0f0;
+    padding: 5em;
+    display: flex;
+    flex-direction: column;
+    border-radius: 30px;
+    /*box-shadow: 0 0 2em #454032;*/
+    gap: 2em;  /*khoảng cách (khoảng trống) giữa các phần tử*/
+    border: 1px solid #997404;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+
+}
+.header{
+    align-self: center;
+    padding-bottom: 40px;
+}
+
+.screen-1 .email {
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    border-radius: 20px;
+    color: #4d4d4d;
+    margin-top: -3em;
+    margin-bottom: 20px;
+}
+.screen-1 .email input {
+    outline: none;
+    border: none;
+    width: 90%;
+    /*padding: 10px;*/
+}
+.screen-1 .email input::-moz-placeholder {
+    color: black;
+    font-size: 0.9em;
+}
+.screen-1 .email input:-ms-input-placeholder {
+    color: black;
+    font-size: 0.9em;
+}
+.screen-1 .email input::placeholder {
+    color: #4d5154;
+    font-size: 0.9em;
+}
+.screen-1 .email ion-icon {
+    color: #4d4d4d;
+    margin-bottom: -0.2em;
+}
+.screen-1 .password {
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    border-radius: 20px;
+    color: #4d4d4d;
+}
+.screen-1 .password input {
+    outline: none;
+    border: none;
+    width: 90%;
+}
+.screen-1 .password input::-moz-placeholder {
+    color: black;
+    font-size: 0.9em;
+}
+.screen-1 .password input:-ms-input-placeholder {
+    color: black;
+    font-size: 0.9em;
+}
+.screen-1 .password input::placeholder {
+    color: black;
+    font-size: 0.9em;
+}
+.screen-1 .password ion-icon {
+    color: #4d4d4d;
+    margin-bottom: -0.2em;
+}
+.screen-1 .password .show-hide {
+    margin-right: -5em;
+}
+.screen-1 .login {
+    text-decoration: none;
+    text-align: center;
+    padding: 1em;
+    color: black;
+    background: #e3bd74;
+    border-radius: 30px;
+    font-weight: 500;
+    border: 1px solid #997404;
+    /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);*/
+}
+.screen-1 .footer {
+    display: flex;
+    font-size: 0.8em;
+    color: black;
+    gap: 14em;
+    padding-bottom: 1em;
+}
+.screen-1 .footer span {
+    cursor: pointer;
+}
+
+.screen-1 form {
+    display: flex;
+    flex-direction: column;
+    margin-top: 50px;
+}
+
+button {
+    cursor: pointer;
+}
+h1{
+    color: #e8b949 !important;
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #997404 ;
+    border-radius: 10px;
+    display: inline-block;
+    background-color: #2c1c0c;
+    padding: 10px;
+
+}
+.logo{
+    text-align: center;
+}
+
+.link {
+    color: black;
+}
+
+form .submit-button {
+    margin-top: 10px;
+    width: 100%;
+    background-color: #e3bd74;
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.sec-2 {
+    position: relative;
+}
+
+.sec-2 .eye {
+    position: absolute;
+    right: 10px;
+    font-size: 14px;
+}
+
+.error-message {
+    width: 100%;
+    color: red;
+    font-size: 14px;
+}
+
+.oauth-btn {
+    padding: 8px 12px;
+    border: 1px solid;
+    border-radius: 4px;
+    transition: all .3s ease-out;
+}
+.oauth-btn i {
+    padding-right: 2px;
+}
+
+
+.oauth-btn:hover {
+    border: 1px solid #2c0b0e;
+    background-color: #2c0b0e;
+    color: white;
+}

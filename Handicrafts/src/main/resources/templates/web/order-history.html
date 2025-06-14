@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>DDD. - Nghệ thuật mỹ nghệ</title>
+  <th:block th:replace="~{/common/client/using-resource-header :: header}"></th:block>
+</head>
+
+<body>
+<!-- Header -->
+<th:block th:replace="~{/common/client/header :: header}"></th:block>
+
+<!-- Start Hero Section -->
+<div class="hero home position-relative-top-84px">
+  <div class="container">
+    <div class="row justify-content-between">
+      <div class="col-12">
+        <div class="intro-excerpt">
+          <h1>Lịch sử đơn hàng</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Start Order History Section -->
+<div class="renew-password position-relative-top-84px" style="background-color: #eeeeee; padding-top: 2rem">
+  <div th:if="${param.error}" class="alert alert-danger">Lỗi hệ thống</div>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-body">
+        <div class="table table-striped" style="margin-top: 20px;">
+          <table id="orderHistory" class="table table-striped">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Ngày tạo</th>
+              <th>Ngày nhận</th>
+              <th>Phương thức thanh toán</th>
+              <th>Tổng tiền</th>
+              <th>Trạng thái</th>
+              <th>Chức năng</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+            <tr>
+              <th>#</th>
+              <th>Ngày tạo</th>
+              <th>Ngày nhận</th>
+              <th>Phương thức thanh toán</th>
+              <th>Tổng tiền</th>
+              <th>Trạng thái</th>
+              <th>Chức năng</th>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="return-btn">
+      <a th:href="@{/home}" class="checking-order-detail">Quay về trang chủ</a>
+    </div>
+  </div>
+</div>
+<!-- End Order History Section -->
+
+<!-- Modal -->
+<div class="modal fade" id="reviewProduct" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5">Review sản phẩm</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inject user data from server -->
+<script th:inline="javascript">
+  const userIdToForm = /*[[${session.user.id}]]*/ 0;
+  const userNameToForm = /*[[${session.user.firstName != null && session.user.lastName != null}]]*/ false
+          ? /*[[${session.user.firstName}]]*/ '' + ' ' + /*[[${session.user.lastName}]]*/ ''
+          : /*[[${session.user.email}]]*/ '';
+</script>
+
+<!-- Footer -->
+<th:block th:replace="~{/common/client/footer :: footer}"></th:block>
+<th:block th:replace="~{/common/client/using-resource-footer :: footer}"></th:block>
+
+<!-- Scripts -->
+<script th:src="@{/templates/DataTables/datatables.min.js}"></script>
+<script th:src="@{/templates/logic-datatable/client/dt-order-history.js}"></script>
+<script th:src="@{/templates/logic-datatable/service-logic.js}"></script>
+<script th:src="@{/templates/modal/show-modal.js}"></script>
+</body>
+</html>

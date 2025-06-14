@@ -1,4 +1,5 @@
 package com.handicrafts.service;
 
-public class IRoleService {
+public interface IRoleService {
+    public RoleDTO findRolebyName(String name);
 }

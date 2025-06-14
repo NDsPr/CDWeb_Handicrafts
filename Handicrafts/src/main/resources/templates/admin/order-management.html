@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>DDD. Admin - Quản lý đơn hàng</title>
+  <th:block th:replace="~{/common/admin/using-resource-header :: header}"></th:block>
+</head>
+
+<body class="sb-nav-fixed">
+<!-- Top Header -->
+<th:block th:replace="~{/common/admin/top-header :: topHeader}"></th:block>
+
+<div id="layoutSidenav">
+  <!-- Left Navigation -->
+  <th:block th:replace="~{/common/admin/left-navigation :: leftNav}"></th:block>
+
+  <div id="layoutSidenav_content" class="gray-bg">
+    <main>
+      <div class="container-fluid px-4">
+        <h1 class="mt-4">Quản lý đơn hàng</h1>
+        <ol class="breadcrumb mb-4">
+          <li class="breadcrumb-item active">DDD. Administrator</li>
+        </ol>
+
+        <div class="card mb-4 mt-4">
+          <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Quản lý đơn hàng
+          </div>
+
+          <div class="list-button">
+            <a th:href="@{/admin/order-management/adding}" data-bs-toggle="tooltip"
+               title="Thêm bài viết" class="add">
+              <i class="fa-solid fa-plus" style="color: #e3bd74;"></i>
+              Thêm đơn hàng
+            </a>
+          </div>
+
+          <div class="table-responsive">
+            <table id="orderData" class="table table-striped" style="width:100%">
+              <thead>
+              <tr>
+                <th>#</th>
+                <th>ID Khách hàng</th>
+                <th>Tổng trị giá</th>
+                <th>Phương thức thanh toán</th>
+                <th>Trạng thái</th>
+                <th>Tạo ngày</th>
+                <th>Ngày giao</th>
+                <th>Tạo bởi</th>
+                <th>Sửa ngày</th>
+                <th>Sửa bởi</th>
+                <th>Chức năng</th>
+              </tr>
+              </thead>
+              <tfoot>
+              <tr>
+                <th>#</th>
+                <th>ID Khách hàng</th>
+                <th>Tổng trị giá</th>
+                <th>Phương thức thanh toán</th>
+                <th>Trạng thái</th>
+                <th>Tạo ngày</th>
+                <th>Ngày giao</th>
+                <th>Tạo bởi</th>
+                <th>Sửa ngày</th>
+                <th>Sửa bởi</th>
+                <th>Chức năng</th>
+              </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Footer & Scripts -->
+<th:block th:replace="~{/common/admin/using-resource-footer :: footer}"></th:block>
+
+<!-- Scripts -->
+<script th:src="@{/templates/logic-datatable/admin/datatable-order.js}"></script>
+<script th:src="@{/templates/logic-datatable/service-logic.js}"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DDD. Admin - Chỉnh sửa tài khoản</title>
+    <th:block th:replace="common/admin/using-resource-header :: head-resources"/>
+</head>
+<body class="sb-nav-fixed">
+
+<!-- Top navigation -->
+<th:block th:replace="common/admin/top-header :: top-header"/>
+
+<div id="layoutSidenav">
+    <!-- Left navigation -->
+    <th:block th:replace="common/admin/left-navigation :: left-navigation"/>
+
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Chỉnh sửa tài khoản</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <div th:if="${msg != null}">
+                    <div th:if="${msg == 'success'}" class="alert alert-success">Thay đổi thành công!</div>
+                    <div th:if="${msg != 'success'}" class="alert alert-danger">Thay đổi thất bại!</div>
+                </div>
+
+                <form th:action="@{/admin/account-management/editing}" method="post" th:if="${displayUser != null}">
+                    <div class="row">
+                        <div class="col-3">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" th:value="${displayUser.email}">
+                        </div>
+
+                        <div class="col-3">
+                            <label for="firstName">Họ</label>
+                            <input type="text" id="firstName" name="firstName" th:value="${displayUser.firstName}">
+                            <div class="error" id="error1" th:if="${errors != null and errors[0] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-3">
+                            <label for="lastName">Tên</label>
+                            <input type="text" id="lastName" name="lastName" th:value="${displayUser.lastName}">
+                            <div class="error" id="error2" th:if="${errors != null and errors[1] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-2">
+                            <label for="roleId">Phân quyền</label>
+                            <select name="roleId" id="roleId">
+                                <option value="1" th:selected="${displayUser.roleId == 1}">Người dùng</option>
+                                <option value="2" th:selected="${displayUser.roleId == 2}">Quản trị viên</option>
+                            </select>
+                            <div class="error" id="error3" th:if="${errors != null and errors[2] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-1">
+                            <label for="status">Trạng Thái</label>
+                            <select name="status" id="status">
+                                <option value="1" th:selected="${displayUser.status == 1}">Đã active</option>
+                                <option value="2" th:selected="${displayUser.status == 2}">Chưa xác thực</option>
+                                <option value="3" th:selected="${displayUser.status == 3}">Vô hiệu hóa</option>
+                            </select>
+                            <div class="error" id="error4" th:if="${errors != null and errors[3] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressLine">Số nhà/Tên đường</label>
+                            <input type="text" id="addressLine" name="addressLine" th:value="${displayUser.addressLine}">
+                            <div class="error" id="error5" th:if="${errors != null and errors[4] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressWard">Phường/Xã</label>
+                            <input type="text" id="addressWard" name="addressWard" th:value="${displayUser.addressWard}">
+                            <div class="error" id="error6" th:if="${errors != null and errors[5] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressDistrict">Quận/Huyện</label>
+                            <input type="text" id="addressDistrict" name="addressDistrict" th:value="${displayUser.addressDistrict}">
+                            <div class="error" id="error7" th:if="${errors != null and errors[6] != null}">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="addressProvince">Tỉnh/Thành phố</label>
+                            <input type="text" id="addressProvince" name="addressProvince" th:value="${displayUser.addressProvince}">
+                            <div class="error" id="error8" th:if="${errors != null and errors[7] != null}">Không được để trống!</div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="id" th:value="${displayUser.id}">
+                    <input type="submit" value="Chỉnh sửa tài khoản" class="adding button">
+                    <a th:href="@{/admin/account-management}">Quay về trang quản lý</a>
+                    <a th:href="@{/admin/home}">Quay về trang chủ</a>
+                </form>
+
+                <div class="alert alert-danger" th:if="${displayUser == null}">Lỗi hệ thống!</div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<th:block th:replace="common/admin/using-resource-footer :: footer-resources"/>
+</body>
+</html>

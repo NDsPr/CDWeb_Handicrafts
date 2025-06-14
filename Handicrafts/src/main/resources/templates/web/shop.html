@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <th:block th:replace="common/client/using-resource-header :: head"></th:block>
+  <title>DDD. - Sản phẩm</title>
+</head>
+<body>
+<th:block th:replace="common/client/header :: header"></th:block>
+
+<!-- Start Hero Section -->
+<div class="hero shop position-relative-top-84px">
+  <div class="container">
+    <div class="row justify-content-between">
+      <div class="col-12">
+        <div class="intro-excerpt">
+          <h1>Sản phẩm</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Hero Section -->
+
+<!-- Start Shop Section -->
+<div class="product-section product-section before-footer-section position-relative-top-84px">
+  <div class="container">
+    <div class="row">
+      <div class="col-3 pe-3 nav-left">
+        <div class="nav-left-block mb-5">
+          <p class="nav-left-title">Danh mục sản phẩm</p>
+          <th:block th:each="category : ${categories}">
+            <ul class="nav-left-list">
+              <li class="nav-left-item">
+                <a th:href="@{/shop-detail-by-category(categoryId=${category.id})}" class="nav-left-link">Sản phẩm <span th:text="${category.name}"></span></a>
+                <ul class="pop-right">
+                  <th:block th:each="categoryType : ${categoryTypeMap[category.id]}">
+                    <li class="pop-right-item">
+                      <a th:href="@{/shop-detail-by-type(categoryTypeId=${categoryType.id}, recentPage=1, sort='none', range='none')}" class="pop-right-link">
+                        <span th:text="${categoryType.name}"></span>
+                      </a>
+                    </li>
+                  </th:block>
+                </ul>
+              </li>
+            </ul>
+          </th:block>
+        </div>
+      </div>
+
+      <div class="col-9">
+        <th:block th:each="category : ${categoriesForProduct}">
+          <div class="row">
+            <div class="col-12 col-md-6 col-lg-3 mb-5 dp-flex justify-content-center align-items-center darkredbg">
+              <div class="product-list-title dp-flex flex-column justify-content-center align-items-center">
+                <h5 class="product-list-madeby">Sản phẩm làm từ</h5>
+                <h4 class="product-category" th:text="${category.name.toUpperCase()}"></h4>
+                <h4 class="product-category">-></h4>
+              </div>
+            </div>
+            <th:block th:each="product : ${productMap[category.id]}">
+              <div class="col-12 col-md-6 col-lg-3 mb-5">
+                <div class="product-item">
+                  <th:block th:if="${imageMap[product.id]}">
+                    <input type="hidden" name="productId" th:value="${product.id}">
+                    <img th:src="@{${imageMap[product.id].link}}" alt="image" class="img-fluid product-thumbnail">
+                  </th:block>
+                  <h3 class="product-title" th:text="${product.name}"></h3>
+                  <strong class="product-price" th:text="${#numbers.formatDecimal(product.discountPrice, '#,##0.##')} + '₫'"></strong>
+                  <div class="origin-price-and-discount">
+                    <del th:text="${#numbers.formatDecimal(product.originalPrice, '#,##0.##')} + '₫'"></del>
+                    <label th:text="${#numbers.formatDecimal(product.discountPercent, '##0')} + '%'"></label>
+                  </div>
+                  <button class="btn-pop-mini left">
+                    <i class="fa-solid fa-cart-plus fa-xl" style="color: #2a1710"></i>
+                    <p class="content-btn-mini">Thêm vào giỏ hàng</p>
+                  </button>
+                  <a th:href="@{/product-detail(id=${product.id})}" class="btn-pop-mini right">
+                    <i class="fa-solid fa-info fa-xl" style="color: #2a1710"></i>
+                    <p class="content-btn-mini">Chi tiết sản phẩm</p>
+                  </a>
+                </div>
+              </div>
+            </th:block>
+          </div>
+          <div class="row">
+            <div class="d-flex justify-content-center mb-5">
+              <a th:href="@{/shop-detail-by-category(categoryId=${category.id})}" class="more">Xem thêm -></a>
+            </div>
+          </div>
+        </th:block>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Shop Section -->
+
+<th:block th:replace="common/client/footer :: footer"></th:block>
+
+<!-- Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <!-- SVG symbols here -->
+</svg>
+
+<th:block th:replace="common/client/using-resource-footer :: footer-resources"></th:block>
+
+<script th:src="@{/templates/client/js/ajax/cart/cart-add.js}"></script>
+</body>
+</html>
