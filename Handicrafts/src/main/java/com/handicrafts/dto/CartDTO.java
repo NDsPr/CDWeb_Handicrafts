@@ -3,21 +3,21 @@ package com.handicrafts.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Cart {
-    private List<Item> items;
+public class CartDTO {
+    private List<ItemDTO> items;
     private int totalItem;
     private double originalPriceTotal;
     private double discountPriceTotal;
 
-    public Cart() {
+    public CartDTO() {
         items = new ArrayList<>();
     }
 
-    public void addItem(Item item) {
+    public void addItem(ItemDTO item) {
         // Nếu trong cart đã có item => quantity + 1
         int itemProductId = item.getProduct().getId();
         if (getItemByProductId(itemProductId) != null) {
-            Item itemInCart = getItemByProductId(itemProductId);
+            ItemDTO itemInCart = getItemByProductId(itemProductId);
             itemInCart.setQuantity(itemInCart.getQuantity() + 1);
             itemInCart.setTotal(item.getProduct().getOriginalPrice() * itemInCart.getQuantity());
             itemInCart.setTotalWithDiscount(item.getProduct().getDiscountPrice() * itemInCart.getQuantity());
@@ -35,7 +35,7 @@ public class Cart {
     }
 
     public void updateItem(int productId, int quantity) {
-        Item item = getItemByProductId(productId);
+        ItemDTO item = getItemByProductId(productId);
         if (item != null) {
             // Nếu số lượng nhỏ hơn hoặc bằng 0 thì xóa khỏi cart
             if (quantity <= 0) {
@@ -54,7 +54,7 @@ public class Cart {
     }
 
     public int deleteItem(int productId) {
-        Item item = getItemByProductId(productId);
+        ItemDTO item = getItemByProductId(productId);
         if (item != null) {
             items.remove(item);
             // Set tổng vào cart
@@ -66,14 +66,14 @@ public class Cart {
 
     // Không set tổng vào cart khi xóa
     public void deleteItemZeroQuantity(int productId) {
-        Item item = getItemByProductId(productId);
+        ItemDTO item = getItemByProductId(productId);
         if (item != null) {
             items.remove(item);
         }
     }
 
-    public Item getItemByProductId(int productId) {
-        for (Item item : items) {
+    public ItemDTO getItemByProductId(int productId) {
+        for (ItemDTO item : items) {
             if (item.getProduct().getId() == productId) {
                 return item;
             }
@@ -81,11 +81,11 @@ public class Cart {
         return null;
     }
 
-    public List<Item> getItems() {
+    public List<ItemDTO> getItems() {
         return items;
     }
 
-    public void setItems(List<Item> items) {
+    public void setItems(List<ItemDTO> items) {
         this.items = items;
     }
 
@@ -119,7 +119,7 @@ public class Cart {
         this.originalPriceTotal = 0;
         this.discountPriceTotal = 0;
         // Set tổng vào cart
-        for (Item i : items) {
+        for (ItemDTO i : items) {
             this.originalPriceTotal += i.getProduct().getOriginalPrice() * i.getQuantity();
             this.discountPriceTotal += i.getProduct().getDiscountPrice() * i.getQuantity();
         }

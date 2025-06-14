@@ -2,7 +2,7 @@ package com.handicrafts.dto;
 
 import java.sql.Timestamp;
 
-public class ProductImageBean {
+public class ProductImageDTO {
     private int id;
     private String name;
     private String nameInStorage;
@@ -13,7 +13,7 @@ public class ProductImageBean {
     private Timestamp modifiedDate;
     private String modifiedBy;
 
-    public ProductImageBean() {
+    public ProductImageDTO() {
     }
 
     public int getId() {

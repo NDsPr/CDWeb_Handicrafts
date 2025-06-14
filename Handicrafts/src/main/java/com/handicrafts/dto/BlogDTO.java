@@ -2,7 +2,7 @@ package com.handicrafts.dto;
 
 import java.sql.Timestamp;
 
-public class BlogBean {
+public class BlogDTO {
     private int id;
     private String title;
     private String author;
@@ -16,7 +16,7 @@ public class BlogBean {
     private Timestamp modifiedDate;
     private String modifiedBy;
 
-    public BlogBean() {
+    public BlogDTO() {
     }
 
     public int getId() {

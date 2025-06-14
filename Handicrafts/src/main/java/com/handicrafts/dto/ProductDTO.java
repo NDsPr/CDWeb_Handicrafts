@@ -3,7 +3,7 @@ package com.handicrafts.dto;
 import java.sql.Timestamp;
 import java.util.List;
 
-public class ProductBean {
+public class ProductDTO {
     private int id;
     private String name;
     private String description;
@@ -23,9 +23,9 @@ public class ProductBean {
     private String createdBy;
     private Timestamp modifiedDate;
     private String modifiedBy;
-    private List<ProductImageBean> images;
+    private List<ProductImageDTO> images;
 
-    public ProductBean() {
+    public ProductDTO() {
     }
 
     public int getId() {
@@ -180,11 +180,11 @@ public class ProductBean {
         this.modifiedBy = modifiedBy;
     }
 
-    public List<ProductImageBean> getImages() {
+    public List<ProductImageDTO> getImages() {
         return images;
     }
 
-    public void setImages(List<ProductImageBean> images) {
+    public void setImages(List<ProductImageDTO> images) {
         this.images = images;
     }
 }

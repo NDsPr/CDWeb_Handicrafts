@@ -2,7 +2,7 @@ package com.handicrafts.dto;
 
 import java.sql.Timestamp;
 
-public class ContactBean {
+public class ContactDTO {
     private int id;
     private String email;
     private String firstName;
@@ -16,7 +16,7 @@ public class ContactBean {
     private Timestamp modifiedDate;
     private String modifiedBy;
 
-    public ContactBean() {
+    public ContactDTO() {
     }
 
     public int getId() {

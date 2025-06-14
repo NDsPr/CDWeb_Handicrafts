@@ -1,11 +1,11 @@
 package com.handicrafts.dto;
 
-public class Content1Bean {
+public class Content1DTO {
     private String prIcon1;
     private String prContentTitle1;
     private String prContentDes1;
 
-    public Content1Bean() {
+    public Content1DTO() {
     }
 
     public String getPrIcon1() {

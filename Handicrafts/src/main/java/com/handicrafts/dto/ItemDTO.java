@@ -1,19 +1,19 @@
 package com.handicrafts.dto;
 
-public class Item {
-    private ProductBean product;
+public class ItemDTO {
+    private ProductDTO product;
     private int quantity;
     private double total;
     private double totalWithDiscount;
 
-    public Item() {
+    public ItemDTO() {
     }
 
-    public ProductBean getProduct() {
+    public ProductDTO getProduct() {
         return product;
     }
 
-    public void setProduct(ProductBean product) {
+    public void setProduct(ProductDTO product) {
         this.product = product;
     }
 
