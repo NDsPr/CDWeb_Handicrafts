@@ -1,35 +1,37 @@
 package com.handicrafts.dto;
 
-import java.sql.Timestamp;
+import lombok.Data;
+import java.util.Date;
+import java.util.List;
 
+@Data
 public class UserDTO {
-    private int id;
+    private Integer id;
     private String email;
+    private String fullName;
+    private String username;
+    private Date birthDate;
+    private Boolean gender;
+    private String phone;
     private String password;
-    private String firstName;
-    private String lastName;
-    private int roleId;
-    private int status;
-    private int viaOAuth;
-    private String verifiedCode;
-    private String key;
-    private String addressLine;
-    private String addressWard;
-    private String addressDistrict;
-    private String addressProvince;
-    private Timestamp createdDate;
-    private String createdBy;
-    private Timestamp modifiedDate;
-    private String modifiedBy;
+    private Boolean status;
+    private String confirmToken;
+    private Boolean isEnable;
+    private String provider;
+    private Date createdAt;
+    private Date updatedAt;
+    private List<String> roles;
 
+    // Constructor mặc định
     public UserDTO() {
     }
 
-    public int getId() {
+    // Getters và Setters
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -41,6 +43,46 @@ public class UserDTO {
         this.email = email;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Date getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(Date birthDate) {
+        this.birthDate = birthDate;
+    }
+
+    public Boolean getGender() {
+        return gender;
+    }
+
+    public void setGender(Boolean gender) {
+        this.gender = gender;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -49,126 +91,59 @@ public class UserDTO {
         this.password = password;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public int getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
-    }
-
-    public int getStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
-    public void setStatus(int status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
-
-    public int getViaOAuth() {
-        return viaOAuth;
+    public String getConfirmToken() {
+        return confirmToken;
     }
 
-    public void setViaOAuth(int viaOAuth) {
-        this.viaOAuth = viaOAuth;
+    public void setConfirmToken(String confirmToken) {
+        this.confirmToken = confirmToken;
     }
 
-    public String getVerifiedCode() {
-        return verifiedCode;
+    public Boolean getIsEnable() {
+        return isEnable;
     }
 
-    public void setVerifiedCode(String verifiedCode) {
-        this.verifiedCode = verifiedCode;
+    public void setIsEnable(Boolean isEnable) {
+        this.isEnable = isEnable;
     }
 
-    public String getKey() {
-        return key;
+    public String getProvider() {
+        return provider;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
-    public String getAddressLine() {
-        return addressLine;
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
-    public void setAddressLine(String addressLine) {
-        this.addressLine = addressLine;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getAddressWard() {
-        return addressWard;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setAddressWard(String addressWard) {
-        this.addressWard = addressWard;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
-    public String getAddressDistrict() {
-        return addressDistrict;
+    public List<String> getRoles() {
+        return roles;
     }
 
-    public void setAddressDistrict(String addressDistrict) {
-        this.addressDistrict = addressDistrict;
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
-
-    public String getAddressProvince() {
-        return addressProvince;
-    }
-
-    public void setAddressProvince(String addressProvince) {
-        this.addressProvince = addressProvince;
-    }
-
-    public Timestamp getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(Timestamp createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Timestamp getModifiedDate() {
-        return modifiedDate;
-    }
-
-    public void setModifiedDate(Timestamp modifiedDate) {
-        this.modifiedDate = modifiedDate;
-    }
-
-    public String getModifiedBy() {
-        return modifiedBy;
-    }
-
-    public void setModifiedBy(String modifiedBy) {
-        this.modifiedBy = modifiedBy;
-    }
-
-
 }

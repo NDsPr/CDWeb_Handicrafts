@@ -133,7 +133,6 @@
                 <configuration>
                     <inputPath>${project.basedir}/src/main/resources/static/scss/</inputPath>
                     <outputPath>${project.basedir}/src/main/resources/static/css/</outputPath>
-                    <includeSourceMap>false</includeSourceMap>
                 </configuration>
             </plugin>
 
