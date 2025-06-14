@@ -1,106 +1,84 @@
 package com.handicrafts.controller.signin_signup_forget.via_facebook;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.scribejava.apis.FacebookApi;
-import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
-import com.github.scribejava.core.oauth.OAuth20Service;
-import com.ltw.bean.UserBean;
-import com.ltw.dao.UserDAO;
-import com.ltw.util.SessionUtil;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
+import com.handicrafts.oauth2.CustomOAuth2User;
+import com.handicrafts.entity.UserEntity;
+import com.handicrafts.service.AuthenticationService;
+import com.handicrafts.service.OAuth2Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 
-@WebServlet(value = {"/facebook-callback"})
-public class FacebookCallbackController extends HttpServlet {
-    private static final ResourceBundle bundle = ResourceBundle.getBundle("oauth2dot0");
-    private final UserDAO userDAO = new UserDAO();
-    private static final OAuth20Service service = new ServiceBuilder(bundle.getString("facebook-client-id"))
-            .apiSecret(bundle.getString("facebook-client-secret"))
-            .callback(bundle.getString("facebook-redirect-uri"))
-            // Scope chỉ lấy email và public_profile
-            .defaultScope("email,public_profile")
-            .build(FacebookApi.instance());
+@Controller
+public class FacebookCallbackController {
 
-    // Mặc định Facebook đăng nhập phải có email
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String code = req.getParameter("code");
-        if (code != null) {
-            try {
-                OAuth2AccessToken accessToken = service.getAccessToken(code);
-                req.getSession().setAttribute("accessToken", accessToken);
+    private final OAuth2Service facebookOAuth2Service;
+    private final AuthenticationService authenticationService;
 
-                // Lấy thông tin người dùng
-                JsonNode userInfo = getJsonUserInfo(accessToken);
-                String lastName = userInfo.get("name").asText();
-                String email = userInfo.has("email") ? userInfo.get("email").asText() : null;
-
-                if (email != null) {
-                    UserBean user = new UserBean();
-                    user.setEmail(email);
-                    user.setLastName(lastName);
-
-                    // Nếu email chưa xuất hiện trong database thì thêm thông tin vào database
-                    if (userDAO.findUserByEmail(email) == null) {
-                        userDAO.createInRegister(user);
-                        // Set user vào Session
-                        SessionUtil.getInstance().putValue(req, "user", userDAO.findUserByEmail(email));
-                        resp.sendRedirect(req.getContextPath() + "/home");
-                    } else {
-                        switch (userDAO.checkOAuthAccount(email)) {
-                            case "oAuth":
-                                // Set user vào Session
-                                SessionUtil.getInstance().putValue(req, "user", userDAO.findUserByEmail(email));
-                                resp.sendRedirect(req.getContextPath() + "/home");
-                                break;
-
-                            case "notOAuth":
-                                // Case này bắt null từ db, đã được xử lý trong DAO
-                                resp.sendRedirect(req.getContextPath() + "/signin?notify=registed-by-page");
-                                break;
-
-                            case "error":
-                                resp.sendRedirect(req.getContextPath() + "/signin?notify=error-oauth");
-                                break;
-
-                            default:
-                                resp.sendRedirect(req.getContextPath() + "/signin");
-                                break;
-                        }
-                    }
-                } else {
-                    resp.sendRedirect(req.getContextPath() + "/signin?notify=not-contain-email");
-                }
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    @Autowired
+    public FacebookCallbackController(OAuth2Service facebookOAuth2Service,
+                                      AuthenticationService authenticationService) {
+        this.facebookOAuth2Service = facebookOAuth2Service;
+        this.authenticationService = authenticationService;
     }
 
-    private JsonNode getJsonUserInfo(OAuth2AccessToken accessToken) throws IOException {
-        String userInfoEndpoint = "https://graph.facebook.com/me?fields=id,name,email,birthday,picture&access_token=" + accessToken.getAccessToken();
+    @GetMapping("/facebook-callback")
+    public String handleCallback(@RequestParam(value = "code", required = false) String code,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        if (code != null) {
+            try {
+                // Lấy access token
+                OAuth2AccessToken accessToken = facebookOAuth2Service.getAccessToken(code);
+                session.setAttribute("accessToken", accessToken);
 
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpGet httpGet = new HttpGet(userInfoEndpoint);
-        HttpResponse response = httpClient.execute(httpGet);
-        String responseString = EntityUtils.toString(response.getEntity());
+                // Lấy thông tin người dùng
+                CustomOAuth2User userInfo = facebookOAuth2Service.getUserInfo(accessToken);
 
-        // Parse the JSON response
-        ObjectMapper mapper = new ObjectMapper();
-        return mapper.readTree(responseString);
+                if (userInfo.getEmail() != null) {
+                    // Kiểm tra email đã tồn tại chưa
+                    String checkResult = authenticationService.checkOAuthAccount(userInfo.getEmail());
+
+                    switch (checkResult) {
+                        case "oAuth":
+                            // Đăng nhập thành công với tài khoản OAuth
+                            UserEntity user = authenticationService.processOAuthLogin(userInfo);
+                            session.setAttribute("user", user);
+                            return "redirect:/home";
+
+                        case "notOAuth":
+                            // Email đã được đăng ký bằng phương thức thông thường
+                            redirectAttributes.addAttribute("notify", "registed-by-page");
+                            return "redirect:/signin";
+
+                        case "error":
+                            // Có lỗi xảy ra
+                            redirectAttributes.addAttribute("notify", "error-oauth");
+                            return "redirect:/signin";
+
+                        default:
+                            // Tạo tài khoản mới
+                            UserEntity newUser = authenticationService.processOAuthLogin(userInfo);
+                            session.setAttribute("user", newUser);
+                            return "redirect:/home";
+                    }
+                } else {
+                    // Email không được cung cấp từ Facebook
+                    redirectAttributes.addAttribute("notify", "not-contain-email");
+                    return "redirect:/signin";
+                }
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                redirectAttributes.addAttribute("notify", "error-oauth");
+                return "redirect:/signin";
+            }
+        }
+
+        return "redirect:/signin";
     }
 }

@@ -25,7 +25,7 @@ public class OrderController {
     @Autowired
     private ICartService cartService;
     @Autowired
-    private IUserService userService;
+    private UserService userService;
     @Autowired
     private IOrderService orderService;
     @Autowired

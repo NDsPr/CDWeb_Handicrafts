@@ -9,7 +9,7 @@ import com.handicrafts.entity.CartEntity;
 import com.handicrafts.repository.CartRepository;
 import com.handicrafts.service.IHandicraftService;
 import com.handicrafts.service.ICartService;
-import com.handicrafts.service.IUserService;
+import com.handicrafts.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class CartServiceImp implements ICartService {
     @Autowired
     private CartRepository cartRepo;
     @Autowired
-    private IUserService userService;
+    private UserService userService;
     @Autowired
     private IHandicraftService handicraftService;
     @Autowired
