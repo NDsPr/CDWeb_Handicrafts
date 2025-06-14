@@ -1,7 +1,9 @@
 package com.handicrafts.dto;
 
-import java.sql.Timestamp;
+import lombok.Data;
 
+import java.sql.Timestamp;
+@Data
 public class BlogDTO {
     private int id;
     private String title;

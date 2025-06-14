@@ -1,67 +1,77 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.CategoryBean;
-import com.ltw.bean.CategoryTypeBean;
-import com.ltw.bean.CustomizeBean;
-import com.ltw.bean.ProductBean;
-import com.ltw.dao.*;
+import com.handicrafts.dto.CategoryDTO;
+import com.handicrafts.dto.CategoryTypeDTO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.repository.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(value = {"/search"})
-public class SearchController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final CategoryTypeDAO categoryTypeDAO = new CategoryTypeDAO();
-    private final ProductDAO productDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
+@Controller
+@RequestMapping("/search")
+public class SearchController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String key = req.getParameter("key");
-        // Pagination
-        String page = req.getParameter("page");
-        // Sort & Range
-        String sort = req.getParameter("sort");
-        String range = req.getParameter("range");
+    @Autowired
+    private CustomizeRepository customizeRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryTypeRepository categoryTypeRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @GetMapping
+    public String search(@RequestParam(name = "key", required = false) String key,
+                         @RequestParam(name = "page", defaultValue = "1") int page,
+                         @RequestParam(name = "sort", required = false) String sort,
+                         @RequestParam(name = "range", defaultValue = "none") String range,
+                         Model model) {
+
         int totalPages = getTotalPages();
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        // Sử dụng cho navigation bên trái
-        List<CategoryBean> categories = categoryDAO.findAllCategories();
-        Map<Integer, List<CategoryTypeBean>> categoryTypeMap = new HashMap<>();
-        // Sử dụng cho phần nội dung (Tên type và danh sách sản phẩm)
-        // Phân tích range và lấy ra mảng giá trị
-        double[] rangeLimit = getLimitRange(range);
-        List<ProductBean> products = productDAO.findByKeyAndLimit(key, rangeLimit, sort, getStartLimit(Integer.parseInt(page)), 2);
 
-        // Đưa phân loại sản phẩm tương ứng với categoryId vào map (navigation bên trái)
-        for (CategoryBean category : categories) {
-            List<CategoryTypeBean> categoryTypes = categoryTypeDAO.findCategoryTypeByCategoryId(category.getId());
-            categoryTypeMap.put(category.getId(), categoryTypes);
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+
+        List<CategoryDTO> categories = categoryRepository.findAllCategories();
+        Map<Integer, List<CategoryTypeDTO>> categoryTypeMap = new HashMap<>();
+
+        double[] rangeLimit = getLimitRange(range);
+        List<ProductDTO> products = productRepository.findByKeyAndLimit(
+                key, rangeLimit, sort, getStartLimit(page), 2);
+
+        for (CategoryDTO category : categories) {
+            List<CategoryTypeDTO> types = categoryTypeRepository.findCategoryTypeByCategoryId(category.getId());
+            categoryTypeMap.put(category.getId(), types);
         }
 
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.setAttribute("serverPage", Integer.valueOf(page));
-        req.setAttribute("serverTotalPages", totalPages);
-        req.setAttribute("key", key);
-        req.setAttribute("sort", sort);
-        req.setAttribute("range", range);
-        req.setAttribute("products", products);
-        req.setAttribute("categories", categories);
-        req.setAttribute("categoryTypeMap", categoryTypeMap);
-        req.getRequestDispatcher("/search.jsp").forward(req, resp);
+        model.addAttribute("customizeInfo", customizeInfo);
+        model.addAttribute("serverPage", page);
+        model.addAttribute("serverTotalPages", totalPages);
+        model.addAttribute("key", key);
+        model.addAttribute("sort", sort);
+        model.addAttribute("range", range);
+        model.addAttribute("products", products);
+        model.addAttribute("categories", categories);
+        model.addAttribute("categoryTypeMap", categoryTypeMap);
+
+        return "search"; // maps to src/main/resources/templates/search.html (or .jsp if configured)
     }
 
     private double[] getLimitRange(String range) {
-        if (!range.equals("none")) {
+        if (!"none".equals(range)) {
             double[] rangeLimit = new double[2];
             switch (range) {
                 case "0-to-499":
@@ -87,13 +97,11 @@ public class SearchController extends HttpServlet {
         }
     }
 
-    // Pagination
     private int getTotalPages() {
-        int totalItems = productDAO.getTotalItems();
+        int totalItems = productRepository.getTotalItems();
         return (int) Math.ceil((double) totalItems / 2);
     }
 
-    // Pagination
     private int getStartLimit(int page) {
         return 2 * (page - 1);
     }

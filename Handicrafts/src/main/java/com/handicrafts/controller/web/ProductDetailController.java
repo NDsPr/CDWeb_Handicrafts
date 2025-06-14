@@ -1,51 +1,61 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.CustomizeBean;
-import com.ltw.bean.ProductBean;
-import com.ltw.bean.ProductImageBean;
-import com.ltw.bean.ReviewBean;
-import com.ltw.dao.CustomizeDAO;
-import com.ltw.dao.ImageDAO;
-import com.ltw.dao.ProductDAO;
-import com.ltw.dao.ReviewDAO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.dto.ReviewDTO;
+import com.handicrafts.repository.CustomizeRepository;
+import com.handicrafts.repository.ImageRepository;
+import com.handicrafts.repository.ProductRepository;
+import com.handicrafts.repository.ReviewRepository;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/product-detail"})
-public class ProductDetailController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final ProductDAO productDetailDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
-    private final ReviewDAO reviewDAO = new ReviewDAO();
+@Controller
+public class ProductDetailController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        int productId = Integer.parseInt(req.getParameter("id"));
+    private final CustomizeRepository customizeRepository;
+    private final ProductRepository productRepository;
+    private final ImageRepository imageRepository;
+    private final ReviewRepository reviewRepository;
 
-        ProductBean productDetailBean = productDetailDAO.findProductById(productId);
-        List<ProductImageBean> productImages = imageDAO.findImagesByProductId(productId);
-        productDetailBean.setImages(productImages);
+    public ProductDetailController(CustomizeRepository customizeRepository,
+                                   ProductRepository productRepository,
+                                   ImageRepository imageRepository,
+                                   ReviewRepository reviewRepository) {
+        this.customizeRepository = customizeRepository;
+        this.productRepository = productRepository;
+        this.imageRepository = imageRepository;
+        this.reviewRepository = reviewRepository;
+    }
 
-        List<ProductBean> productSuggest = productDetailDAO.findSixProductsForSuggest(productId, productDetailBean.getCategoryTypeId(), 0);
-        for (ProductBean product : productSuggest) {
-            List<ProductImageBean> thumbnail = imageDAO.getThumbnailByProductId(product.getId());
+    @GetMapping("/product-detail")
+    public String showProductDetail(@RequestParam("id") int productId, Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+
+        ProductDTO productDetail = productRepository.findProductById(productId);
+        List<ProductImageDTO> productImages = imageRepository.findImagesByProductId(productId);
+        productDetail.setImages(productImages);
+
+        List<ProductDTO> productSuggest = productRepository.findSixProductsForSuggest(
+                productId, productDetail.getCategoryTypeId(), 0);
+
+        for (ProductDTO product : productSuggest) {
+            List<ProductImageDTO> thumbnail = imageRepository.getThumbnailByProductId(product.getId());
             product.setImages(thumbnail);
         }
 
-        List<ReviewBean> reviews = reviewDAO.findReviewPaginationByProductId(productId, 0, 0);
+        List<ReviewDTO> reviews = reviewRepository.findReviewPaginationByProductId(productId, 0, 0);
 
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.setAttribute("productDetail", productDetailBean);
-        req.setAttribute("productSuggest", productSuggest);
-        req.setAttribute("reviews", reviews);
+        model.addAttribute("customizeInfo", customizeInfo);
+        model.addAttribute("productDetail", productDetail);
+        model.addAttribute("productSuggest", productSuggest);
+        model.addAttribute("reviews", reviews);
 
-        req.getRequestDispatcher("/product-detail.jsp").forward(req, resp); 
+        return "product-detail"; // JSP or Thymeleaf view
     }
 }

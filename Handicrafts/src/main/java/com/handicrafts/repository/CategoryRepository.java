@@ -1,8 +1,10 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.CategoryBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
+import com.handicrafts.dto.CategoryDTO;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import org.springframework.stereotype.Repository;
+
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,10 +13,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class CategoryRepository {
-    public List<CategoryBean> findAllCategories() {
+    public List<CategoryDTO> findAllCategories() {
         String sql = "SELECT id, name, profilePic FROM categories";
-        List<CategoryBean> result = new ArrayList<>();
+        List<CategoryDTO> result = new ArrayList<>();
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -26,12 +29,12 @@ public class CategoryRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                CategoryBean categoryBean = new CategoryBean();
-                categoryBean.setId(resultSet.getInt("id"));
-                categoryBean.setName(resultSet.getString("name"));
-                categoryBean.setProfilePic(resultSet.getString("profilePic"));
+                CategoryDTO categoryDTO = new CategoryDTO();
+                categoryDTO.setId(resultSet.getInt("id"));
+                categoryDTO.setName(resultSet.getString("name"));
+                categoryDTO.setProfilePic(resultSet.getString("profilePic"));
 
-                result.add(categoryBean);
+                result.add(categoryDTO);
             }
         } catch (SQLException e) {
             e.printStackTrace();

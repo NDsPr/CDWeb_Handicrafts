@@ -1,15 +1,17 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.CustomizeBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
+import org.springframework.stereotype.Repository;
+
 
 import java.sql.*;
-
+@Repository
 public class CustomizeRepository {
-    public CustomizeBean getCustomizeInfo() {
-        CustomizeBean customizeBean = null;
+    public CustomizeDTO getCustomizeInfo() {
+        CustomizeDTO customizeBean = null;
         String sql = "SELECT id, welcomeTitle, welcomeDes, productTitle, productDes, " +
                 "prTitle1, prDes1, prContentTitle1, prContentDes1, prIcon1, prLink1, prLink1InStorage, " +
                 "prTitle2, prDes2, prContent2, prLink2, prLink2InStorage, " +
@@ -27,7 +29,7 @@ public class CustomizeRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                customizeBean = new CustomizeBean();
+                customizeBean = new CustomizeDTO();
                 customizeBean.setId(resultSet.getInt("id"));
                 customizeBean.setWelcomeTitle(resultSet.getString("welcomeTitle"));
                 customizeBean.setWelcomeDes(resultSet.getString("welcomeDes"));
@@ -62,7 +64,7 @@ public class CustomizeRepository {
         return customizeBean;
     }
 
-    public int updateCustomize(CustomizeBean customizeBean) {
+    public int updateCustomize(CustomizeDTO customizeBean) {
         int afffectRows = -1;
         String sql = "UPDATE customize_pages SET welcomeTitle = ?, welcomeDes = ?, " +
                 "productTitle = ?, productDes = ?, " +
@@ -104,7 +106,7 @@ public class CustomizeRepository {
         return afffectRows;
     }
 
-    public int createCustomize(CustomizeBean customizeBean) {
+    public int createCustomize(CustomizeDTO customizeBean) {
         int afffectRows = -1;
         String sql = "INSERT INTO customize_pages (welcomeTitle, welcomeDes, productTitle, productDes, " +
                 "prTitle1, prDes1, prIcon1, prContentTitle1, prContentDes1, prLink1, prLink1InStorage, prTitle2, prDes2, prContent2, prLink2, " +

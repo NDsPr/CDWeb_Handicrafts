@@ -1,6 +1,10 @@
 package com.handicrafts.dto;
 
 // TODO: Upload 1 ảnh cho mỗi description.
+
+import lombok.Data;
+
+@Data
 public class CustomizeDTO {
     private int id;
     private String welcomeTitle, welcomeDes,

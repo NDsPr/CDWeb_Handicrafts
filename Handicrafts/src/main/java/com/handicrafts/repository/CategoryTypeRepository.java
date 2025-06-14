@@ -1,9 +1,10 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.CategoryTypeBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.dto.CategoryTypeDTO;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
+
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryTypeRepository {
-    public List<CategoryTypeBean> findCategoryTypeByCategoryId(int categoryId) {
-        List<CategoryTypeBean> categoryTypes = new ArrayList<>();
+    public List<CategoryTypeDTO> findCategoryTypeByCategoryId(int categoryId) {
+        List<CategoryTypeDTO> categoryTypes = new ArrayList<>();
         String sql = "SELECT id, name, categoryId, idOnBrowser FROM category_types WHERE categoryId = ? AND status = 1";
 
         Connection connection = null;
@@ -28,7 +29,7 @@ public class CategoryTypeRepository {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                CategoryTypeBean categoryType = new CategoryTypeBean();
+                CategoryTypeDTO categoryType = new CategoryTypeDTO();
                 categoryType.setId(resultSet.getInt("id"));
                 categoryType.setName((resultSet.getString("name")));
                 categoryType.setCategoryId(resultSet.getInt("categoryId"));
@@ -44,8 +45,8 @@ public class CategoryTypeRepository {
         return categoryTypes;
     }
 
-    public CategoryTypeBean findTypeById(int id) {
-        CategoryTypeBean categoryTypeBean = new CategoryTypeBean();
+    public CategoryTypeDTO findTypeById(int id) {
+        CategoryTypeDTO categoryTypeDTO = new CategoryTypeDTO();
         String sql = "SELECT id, name, description, categoryId, idOnBrowser, status, createdDate, createdBy, modifiedDate, modifiedBy " +
                 "FROM category_types " +
                 "WHERE id = ? AND status = 1";
@@ -61,22 +62,22 @@ public class CategoryTypeRepository {
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                categoryTypeBean.setId(resultSet.getInt("id"));
-                categoryTypeBean.setName(resultSet.getString("name"));
-                categoryTypeBean.setDescription(resultSet.getString("description"));
-                categoryTypeBean.setCategoryId(resultSet.getInt("categoryId"));
-                categoryTypeBean.setIdOnBrowser(resultSet.getString("idOnBrowser"));
-                categoryTypeBean.setStatus(resultSet.getInt("status"));
-                categoryTypeBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                categoryTypeBean.setCreatedBy(resultSet.getString("createdBy"));
-                categoryTypeBean.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
-                categoryTypeBean.setModifiedBy(resultSet.getString("modifiedBy"));
+                categoryTypeDTO.setId(resultSet.getInt("id"));
+                categoryTypeDTO.setName(resultSet.getString("name"));
+                categoryTypeDTO.setDescription(resultSet.getString("description"));
+                categoryTypeDTO.setCategoryId(resultSet.getInt("categoryId"));
+                categoryTypeDTO.setIdOnBrowser(resultSet.getString("idOnBrowser"));
+                categoryTypeDTO.setStatus(resultSet.getInt("status"));
+                categoryTypeDTO.setCreatedDate(resultSet.getTimestamp("createdDate"));
+                categoryTypeDTO.setCreatedBy(resultSet.getString("createdBy"));
+                categoryTypeDTO.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
+                categoryTypeDTO.setModifiedBy(resultSet.getString("modifiedBy"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return categoryTypeBean;
+        return categoryTypeDTO;
     }
 }

@@ -7,26 +7,20 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.http.HttpSession;
-
 @Controller
-public class CartManagementController {
+public class ThankYouOrderController {
 
     private final CustomizeRepository customizeRepository;
 
     @Autowired
-    public CartManagementController(CustomizeRepository customizeRepository) {
+    public ThankYouOrderController(CustomizeRepository customizeRepository) {
         this.customizeRepository = customizeRepository;
     }
 
-    @GetMapping("/cart-management")
-    public String showCartPage(Model model, HttpSession session) {
+    @GetMapping("/thankyou")
+    public String showThankYouPage(Model model) {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
-        Object cart = session.getAttribute("cart");
-
         model.addAttribute("customizeInfo", customizeInfo);
-        model.addAttribute("cart", cart); // Gửi giỏ hàng sang view nếu cần
-
-        return "cart"; // Trả về cart.jsp hoặc cart.html (tùy bạn dùng JSP hay Thymeleaf)
+        return "thankyou"; // Tên file thankyou.jsp hoặc thankyou.html nếu dùng Thymeleaf
     }
 }
