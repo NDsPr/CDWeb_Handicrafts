@@ -1,0 +1,111 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+.body, #page {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.form-account {
+    border: 2px solid #997404;
+    width: 500px;
+    height: 600px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    padding: 20px;
+
+
+}
+
+.input {
+    margin-top: 50px;
+    text-align: left;
+    display: block;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo h1 {
+    color: #e8b949;
+    font-size: 35px;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #997404;
+    border-radius: 10px;
+    display: inline-block;
+    /*box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); !* Thêm hiệu ứng bóng *!*/
+    background-color: #2c1c0c;
+    padding: 10px;
+
+}
+
+.form-group {
+    width: 100%;
+}
+
+i {
+    margin-right: 5px;
+    color: dimgrey;
+}
+
+input {
+    background-color: white;
+    font-size: 16px;
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #997404; /*tạo viền */
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Thêm hiệu ứng bóng */
+}
+
+.header p {
+    font-size: 30px;
+    text-align: center;
+    /*font-weight: bold;*/
+}
+
+a {
+    font-size: 18px;
+    display: block;
+    text-align: center;
+    color: black;
+    margin-top: 20px;
+}
+
+button {
+    width: 93%;
+    font-size: 18px;
+    border-radius: 30px;
+    background-color: #e8b949;
+    border: 2px solid goldenrod;
+    color: white;
+    padding: 10px 20px;
+    cursor: pointer;
+    margin: 10px auto; /* Đưa nút button vào giữa */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Thêm hiệu ứng bóng */
+}
+
+.error-message {
+    width: 100%;
+    color: red;
+    font-size: 14px;
+    margin-left: 24px;
+    margin-bottom: 10px;
+}
+
+.input-place {
+    width: 100%;
+    margin-bottom: 10px;
+}
