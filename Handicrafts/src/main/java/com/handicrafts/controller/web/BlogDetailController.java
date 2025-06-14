@@ -1,31 +1,35 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.BlogBean;
-import com.ltw.bean.CustomizeBean;
-import com.ltw.dao.BlogDAO;
-import com.ltw.dao.CustomizeDAO;
+import com.handicrafts.dto.BlogDTO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.repository.BlogRepository;
+import com.handicrafts.repository.CustomizeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+@Controller
+public class BlogDetailController {
 
-@WebServlet(value = {"/blog-detail"})
-public class BlogDetailController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final BlogDAO blogDetailDAO = new BlogDAO();
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int blogId = Integer.parseInt(request.getParameter("id"));
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        BlogBean blogDetailBean = blogDetailDAO.findBlogById(blogId);
+    private final CustomizeRepository customizeRepository;
+    private final BlogRepository blogRepository;
 
-        request.setAttribute("customizeInfo", customizeInfo);
-        request.setAttribute("blogDetail", blogDetailBean);
-        request.getRequestDispatcher("blog-detail.jsp").forward(request, response);
+    @Autowired
+    public BlogDetailController(CustomizeRepository customizeRepository, BlogRepository blogRepository) {
+        this.customizeRepository = customizeRepository;
+        this.blogRepository = blogRepository;
+    }
 
+    @GetMapping("/blog-detail")
+    public String showBlogDetail(@RequestParam("id") int blogId, Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        BlogDTO blogDetail = blogRepository.findBlogById(blogId);
 
+        model.addAttribute("customizeInfo", customizeInfo);
+        model.addAttribute("blogDetail", blogDetail);
+
+        return "blog-detail"; // Trả về tên view (blog-detail.jsp hoặc blog-detail.html)
     }
 }
-
