@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import com.handicrafts.converter.CartConverter;
 import com.handicrafts.dto.HandicraftDTO;
 import com.handicrafts.dto.CartDTO;
-import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.CartEntity;
 import com.handicrafts.repository.CartRepository;
 import com.handicrafts.service.IHandicraftService;

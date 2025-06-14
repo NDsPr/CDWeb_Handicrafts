@@ -4,11 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import com.handicrafts.dto.UserDTO;
 import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.IUserService;
-
-import java.security.Principal;
 
 @RestController
 public class UserController {
