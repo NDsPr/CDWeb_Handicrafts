@@ -1,0 +1,256 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+:root {
+    --primary-color-darkyellow: #e3bd74;
+    --primary-color-gray: #f0f0f0;
+    --primary-color-darkred: #2a1710;
+    --primary-color-gray_alpha: rgba(240, 240, 240, .7);
+    --primary-color-darkyellow_alpha: rgba(232, 185, 73, .7);
+    --primary-color-productbg: #ffffff;
+    --primary-color-darkred_alpha: rgba(42, 23, 16, .8);
+    --primary-color-light_text: #868686;
+    --primary-color-cyan: #2266cb;
+}
+
+body {
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+}
+
+.logo {
+    color: var(--primary-color-darkyellow);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.logo:hover {
+    color: var(--primary-color-darkyellow);
+}
+
+.navbar-darkred {
+    background: var(--primary-color-darkred);
+}
+
+.gray {
+    color: var(--primary-color-gray) !important;
+}
+
+.gray-bg {
+    background: var(--primary-color-gray);
+}
+
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link.light-text,
+.light-text {
+    color: #aaaaaa;
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link.light-text:hover {
+    color: var(--primary-color-gray);
+}
+
+.yellow-hv:hover,
+.yellow-hv:hover i,
+.yellow-active {
+    color: var(--primary-color-darkyellow) !important;
+}
+
+.hi-admin {
+    display: block;
+    padding: 0.25rem 1rem;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.highlight-admin {
+    position: relative;
+    text-decoration: none;
+    color: var(--primary-color-darkyellow);
+}
+
+a.highlight-admin {
+    color: var(--primary-color-darkyellow);
+}
+
+.highlight-admin::after {
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color-darkyellow);
+    transition: .3s all ease-out;
+}
+
+.highlight-admin:hover::after {
+    width: 100%;
+}
+
+.dropdown-item.light-text {
+    transition: .3s all ease-out;
+}
+
+.dropdown-item.light-text:hover {
+    background-color: var(--primary-color-darkyellow);
+}
+
+#manageAccountTable {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid rgba(0, 0, 0, .25); /* Tạo đường kẻ xung quanh mỗi ô */
+    padding: 8px;
+    text-align: left;
+}
+
+.list-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    padding: 1rem 0;
+}
+
+.edit, .add, .delete {
+    padding: .65rem;
+    border-radius: 3px;
+    background: var(--primary-color-darkred);
+    text-decoration: none;
+    color: var(--primary-color-darkyellow);
+    font-size: 14px;
+    display: inline-block;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.add {
+    margin-right: 5px;
+}
+
+.edit:hover, .add:hover {
+    color: var(--primary-color-darkyellow);
+}
+
+.list-button a svg {
+    margin-right: 4px;
+}
+
+.to-manage-link {
+    display: inline-block;
+    color: var(--primary-color-gray);
+    background-color: var(--primary-color-darkred);
+    margin-top: .5rem;
+    padding: .75rem .5rem;
+    text-decoration: none;
+    border: 2px solid var(--primary-color-darkred);
+    transition: .15s all ease-out;
+}
+
+.to-manage-link:hover {
+    color: var(--primary-color-darkyellow);
+}
+
+.card-body h6 {
+    margin-bottom: 14px;
+}
+
+.card-body h6.missing-1-row {
+    margin-bottom: 47px;
+}
+
+.card-body h6.missing-2-row {
+    margin-bottom: 80px;
+}
+
+td {
+    font-weight: 400;
+}
+
+label {
+    margin-right: 10px;
+    font-weight: 500;
+}
+
+input {
+    width: 100%;
+    height: 30px;
+    box-sizing: border-box;
+}
+
+textarea {
+    width: 100%;
+    height: 200px
+}
+
+form#client-home-management textarea {
+    height: 100px;
+}
+
+form a.link {
+    text-decoration: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    color: #0a53be;
+    transition: .15s ease-out color;
+}
+
+form .adding.button {
+    margin: 24px 10px 24px 0;
+    padding: 10px;
+    width: auto;
+    height: 45px;
+    text-align: center;
+    background-color: var(--primary-color-darkred);
+    color: var(--primary-color-gray);
+    transition: .15s all ease-out;
+}
+
+form a, .checking-order-detail {
+    text-decoration: none;
+    margin: 24px 10px 24px 0;
+    padding: 14px;
+    background-color: var(--primary-color-darkred);
+    color: var(--primary-color-gray);
+    transition: .15s all ease-out;
+}
+
+form .adding.button:hover, form a:hover, .checking-order-detail:hover {
+    color: var(--primary-color-darkyellow);
+}
+
+textarea#description {
+    height: 100px;
+}
+
+form img {
+    margin: 10px 0;
+}
+
+a.changing-password-link {
+    color: var(--primary-color-darkred);
+    background: transparent;
+    text-decoration: underline;
+    padding: 0;
+}
+
+td img {
+    width: 120px;
+    height: 150px;
+    margin-bottom: 5px;
+}
+
+form .error {
+    color: red;
+}
+
+form textarea {
+    white-space: pre-wrap;
+}
+
+select {
+    width: 100%;
+    height: 30px;
+}
