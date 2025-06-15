@@ -1,19 +1,20 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.util.SessionUtil;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
 
-@WebServlet(value = "/signout")
-public class SignOutController extends HttpServlet {
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        SessionUtil.getInstance().removeValue(req, "user");
-        resp.sendRedirect(req.getContextPath() + "/home");
+@Controller
+public class SignOutController {
+
+    @GetMapping("/signout")
+    public RedirectView signOut(HttpSession session) {
+        // Xóa thuộc tính "user" khỏi session
+        session.removeAttribute("user");
+
+        // Redirect về trang home
+        return new RedirectView("/home");
     }
 }
