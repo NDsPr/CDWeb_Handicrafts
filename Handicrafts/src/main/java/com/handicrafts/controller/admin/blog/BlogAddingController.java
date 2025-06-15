@@ -1,9 +1,9 @@
 package com.handicrafts.controller.admin.blog;
 
-import com.ltw.bean.BlogBean;
-import com.ltw.dao.BlogDAO;
-import com.ltw.util.BlankInputUtil;
-import com.ltw.util.NumberValidateUtil;
+import com.handicrafts.bean.BlogBean;
+import com.handicrafts.dao.BlogDAO;
+import com.handicrafts.util.BlankInputUtil;
+import com.handicrafts.util.NumberValidateUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

@@ -5,7 +5,7 @@
  Source Server Type    : MySQL
  Source Server Version : 100432
  Source Host           : localhost:3306
- Source Schema         : ltw_group33
+ Source Schema         : handicrafts_group33
 
  Target Server Type    : MySQL
  Target Server Version : 100432

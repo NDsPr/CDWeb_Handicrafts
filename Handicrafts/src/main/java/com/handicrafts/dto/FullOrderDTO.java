@@ -1,7 +1,7 @@
 package com.handicrafts.dto;
 
-import com.ltw.bean.OrderBean;
-import com.ltw.bean.OrderDetailBean;
+import com.handicrafts.bean.OrderBean;
+import com.handicrafts.bean.OrderDetailBean;
 
 import java.util.List;
 

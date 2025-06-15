@@ -1,9 +1,9 @@
 package com.handicrafts.controller.image;
 
-import com.ltw.bean.ProductImageBean;
-import com.ltw.dao.ImageDAO;
-import com.ltw.util.BlankInputUtil;
-import com.ltw.util.CloudStorageUtil;
+import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.util.BlankInputUtil;
+import com.handicrafts.util.CloudStorageUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;

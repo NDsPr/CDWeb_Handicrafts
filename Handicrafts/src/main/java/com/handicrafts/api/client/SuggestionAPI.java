@@ -1,7 +1,7 @@
 package com.handicrafts.api.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ltw.dao.ProductDAO;
+import com.handicrafts.dao.ProductDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

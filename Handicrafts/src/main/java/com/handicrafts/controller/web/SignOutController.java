@@ -1,6 +1,6 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.util.SessionUtil;
+import com.handicrafts.util.SessionUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

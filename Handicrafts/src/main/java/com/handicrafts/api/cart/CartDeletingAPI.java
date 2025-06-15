@@ -1,7 +1,7 @@
 package com.handicrafts.api.cart;
 
-import com.ltw.bean.Cart;
-import com.ltw.bean.Item;
+import com.handicrafts.bean.Cart;
+import com.handicrafts.bean.Item;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

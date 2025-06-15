@@ -1,7 +1,7 @@
 package com.handicrafts.controller.signin_signup_forget.via_page;
 
-import com.ltw.service.CodeVerifyService;
-import com.ltw.util.SendEmailUtil;
+import com.handicrafts.service.CodeVerifyService;
+import com.handicrafts.util.SendEmailUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

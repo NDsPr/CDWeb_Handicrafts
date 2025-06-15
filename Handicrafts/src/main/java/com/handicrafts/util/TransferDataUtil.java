@@ -2,7 +2,7 @@ package com.handicrafts.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ltw.bean.OrderDetailBean;
+import com.handicrafts.bean.OrderDetailBean;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,44 +1,31 @@
 package com.handicrafts.security.service;
 
-import com.handicrafts.repository.impl.UserRepository;
-import com.handicrafts.dto.UserDTO;
-import com.handicrafts.util.EncryptPasswordUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.ltw.bean.UserBean;
+import com.ltw.dao.UserDAO;
+import com.ltw.util.EncryptPasswordUtil;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Service
 public class LinkVerifyService {
+    private final UserDAO userDAO = new UserDAO();
 
-    @Autowired
-    private UserRepository UserRepository;
-
-    /**
-     * Lưu verifiedCode xuống database
-     */
+    // Service lưu verifiedCode xuống database
     public void saveNewCodeByEmail(String email, String verifiedCode) {
-        UserRepository.saveNewCodeByEmail(email, verifiedCode);
+        userDAO.saveNewCodeByEmail(email, verifiedCode);
     }
 
-    /**
-     * Tìm id theo email
-     */
+    // Service tìm id theo email
     public int findIdByEmail(String email) {
-        return UserRepository.findIdByEmail(email);
+        return userDAO.findIdByEmail(email);
     }
 
-    /**
-     * Kiểm tra xem Email có để trống không
-     */
+    // Service kiểm tra xem Email có để trống không
     public boolean isBlankInput(String input) {
         return input == null || input.trim().isEmpty();
     }
 
-    /**
-     * Kiểm tra tính hợp lệ của email
-     */
+    // Service Kiểm tra tính hợp lệ của email
     public boolean isValidEmail(String email) {
         // Regex để kiểm tra email
         // ?: Không ghi nhớ kết quả
@@ -48,82 +35,61 @@ public class LinkVerifyService {
         return matcher.matches();
     }
 
-    /**
-     * Kiểm tra xem trong database đã tồn tại email được truyền vào hay chưa
-     */
+    // Service kiểm tra xem trong database đã tồn tại email được truyền vào hay chưa
     public boolean isExistEmail(String email) {
         // Nếu để trống thì trả luôn về false
         if (isBlankInput(email)) {
             return false;
         }
-        int id = UserRepository.findIdByEmail(email);
+        int id = userDAO.findIdByEmail(email);
         return id != -1;
     }
 
-    /**
-     * Kiểm tra xem tài khoản đã được active (status = 1) hay chưa
-     */
+    // Service kiểm tra xem tài khoản đã được active (status = 1) hay chưa
     public boolean isActiveAccount(String email) {
-        return UserRepository.isActiveAccount(email);
+        return userDAO.isActiveAccount(email);
     }
 
-    /**
-     * Kiểm tra verifiedCode
-     */
+
+    // Service kiểm tra verifiedCode
     public boolean isCorrectVerifiedCode(String email, String verifiedCode) {
-        String emailQuery = UserRepository.checkVerifiedCode(verifiedCode);
+        String emailQuery = userDAO.checkVerifiedCode(verifiedCode);
         // Nếu tìm thấy verifiedCode và id query được trùng với id được gửi từ Servlet => Trả vè true
         return email.equals(emailQuery);
     }
 
-    /**
-     * Kiểm tra xem input có chứa khoảng trống không
-     */
+    // Service kiểm tra xem input có chứa khoảng trống không
     public boolean containsSpace(String input) {
         return input.contains(" ");
     }
 
-    /**
-     * Kiểm tra độ dài của mật khẩu
-     */
+    // Service kiểm tra độ dài của mật khẩu
     public boolean isLengthEnough(String password) {
         return password.length() >= 6;
     }
 
-    /**
-     * Lưu mật khẩu mới vào trong database
-     */
+    // Service lưu mật khẩu mới vào trong database
     public int saveRenewPasswordByEmail(String email, String password) {
         // Hashing mật khẩu trước khi lưu
         String hashedPassword = EncryptPasswordUtil.encryptPassword(password);
-        return UserRepository.saveRenewPasswordByEmail(email, hashedPassword);
+        return userDAO.saveRenewPasswordByEmail(email, hashedPassword);
     }
 
-    /**
-     * Lưu key vào user
-     */
+    // Lưu key vào user
     public void saveKeyByEmail(String email, String key) {
-        UserRepository.saveKeyByEmail(email, key);
+        userDAO.saveKeyByEmail(email, key);
     }
 
-    /**
-     * Kiểm tra key
-     */
+    // Kiểm tra key
     public boolean isCorrectKey(String email, String key) {
-        return UserRepository.isCorrectKey(email, key);
+        return userDAO.isCorrectKey(email, key);
     }
 
-    /**
-     * Đặt key thành rỗng
-     */
     public void setEmptyKey(String email) {
-        UserRepository.setEmptyKey(email);
+        userDAO.setEmptyKey(email);
     }
 
-    /**
-     * Tìm user theo email
-     */
-    public UserDTO findUserByEmail(String email) {
-        return UserRepository.findUserByEmail(email);
+    public UserBean findUserByEmail(String email) {
+        return userDAO.findUserByEmail(email);
     }
 }

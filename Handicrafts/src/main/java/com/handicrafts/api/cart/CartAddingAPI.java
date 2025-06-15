@@ -1,12 +1,12 @@
 package com.handicrafts.api.cart;
 
-import com.ltw.bean.Cart;
-import com.ltw.bean.Item;
-import com.ltw.bean.ProductBean;
-import com.ltw.bean.ProductImageBean;
-import com.ltw.dao.ImageDAO;
-import com.ltw.dao.ProductDAO;
-import com.ltw.util.SessionUtil;
+import com.handicrafts.bean.Cart;
+import com.handicrafts.bean.Item;
+import com.handicrafts.bean.ProductBean;
+import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.util.SessionUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
