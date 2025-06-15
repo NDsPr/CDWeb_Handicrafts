@@ -41,4 +41,12 @@ public class NumberValidateUtil {
         }
         return result;
     }
+// thêm vô sau
+    public static int parseIntSafe(String input, int defaultValue) {
+        try {
+            return Integer.parseInt(replaceDot(input));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 }

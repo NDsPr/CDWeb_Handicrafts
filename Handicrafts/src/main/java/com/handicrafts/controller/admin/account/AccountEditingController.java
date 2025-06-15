@@ -1,64 +1,64 @@
 package com.handicrafts.controller.admin.account;
 
-import com.handicrafts.bean.UserBean;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.UserDAO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.UserEntity;
+import com.handicrafts.repository.UserRepository;
+import com.handicrafts.security.service.LogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
-@WebServlet("/admin/account-management/editing")
-public class AccountEditingController extends HttpServlet {
-    private final UserDAO userDAO = new UserDAO();
-    private LogService<UserBean> logService = new LogService<>();
-    private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+@Controller
+@RequestMapping("/admin/account-management/editing")
+public class AccountEditingController {
 
-    // Todo: Cần chỉnh sửa lại logic cho thêm người dùng
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        UserBean userBean = userDAO.findUserById(id);
-        request.setAttribute("displayUser", userBean);
-        request.getRequestDispatcher("/editing-account.jsp").forward(request, response);
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LogService<UserDTO> logService;
+
+    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+
+    @GetMapping
+    public String showEditAccountForm(@RequestParam("id") Integer id, Model model) {
+        Optional<UserEntity> userOpt = userRepository.findUserById(id);
+        if (userOpt.isPresent()) {
+            UserDTO userDTO = new UserDTO();
+            BeanUtils.copyProperties(userOpt.get(), userDTO);
+            model.addAttribute("user", userDTO);
+        }
+        return "editing-account";
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        // Sử dụng vòng lặp để set lỗi để trống theo index,
-        // tuy nhiên cần phải giữ đúng thứ tự của input theo form và theo database (Vì sử dụng vòng lặp theo i để set lỗi)
-        String idStr = req.getParameter("id");
-        // Lấy id kiểu int ra để lưu vào database
-        int id = Integer.parseInt(idStr);
-
-        String firstName = req.getParameter("firstName");
-        String lastName = req.getParameter("lastName");
-        String roleId = req.getParameter("roleId");
-        String status = req.getParameter("status");
-        String addressLine = req.getParameter("addressLine");
-        String addressWard = req.getParameter("addressWard");
-        String addressDistrict = req.getParameter("addressDistrict");
-        String addressProvince = req.getParameter("addressProvince");
-
-        // Biến thông báo trạng thái
-        String msg = "";
-
-        String[] inputsForm = {firstName, lastName, roleId, status, addressLine, addressWard, addressDistrict, addressProvince};
-        // Biến bắt lỗi
+    @PostMapping
+    public String updateAccount(@ModelAttribute("user") UserDTO userDTO,
+                                @RequestParam("addressLine") String addressLine,
+                                @RequestParam("addressWard") String addressWard,
+                                @RequestParam("addressDistrict") String addressDistrict,
+                                @RequestParam("addressProvince") String addressProvince,
+                                HttpServletRequest request,
+                                Model model) {
         boolean isValid = true;
 
-        // Kiểm tra input rằng/null trong hàm checkEmptyParam
-        List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
+        String[] inputsForm = {
+                userDTO.getFullName(),
+                userDTO.getUsername(),
+                addressLine, addressWard, addressDistrict, addressProvince
+        };
 
-        // Nếu có lỗi (khác null) trả về isValid = false
+        List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
         for (String error : errors) {
             if (error != null) {
                 isValid = false;
@@ -66,45 +66,62 @@ public class AccountEditingController extends HttpServlet {
             }
         }
 
-        UserBean prevUser = userDAO.findUserById(id);
-        if (isValid) {
-            // Đọc lỗi với database
-            int roleIdInt = NumberValidateUtil.toInt(roleId);
-            int statusInt = NumberValidateUtil.toInt(status);
+        String msg;
+        Optional<UserEntity> prevUserOpt = userRepository.findUserById(userDTO.getId());
 
-            // Set thuộc tính vào bean
-            UserBean nowChange = new UserBean();
-            nowChange.setId(id);
-            nowChange.setFirstName(firstName);
-            nowChange.setLastName(lastName);
-            nowChange.setRoleId(roleIdInt);
-            nowChange.setStatus(statusInt);
-            nowChange.setAddressLine(addressLine);
-            nowChange.setAddressWard(addressWard);
-            nowChange.setAddressDistrict(addressDistrict);
-            nowChange.setAddressProvince(addressProvince);
+        if (isValid && prevUserOpt.isPresent()) {
+            try {
+                // Cập nhật phần tên (nếu fullName tồn tại)
+                String firstName = "";
+                String lastName = "";
+                if (userDTO.getFullName() != null) {
+                    String[] parts = userDTO.getFullName().trim().split(" ", 2);
+                    firstName = parts[0];
+                    lastName = (parts.length == 2) ? parts[1] : "";
+                }
 
-            int affectedRow = userDAO.updateAccount(nowChange);
-            // Sau khi update, cập nhật nội dung hiện tại trong db
-            UserBean currentUser = userDAO.findUserById(id);
+                // Cập nhật thông tin cơ bản
+                userRepository.updateAccount(
+                        firstName,
+                        lastName,
+                        addressLine,
+                        addressWard,
+                        addressDistrict,
+                        addressProvince,
+                        userDTO.getId()
+                );
 
-            if (affectedRow < 0) {
-                logService.log(req, "admin-update-account", LogState.FAIL, LogLevel.ALERT, prevUser, currentUser);
-                msg = "error";
-            } else if (affectedRow > 0) {
-                logService.log(req, "admin-update-account", LogState.SUCCESS, LogLevel.WARNING, prevUser, currentUser);
+                // Cập nhật role và status (giả sử roles là list và bạn lấy phần tử đầu tiên làm roleId)
+                Integer roleId = NumberValidateUtil.parseIntSafe(userDTO.getRoles().get(0), 0);
+                ; // hoặc hardcode nếu cần
+                userRepository.updateAccountForAdmin(
+                        roleId,
+                        Boolean.TRUE.equals(userDTO.getStatus()) ? 1 : 0,
+                        userDTO.getId()
+                );
+
+                logService.log(request, "admin-update-account", LogState.SUCCESS, LogLevel.INFO, null, userDTO);
                 msg = "success";
+
+            } catch (Exception e) {
+                logService.log(request, "admin-update-account", LogState.FAIL, LogLevel.ALERT, null, null);
+                msg = "error";
             }
+
         } else {
-            req.setAttribute("errors", errors);
-            UserBean currentUser = userDAO.findUserById(id);
-            logService.log(req, "admin-update-account", LogState.FAIL, LogLevel.ALERT, prevUser, currentUser);
+            model.addAttribute("errors", errors);
             msg = "error";
         }
 
-        UserBean displayUser = userDAO.findUserById(id);
-        req.setAttribute("msg", msg);
-        req.setAttribute("displayUser", displayUser);
-        req.getRequestDispatcher("/editing-account.jsp").forward(req, resp);
+        // Load lại user để hiển thị
+        Optional<UserEntity> displayUserOpt = userRepository.findUserById(userDTO.getId());
+        if (displayUserOpt.isPresent()) {
+            UserDTO displayUserDTO = new UserDTO();
+            BeanUtils.copyProperties(displayUserOpt.get(), displayUserDTO);
+            model.addAttribute("user", displayUserDTO);
+        }
+
+        model.addAttribute("msg", msg);
+        return "editing-account";
     }
 }
