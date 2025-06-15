@@ -1,45 +1,68 @@
 package com.handicrafts.api.cart;
 
-import com.handicrafts.bean.Cart;
-import com.handicrafts.bean.Item;
-import com.handicrafts.bean.ProductBean;
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
-import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.dto.CartDTO;
+import com.handicrafts.dto.ItemDTO;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.repository.ImageRepository;
+import com.handicrafts.repository.ProductRepository;
 import com.handicrafts.util.SessionUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-// Cần tạo API bắt đầu bằng "/api/cart-"
-@WebServlet(value = {"/api/cart-adding"})
-public class CartAddingAPI extends HttpServlet {
-    private final ProductDAO productDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
+@RestController
+@RequestMapping("/api")
+public class CartAddingAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String productId = req.getParameter("productId");
-        ProductBean product = productDAO.findProductById(Integer.parseInt(productId));
-        List<ProductImageBean> thumbnailProduct = imageDAO.getThumbnailByProductId(Integer.parseInt(productId));
-        product.setImages(thumbnailProduct);
-        Cart cart = (Cart) SessionUtil.getInstance().getValue(req, "cart");
+    @Autowired
+    private ProductRepository productDAO;
 
-        Item item = new Item();
-        item.setProduct(product);
+    @Autowired
+    private ImageRepository imageDAO;
 
-        cart.addItem(item);
-        SessionUtil.getInstance().putValue(req, "cart", cart);
-        int totalItems = cart.getTotalItem();
+    @PostMapping("/cart-adding")
+    public ResponseEntity<Map<String, Object>> addToCart(
+            @RequestParam("id") int id,
+            @RequestParam(value = "quantity", defaultValue = "1") int quantity,
+            HttpServletRequest request) throws IOException {
 
-        String responseJson = "{\"totalItems\": " + totalItems + ", \"success\": \"true\"}";
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        resp.getWriter().write(responseJson);
+        request.setCharacterEncoding("UTF-8");
+
+        Map<String, Object> response = new HashMap<>();
+
+        ProductDTO product = productDAO.findProductById(id);
+        List<ProductImageDTO> images = Collections.singletonList(imageDAO.findOneByProductId(id));
+
+        if (product.getQuantity() <= 0) {
+            response.put("status", "error");
+            response.put("notify", "Sản phẩm đã hết hàng!");
+            return ResponseEntity.ok(response);
+        }
+
+        HttpSession session = request.getSession();
+        CartDTO cart = (CartDTO) SessionUtil.getInstance().getValue((HttpServletRequest) session, "CART");
+
+        if (cart == null) {
+            cart = new CartDTO();
+        }
+
+        cart.addItem(new ItemDTO(product, quantity, images.get(0).getLink()));
+        SessionUtil.getInstance().putValue((HttpServletRequest) session, "CART", cart);
+
+        response.put("status", "success");
+        response.put("notify", "Thêm vào giỏ hàng thành công!");
+        response.put("quantity", cart.getTotalItem());
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -6,7 +6,7 @@ public class ItemDTO {
     private double total;
     private double totalWithDiscount;
 
-    public ItemDTO() {
+    public ItemDTO(ProductDTO product, int quantity, String link) {
     }
 
     public ProductDTO getProduct() {
