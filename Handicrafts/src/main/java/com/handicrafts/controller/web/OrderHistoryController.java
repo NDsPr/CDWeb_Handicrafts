@@ -1,22 +1,22 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.bean.CustomizeBean;
-import com.handicrafts.dao.CustomizeDAO;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.repository.CustomizeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+@Controller
+public class OrderHistoryController {
 
-@WebServlet("/order-history")
-public class OrderHistoryController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
+    @Autowired
+    private CustomizeRepository customizeRepository;
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        request.setAttribute("customizeInfo", customizeInfo);
-        request.getRequestDispatcher("/order-history.jsp").forward(request, response);
+    @GetMapping("/order-history")
+    public String orderHistory(Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        model.addAttribute("customizeInfo", customizeInfo);
+        return "order-history";
     }
 }
