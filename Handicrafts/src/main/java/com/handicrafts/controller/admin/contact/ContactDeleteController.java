@@ -1,27 +1,29 @@
 package com.handicrafts.controller.admin.contact;
-import com.handicrafts.dao.ContactDAO;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import com.handicrafts.repository.ContactRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-@WebServlet("/admin/contact-management/delete")
-public class ContactDeleteController extends HttpServlet {
-    private final ContactDAO contactDAO = new ContactDAO();
+@Controller
+@RequestMapping("/admin/contact-management")
+@RequiredArgsConstructor
+public class ContactDeleteController {
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        int affectedRows = contactDAO.deleteContact(id);
+    private final ContactRepository contactRepository;
+
+    @GetMapping("/delete")
+    public String deleteContact(@RequestParam("id") int id, HttpServletRequest request) {
+        int affectedRows = contactRepository.deleteContact(id);
 
         if (affectedRows > 0) {
-            response.sendRedirect(request.getContextPath() + "/admin/contact-management?success=true");
+            return "redirect:/admin/contact-management?success=true";
         } else {
-            // Xử lý lỗi nếu cần
-            response.sendRedirect(request.getContextPath() + "/admin/contact-management?error=true");
+            return "redirect:/admin/contact-management?error=true";
         }
     }
 }
-

@@ -1,61 +1,59 @@
 package com.handicrafts.controller.admin.contact;
 
-import com.handicrafts.bean.ContactBean;
-import com.handicrafts.dao.ContactDAO;
+import com.handicrafts.dto.ContactDTO;
+import com.handicrafts.repository.ContactRepository;
 import com.handicrafts.util.BlankInputUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-@WebServlet("/admin/contact-management/adding")
-public class ContactAddingController extends HttpServlet {
-    private final ContactDAO contactDAO = new ContactDAO();
+@Controller
+@RequestMapping("/admin/contact-management")
+@RequiredArgsConstructor
+public class ContactAddingController {
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/adding-contact.jsp").forward(req, resp);
+    private final ContactRepository contactRepository;
+
+    @GetMapping("/adding")
+    public String showAddContactForm() {
+        return "adding-contact"; // View Thymeleaf hoặc JSP
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-
-        String email = req.getParameter("email");
-        String firstName = req.getParameter("firstName");
-        String lastName = req.getParameter("lastName");
-        String message = req.getParameter("message");
-
-        String success = "success";
-        String[] inputsForm = new String[]{email, firstName, lastName, message};
-        ArrayList<String> errors = new ArrayList<>();
+    @PostMapping("/adding")
+    public String handleAddContact(
+            @ModelAttribute("contact") ContactDTO contactDTO,
+            Model model
+    ) {
+        List<String> errors = new ArrayList<>();
         boolean isValid = true;
 
-        for (String string : inputsForm) {
-            if (BlankInputUtil.isBlank(string)) {
+        String[] inputsForm = {
+                contactDTO.getEmail(),
+                contactDTO.getFirstName(),
+                contactDTO.getLastName(),
+                contactDTO.getMessage()
+        };
+
+        for (String input : inputsForm) {
+            if (BlankInputUtil.isBlank(input)) {
                 errors.add("e");
-                if (isValid) {
-                    isValid = false;
-                }
+                isValid = false;
             } else {
                 errors.add(null);
             }
         }
-        req.setAttribute("errors", errors);
+
+        model.addAttribute("errors", errors);
 
         if (isValid) {
-            ContactBean contactBean = new ContactBean();
-            contactBean.setEmail(email);
-            contactBean.setFirstName(firstName);
-            contactBean.setLastName(lastName);
-            contactBean.setMessage(message);
-
-            contactDAO.createContact(contactBean);
-            resp.sendRedirect(req.getContextPath() + "/admin/contact-management/adding?success=" + success);
+            contactRepository.createContact(contactDTO);
+            return "redirect:/admin/contact-management/adding?success=success";
         } else {
-            req.getRequestDispatcher("/adding-contact.jsp").forward(req, resp);
+            return "adding-contact";
         }
     }
 }
