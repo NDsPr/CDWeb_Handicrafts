@@ -1,130 +1,127 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.bean.CustomizeBean;
-import com.handicrafts.bean.UserBean;
+import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.dto.UserDTO;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.CustomizeDAO;
-import com.handicrafts.dao.UserDAO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.repository.CustomizeRepository;
+import com.handicrafts.repository.UserRepository;
+import com.handicrafts.security.service.LogService;
 import com.handicrafts.util.BlankInputUtil;
-import com.handicrafts.util.SessionUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
 import java.util.ResourceBundle;
 
-@WebServlet(value = {"/user-info"})
-public class UserInfoController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final UserDAO userDAO = new UserDAO();
-    private LogService<UserBean> logService = new LogService<>();
-    private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+@Controller
+@RequestMapping("/user-info")
+public class UserInfoController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        UserBean userBean = (UserBean) SessionUtil.getInstance().getValue(req, "user");
+    private final CustomizeRepository customizeRepository;
+    private final UserRepository userRepository;
+    private final LogService<UserDTO> logService;
+    private final ResourceBundle logBundle;
 
-        req.setAttribute("userInfo", userBean);
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.getRequestDispatcher("client-userinfo.jsp").forward(req, resp);
+    @Autowired
+    public UserInfoController(
+            CustomizeRepository customizeRepository,
+            UserRepository userRepository,
+            LogService<UserDTO> logService) {
+        this.customizeRepository = customizeRepository;
+        this.userRepository = userRepository;
+        this.logService = logService;
+        this.logBundle = ResourceBundle.getBundle("log-content");
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        UserBean session = (UserBean) SessionUtil.getInstance().getValue(req, "user");
-        // Nhận vào các dữ liệu từ JSP
-        String firstName = req.getParameter("firstName");
-        String lastName = req.getParameter("lastName");
-        String addressLine = req.getParameter("addressLine");
-        String addressWard = req.getParameter("addressWard");
-        String addressDistrict = req.getParameter("addressDistrict");
-        String addressProvince = req.getParameter("addressProvince");
+    @GetMapping
+    public String getUserInfo(Model model, HttpSession session) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        UserDTO userDTO = (UserDTO) session.getAttribute("user");
 
-        // String thông báo lên JSP
+        model.addAttribute("userInfo", userDTO);
+        model.addAttribute("customizeInfo", customizeInfo);
+        return "client-userinfo";
+    }
+
+    @PostMapping
+    public String updateUserInfo(
+            @RequestParam(value = "firstName", required = false) String firstName,
+            @RequestParam(value = "lastName", required = false) String lastName,
+            @RequestParam(value = "addressLine", required = false) String addressLine,
+            @RequestParam(value = "addressWard", required = false) String addressWard,
+            @RequestParam(value = "addressDistrict", required = false) String addressDistrict,
+            @RequestParam(value = "addressProvince", required = false) String addressProvince,
+            HttpServletRequest request,
+            HttpSession session,
+            Model model) {
+
+        UserDTO sessionUser = (UserDTO) session.getAttribute("user");
+
+        // String thông báo lên view
         String msg = "";
         String error = "";
-        String fnError;
-        String lnError;
-        String alError;
-        String awError;
-        String adError;
-        String apError;
-
-        // Tạo ra bean lưu trữ thông tin để đưa xuống DAO
-        UserBean userBean;
 
         // Kiểm tra các trường hợp bỏ trống
-        // TODO: Nếu không trống, kiểm tra các trường hợp có số
         if (BlankInputUtil.isBlank(firstName)) {
             error = "error";
-            fnError = "e";
-            req.setAttribute("fnErr", fnError);
+            model.addAttribute("fnErr", "e");
         }
-        // TODO: Nếu không trống, kiểm tra các trường hợp có số
         if (BlankInputUtil.isBlank(lastName)) {
             error = "error";
-            lnError = "e";
-            req.setAttribute("lnErr", lnError);
+            model.addAttribute("lnErr", "e");
         }
         if (BlankInputUtil.isBlank(addressLine)) {
             error = "error";
-            alError = "e";
-            req.setAttribute("alErr", alError);
+            model.addAttribute("alErr", "e");
         }
         if (BlankInputUtil.isBlank(addressWard)) {
             error = "error";
-            awError = "e";
-            req.setAttribute("awErr", awError);
+            model.addAttribute("awErr", "e");
         }
         if (BlankInputUtil.isBlank(addressDistrict)) {
             error = "error";
-            adError = "e";
-            req.setAttribute("adErr", adError);
+            model.addAttribute("adErr", "e");
         }
         if (BlankInputUtil.isBlank(addressProvince)) {
             error = "error";
-            apError = "e";
-            req.setAttribute("apErr", apError);
+            model.addAttribute("apErr", "e");
         }
 
         // Nếu không lỗi thì set thành công và lưu vào database
-        if (!error.equals("error")) {
-            // Set thuộc tính vào bean
-            userBean = new UserBean();
-            userBean.setFirstName(firstName);
-            userBean.setLastName(lastName);
-            userBean.setAddressLine(addressLine);
-            userBean.setAddressWard(addressWard);
-            userBean.setAddressDistrict(addressDistrict);
-            userBean.setAddressProvince(addressProvince);
-            userBean.setId(session.getId());
-
-            UserBean prevUser = userDAO.findUserById(session.getId());
-            // Đưa bean xuống Database
-            int affectedRows = userDAO.updateAccount(userBean);
-            UserBean currentUser = userDAO.findUserById(session.getId());
-            if (affectedRows > 0) {
-                logService.log(req, "user-change-info", LogState.SUCCESS, LogLevel.WARNING, prevUser, currentUser);
-                msg = "success";
-                // Cập nhật lại giá trị trên Session
-                SessionUtil.getInstance().putValue(req, "user", userDAO.findUserById(session.getId()));
-            } else {
-                logService.log(req, "user-change-info", LogState.FAIL, LogLevel.WARNING, prevUser, currentUser);
-                msg = "fail";
-            }
-        }
+//        if (!error.equals("error")) {
+//            // Set thuộc tính vào DTO
+//            UserDTO userDTO = new UserDTO();
+//            userDTO.setId(sessionUser.getId());
+//
+//            UserDTO prevUser = userRepository.findById(sessionUser.getId());
+//
+//            // Cập nhật thông tin người dùng
+//            boolean updateSuccess = userRepository.updateUser(userDTO);
+//            UserDTO currentUser = userRepository.findById(sessionUser.getId());
+//
+//            if (updateSuccess) {
+//                logService.log(request, "user-change-info", LogState.SUCCESS, LogLevel.WARNING, prevUser, currentUser);
+//                msg = "success";
+//                // Cập nhật lại giá trị trên Session
+//                session.setAttribute("user", userRepository.findById(sessionUser.getId()));
+//            } else {
+//                logService.log(request, "user-change-info", LogState.FAIL, LogLevel.WARNING, prevUser, currentUser);
+//                msg = "fail";
+//            }
+//        }
 
         // Cuối cùng lấy thông tin từ db để hiển thị cho người dùng
-        userBean = userDAO.findUserById(session.getId());
-        req.setAttribute("userInfo", userBean);
-        req.setAttribute("msg", msg);
-        req.getRequestDispatcher("/client-userinfo.jsp").forward(req, resp);
+//        UserDTO userDTO = userRepository.findById(sessionUser.getId());
+//        model.addAttribute("userInfo", userDTO);
+        model.addAttribute("msg", msg);
+        return "client-userinfo";
     }
 }
