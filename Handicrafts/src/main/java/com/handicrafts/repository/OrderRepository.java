@@ -1,407 +1,258 @@
 package com.handicrafts.repository;
 
-import com.handicrafts.bean.OrderBean;
-import com.handicrafts.bean.OrderDetailBean;
-import com.handicrafts.util.CloseResourceUtil;
-import com.handicrafts.util.OpenConnectionUtil;
-import com.handicrafts.util.SetParameterUtil;
 
-import java.sql.*;
+import com.handicrafts.dto.OrderDTO;
+import com.handicrafts.entity.OrderEntity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class OrderRepository {
-    public List<OrderDetailBean> findOrderDetailByOrderId(int orderId) {
-        List<OrderDetailBean> result = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT order_details.orderId, order_details.productId, products.name, products.originalPrice, products.discountPrice, order_details.quantity ")
-                .append("FROM order_details ")
-                .append("INNER JOIN products ON order_details.productId = products.id ")
-                .append("WHERE order_details.orderId = ?");
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+//
+//    public List<OrderDTO> findOrderByUserId(int userId) {
+//        List<OrderDTO> orderList = new ArrayList<>();
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDTO(o.id, o.userId, o.total, o.paymentMethod, " +
+//                "o.status, o.shipToDate, o.createdDate, o.createdBy, o.modifiedDate, o.modifiedBy) " +
+//                "FROM OrderEntity o WHERE o.userId = :userId";
+//
+//        TypedQuery<OrderDTO> query = entityManager.createQuery(jpql, OrderDTO.class);
+//        query.setParameter("userId", userId);
+//
+//        try {
+//            orderList = query.getResultList();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return orderList;
+//    }
+
+//    public List<OrderDTO> findAllOrders() {
+//        List<OrderDTO> orderList = new ArrayList<>();
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDTO(o.id, o.userId, o.total, o.paymentMethod, " +
+//                "o.status, o.shipToDate, o.createdDate, o.createdBy, o.modifiedDate, o.modifiedBy) " +
+//                "FROM OrderEntity o";
+//
+//        TypedQuery<OrderDTO> query = entityManager.createQuery(jpql, OrderDTO.class);
+//
+//        try {
+//            orderList = query.getResultList();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return orderList;
+//    }
+
+//    public OrderDTO findOrderById(int id) {
+//        OrderDTO order = null;
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDTO(o.id, o.userId, o.total, o.paymentMethod, " +
+//                "o.status, o.shipToDate, o.createdDate, o.createdBy, o.modifiedDate, o.modifiedBy) " +
+//                "FROM OrderEntity o WHERE o.id = :id";
+//
+//        TypedQuery<OrderDTO> query = entityManager.createQuery(jpql, OrderDTO.class);
+//        query.setParameter("id", id);
+//
+//        try {
+//            order = query.getSingleResult();
+//        } catch (Exception e) {
+//            // No result found or other exception
+//        }
+//
+//        return order;
+//    }
+
+    @Transactional
+    public int updateOrder(OrderDTO orderBean) {
+        int affectedRows = 0;
+
+        String jpql = "UPDATE OrderEntity o SET o.status = :status WHERE o.id = :id";
+
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("status", orderBean.getStatus());
+        query.setParameter("id", orderBean.getId());
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement, orderId);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                OrderDetailBean orderDetail = new OrderDetailBean();
-                orderDetail.setOrderId(resultSet.getInt("orderId"));
-                orderDetail.setProductId(resultSet.getInt("productId"));
-                orderDetail.setProductName(resultSet.getString("name"));
-                orderDetail.setOriginalPrice(resultSet.getDouble("originalPrice"));
-                orderDetail.setDiscountPrice(resultSet.getDouble("discountPrice"));
-                orderDetail.setQuantity(resultSet.getInt("quantity"));
-
-                result.add(orderDetail);
-            }
-            return result;
-        } catch (SQLException e) {
+            affectedRows = query.executeUpdate();
+        } catch (Exception e) {
             e.printStackTrace();
-            return null;
-
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-    }
 
-    public List<OrderBean> findOrderByUserId(int userId) {
-        List<OrderBean> orderList = new ArrayList<>();
-        String sql = "SELECT id, createdDate, shipToDate, total, status FROM orders WHERE userId = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, userId);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                OrderBean order = new OrderBean();
-                order.setId(resultSet.getInt("id"));
-                order.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                order.setShipToDate(resultSet.getTimestamp("shipToDate"));
-                order.setTotal(resultSet.getDouble("total"));
-                order.setStatus(resultSet.getInt("status"));
-
-                orderList.add(order);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return orderList;
-    }
-
-
-    public List<OrderBean> findAllOrders() {
-        String sql = "SELECT id, userId, total, paymentMethod, status, shipToDate, createdDate, createdBy, modifiedDate, modifiedBy " +
-                "FROM orders";
-        List<OrderBean> orderList = new ArrayList<>();
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                OrderBean orderBean = new OrderBean();
-                orderBean.setId(resultSet.getInt("id"));
-                orderBean.setUserId(resultSet.getInt("userId"));
-                orderBean.setTotal(resultSet.getDouble("total"));
-                orderBean.setPaymentMethod(resultSet.getString("paymentMethod"));
-                orderBean.setStatus(resultSet.getInt("status"));
-                orderBean.setShipToDate(resultSet.getTimestamp("shipToDate"));
-                orderBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                orderBean.setCreatedBy(resultSet.getString("createdBy"));
-                orderBean.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
-                orderBean.setModifiedBy(resultSet.getString("modifiedBy"));
-
-                orderList.add(orderBean);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return orderList;
-    }
-
-    public OrderBean findOrderById(int id) {
-        OrderBean order = null;
-        String sql = "SELECT id, userId, total, paymentMethod, status, shipToDate, createdDate, createdBy, modifiedDate, modifiedBy " +
-                "FROM orders " +
-                "WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                order = new OrderBean();
-                order.setId(resultSet.getInt("id"));
-                order.setUserId(resultSet.getInt("userId"));
-                order.setTotal(resultSet.getDouble("total"));
-                order.setPaymentMethod(resultSet.getString("paymentMethod"));
-                order.setShipToDate(resultSet.getTimestamp("shipToDate"));
-                order.setStatus(resultSet.getInt("status"));
-                order.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                order.setCreatedBy(resultSet.getString("createdBy"));
-                order.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
-                order.setModifiedBy(resultSet.getString("modifiedBy"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return order;
-    }
-
-    public int updateOrder(OrderBean orderBean) {
-        int affectedRows = -1;
-        String sql = "UPDATE orders " +
-                "SET status = ? " +
-                "WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, orderBean.getStatus(), orderBean.getId());
-            affectedRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
         return affectedRows;
     }
 
-    public int createOrder(OrderBean orderBean) {
+    @Transactional
+    public int createOrder(OrderDTO orderBean) {
         int id = -1;
-        String sql = "INSERT INTO orders (userId, createdDate, shipToDate, " +
-                "total, paymentMethod, status, createdBy, modifiedDate, modifiedBy) " +
-                "VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)";
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+        OrderEntity entity = new OrderEntity();
+        entity.setUserId(orderBean.getUserId());
+        entity.setCreatedDate(orderBean.getCreatedDate());
+        entity.setShipToDate(orderBean.getShipToDate());
+        entity.setTotal(orderBean.getTotal());
+        entity.setPaymentMethod(orderBean.getPaymentMethod());
+        entity.setStatus(1); // Default status is 1
+        entity.setCreatedBy(orderBean.getCreatedBy());
+        entity.setModifiedDate(orderBean.getModifiedDate());
+        entity.setModifiedBy(orderBean.getModifiedBy());
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            SetParameterUtil.setParameter(preparedStatement, orderBean.getUserId(), orderBean.getCreatedDate(), orderBean.getShipToDate(),
-                    orderBean.getTotal(), orderBean.getPaymentMethod(), orderBean.getCreatedBy(),
-                    orderBean.getModifiedDate(), orderBean.getModifiedBy());
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows > 0) {
-                // Retrieve the generated keys
-                resultSet = preparedStatement.getGeneratedKeys();
-
-                if (resultSet.next()) {
-                    // Get the generated ID
-                    id = resultSet.getInt(1);
-                }
-            }
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
+            entityManager.persist(entity);
+            entityManager.flush();
+            id = entity.getId();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return id;
     }
 
+    @Transactional
     public int cancelOrder(int orderId) {
-        int affected = -1;
-        String sql = "UPDATE orders " +
-                "SET status = 0 " +
-                "WHERE id = ? AND status NOT IN (0, 3, 4)";
+        int affected = 0;
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
+        String jpql = "UPDATE OrderEntity o SET o.status = 0 WHERE o.id = :orderId AND o.status NOT IN (0, 3, 4)";
+
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orderId", orderId);
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, orderId);
-            affected = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
+            affected = query.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return affected;
     }
 
-    public int cancerOrderAdmin(int id) {
-        int affectRows;
-        String sql = "UPDATE orders SET status = 0 WHERE id = ?";
+    @Transactional
+    public int cancelOrderAdmin(int id) {
+        int affectRows = 0;
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
+        String jpql = "UPDATE OrderEntity o SET o.status = 0 WHERE o.id = :id";
+
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("id", id);
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            affectRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                return -1;
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                return -1;
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
+            affectRows = query.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return affectRows;
     }
 
-    public List<OrderBean> getOrderDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<OrderBean> orders = new ArrayList<>();
-    String sql = "SELECT id, userId, total,paymentMethod,status, shipToDate, createdDate, createdBy, modifiedDate,modifiedBy FROM orders";
-    int index = 1;
+    public List<OrderDTO> getOrderDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
+        List<OrderDTO> orders = new ArrayList<>();
 
-    Connection conn = null;
-    PreparedStatement preStat = null;
-    ResultSet rs = null;
+        StringBuilder jpql = new StringBuilder();
+        jpql.append("SELECT new com.handicrafts.dto.OrderDTO(o.id, o.userId, o.total, o.paymentMethod, ");
+        jpql.append("o.status, o.shipToDate, o.createdDate, o.createdBy, o.modifiedDate, o.modifiedBy) ");
+        jpql.append("FROM OrderEntity o ");
+
+        // Add search conditions if searchValue is provided
+        if (searchValue != null && !searchValue.isEmpty()) {
+            jpql.append("WHERE (CAST(o.id AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.userId AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.total AS string) LIKE :searchPattern OR ");
+            jpql.append("o.paymentMethod LIKE :searchPattern OR ");
+            jpql.append("CAST(o.status AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.shipToDate AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.createdDate AS string) LIKE :searchPattern OR ");
+            jpql.append("o.createdBy LIKE :searchPattern OR ");
+            jpql.append("CAST(o.modifiedDate AS string) LIKE :searchPattern OR ");
+            jpql.append("o.modifiedBy LIKE :searchPattern) ");
+        }
+
+        // Add order by clause
+        jpql.append("ORDER BY o.").append(columnOrder).append(" ").append(orderDir);
+
+        TypedQuery<OrderDTO> query = entityManager.createQuery(jpql.toString(), OrderDTO.class);
+
+        // Set search parameter if provided
+        if (searchValue != null && !searchValue.isEmpty()) {
+            query.setParameter("searchPattern", "%" + searchValue + "%");
+        }
+
+        // Apply pagination
+        query.setFirstResult(start);
+        query.setMaxResults(length);
 
         try {
-        conn = OpenConnectionUtil.openConnection();
-        if (searchValue != null && !searchValue.isEmpty()) {
-            sql += " WHERE (id LIKE ? OR userId LIKE ? OR total LIKE ? OR paymentMethod LIKE ? " +
-                    "OR status LIKE ? OR shipToDate LIKE ? OR createdDate LIKE ? OR createdBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
+            orders = query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        sql += " ORDER BY " + columnOrder + " " + orderDir + " ";
-        sql += "LIMIT ?, ?";
 
-        preStat = conn.prepareStatement(sql);
-        if (searchValue != null && !searchValue.isEmpty()) {
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-            preStat.setString(index++, "%" + searchValue + "%");
-             }
-        preStat.setInt(index++, start);
-        preStat.setInt(index, length);
-
-        rs = preStat.executeQuery();
-        while (rs.next()) {
-            OrderBean order = new OrderBean();
-            order.setId(rs.getInt("id"));
-            order.setUserId(rs.getInt("userId"));
-            order.setTotal(rs.getDouble("total"));
-            order.setPaymentMethod(rs.getString("paymentMethod"));
-            order.setStatus(rs.getInt("status"));
-            order.setShipToDate(rs.getTimestamp("shipToDate"));
-            order.setCreatedDate(rs.getTimestamp("createdDate"));
-            order.setCreatedBy(rs.getString("createdBy"));
-            order.setModifiedDate(rs.getTimestamp("modifiedDate"));
-            order.setModifiedBy(rs.getString("modifiedBy"));
-
-            orders.add(order);
-        }
-    } catch (SQLException e) {
-        throw new RuntimeException(e);
-    } finally {
-        CloseResourceUtil.closeResource(rs, preStat, conn);
-    }
         return orders;
-}
+    }
 
     public int getRecordsTotal() {
-        int recordsTotal = -1;
-        String sql = "SELECT COUNT(id) FROM orders";
+        int recordsTotal = 0;
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
+        String jpql = "SELECT COUNT(o.id) FROM OrderEntity o";
+
+        TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class);
 
         try {
-            conn = OpenConnectionUtil.openConnection();
-            preStat = conn.prepareStatement(sql);
-            rs = preStat.executeQuery();
-
-            if (rs.next()) {
-                recordsTotal = rs.getInt(1);
-
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
+            Long count = query.getSingleResult();
+            recordsTotal = count.intValue();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return recordsTotal;
     }
 
-    public int getRecordsFiltered(String searchValue){
-        int recordsFiltered = -1;
-        String sql = "SELECT COUNT(id) FROM orders";
+    public int getRecordsFiltered(String searchValue) {
+        int recordsFiltered = 0;
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
+        StringBuilder jpql = new StringBuilder();
+        jpql.append("SELECT COUNT(o.id) FROM OrderEntity o ");
+
+        // Add search conditions if searchValue is provided
+        if (searchValue != null && !searchValue.isEmpty()) {
+            jpql.append("WHERE (CAST(o.id AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.userId AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.total AS string) LIKE :searchPattern OR ");
+            jpql.append("o.paymentMethod LIKE :searchPattern OR ");
+            jpql.append("CAST(o.status AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.shipToDate AS string) LIKE :searchPattern OR ");
+            jpql.append("CAST(o.createdDate AS string) LIKE :searchPattern OR ");
+            jpql.append("o.createdBy LIKE :searchPattern OR ");
+            jpql.append("CAST(o.modifiedDate AS string) LIKE :searchPattern OR ");
+            jpql.append("o.modifiedBy LIKE :searchPattern) ");
+        }
+
+        TypedQuery<Long> query = entityManager.createQuery(jpql.toString(), Long.class);
+
+        // Set search parameter if provided
+        if (searchValue != null && !searchValue.isEmpty()) {
+            query.setParameter("searchPattern", "%" + searchValue + "%");
+        }
 
         try {
-            conn = OpenConnectionUtil.openConnection();
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql +=" WHERE (id LIKE ? OR userId LIKE ? OR total LIKE ? OR paymentMethod LIKE ? " +
-                        "OR status LIKE ? OR shipToDate LIKE ? OR createdDate LIKE ? OR createdBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
-            }
-            preStat = conn.prepareStatement(sql);
-            int index = 1;
-            if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-               }
-            rs = preStat.executeQuery();
-
-            if (rs.next()) {
-                recordsFiltered = rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
+            Long count = query.getSingleResult();
+            recordsFiltered = count.intValue();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return recordsFiltered;
     }
 }
