@@ -1,254 +1,187 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.OrderDetailBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.dto.OrderDetailDTO;
+import com.handicrafts.entity.OrderDetailEntity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class OrderDetailRepository {
 
-    public List<OrderDetailBean> findDetailByOrderId(String orderId) {
-        String sql = "SELECT order_details.orderId, order_details.productId, products.name, products.originalPrice, " +
-                "products.discountPrice, products.discountPercent, order_details.quantity " +
-                "FROM order_details INNER JOIN products " +
-                "ON order_details.productId = products.id " +
-                "WHERE order_details.orderId = ?";
-        List<OrderDetailBean> orderDetailList = new ArrayList<>();
-        int orderIdConvert = Integer.parseInt(orderId);
+    @PersistenceContext
+    private EntityManager entityManager;
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+//    public List<OrderDetailDTO> findOrderDetailByOrderId(int orderId) {
+//        List<OrderDetailDTO> result = new ArrayList<>();
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDetailDTO(od.orderId, od.productId, p.name, " +
+//                "p.originalPrice, p.discountPrice, od.quantity) " +
+//                "FROM OrderDetailEntity od " +
+//                "INNER JOIN ProductEntity p ON od.productId = p.id " +
+//                "WHERE od.orderId = :orderId";
+//
+//        TypedQuery<OrderDetailDTO> query = entityManager.createQuery(jpql, OrderDetailDTO.class);
+//        query.setParameter("orderId", orderId);
+//
+//        try {
+//            result = query.getResultList();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return result;
+//    }
+
+//    @Transactional
+//    public int createOrderDetail(OrderDetailDTO orderDetailDTO) {
+//        int affectedRows = 0;
+//
+//        OrderDetailEntity entity = new OrderDetailEntity();
+//        entity.setOrderId(orderDetailDTO.getOrderId());
+//        entity.setProductId(orderDetailDTO.getProductId());
+//        entity.setQuantity(orderDetailDTO.getQuantity());
+//
+//        try {
+//            entityManager.persist(entity);
+//            affectedRows = 1;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            affectedRows = 0;
+//        }
+//
+//        return affectedRows;
+//    }
+
+//    @Transactional
+//    public int createOrderDetails(List<OrderDetailDTO> orderDetails) {
+//        int affectedRows = 0;
+//
+//        try {
+//            for (OrderDetailDTO dto : orderDetails) {
+//                OrderDetailEntity entity = new OrderDetailEntity();
+//                entity.setOrderId(dto.getOrderId());
+//                entity.setProductId(dto.getProductId());
+//                entity.setQuantity(dto.getQuantity());
+//
+//                entityManager.persist(entity);
+//                affectedRows++;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return 0;
+//        }
+//
+//        return affectedRows;
+//    }
+
+    @Transactional
+    public int deleteOrderDetailsByOrderId(int orderId) {
+        int affectedRows = 0;
+
+        String jpql = "DELETE FROM OrderDetailEntity od WHERE od.id = :orderId";
+
+        Query query = entityManager.createQuery(jpql);
+        query.setParameter("orderId", orderId);
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, orderIdConvert);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                OrderDetailBean orderDetailBean = new OrderDetailBean();
-                orderDetailBean.setOrderId(resultSet.getInt("orderId"));
-                orderDetailBean.setProductId(resultSet.getInt("productId"));
-                orderDetailBean.setProductName(resultSet.getString("name"));
-                orderDetailBean.setOriginalPrice(resultSet.getDouble("originalPrice"));
-                orderDetailBean.setDiscountPrice(resultSet.getDouble("discountPrice"));
-                orderDetailBean.setDiscountPercent(resultSet.getDouble("discountPercent"));
-                orderDetailBean.setQuantity(resultSet.getInt("quantity"));
-
-                orderDetailList.add(orderDetailBean);
-            }
-        } catch (SQLException e) {
+            affectedRows = query.executeUpdate();
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return orderDetailList;
+
+        return affectedRows;
     }
 
-    public int createOrderDetail(OrderDetailBean orderDetailBean) {
-        int affected = -1;
-        String sql = "INSERT INTO order_details (orderId, productId, quantity) " +
-                "VALUES (?, ?, ?)";
+//    public List<OrderDetailDTO> findOrderDetailsByOrderIds(List<Integer> orderIds) {
+//        List<OrderDetailDTO> result = new ArrayList<>();
+//
+//        if (orderIds == null || orderIds.isEmpty()) {
+//            return result;
+//        }
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDetailDTO(od.orderId, od.productId, p.name, " +
+//                "p.originalPrice, p.discountPrice, od.quantity) " +
+//                "FROM OrderDetailEntity od " +
+//                "INNER JOIN ProductEntity p ON od.productId = p.id " +
+//                "WHERE od.orderId IN :orderIds";
+//
+//        TypedQuery<OrderDetailDTO> query = entityManager.createQuery(jpql, OrderDetailDTO.class);
+//        query.setParameter("orderIds", orderIds);
+//
+//        try {
+//            result = query.getResultList();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return result;
+//    }
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
+    public int countOrderDetailsByProductId(int productId) {
+        int count = 0;
 
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, orderDetailBean.getOrderId(), orderDetailBean.getProductId(), orderDetailBean.getQuantity());
-            affected = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affected;
-    }
+        String jpql = "SELECT COUNT(od) FROM OrderDetailEntity od WHERE od.id = :productId";
 
-    public List<OrderDetailBean> getOrderDetailsDatatable(int orderId, int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<OrderDetailBean> orderDetails = new ArrayList<>();
-        String sql = "SELECT order_details.orderId, order_details.productId, products.name, products.originalPrice, " +
-                "products.discountPrice, products.discountPercent, order_details.quantity " +
-                "FROM order_details INNER JOIN products " +
-                "ON order_details.productId = products.id " +
-                "WHERE (order_details.orderId = ?)";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+        TypedQuery<Long> query = entityManager.createQuery(jpql, Long.class);
+        query.setParameter("productId", productId);
 
         try {
-            connection = OpenConnectionUtil.openConnection();
-            int index = 1;
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " AND (order_details.productId LIKE ? OR products.name LIKE ? " +
-                        "OR products.originalPrice LIKE ? OR products.discountPrice LIKE ? " +
-                        "OR products.discountPercent LIKE ? OR order_details.quantity LIKE ?)";
-            }
-            sql += " ORDER BY " + columnOrder + " " + orderDir + " ";
-            sql += "LIMIT ?, ?";
-
-            preparedStatement = connection.prepareStatement(sql);
-
-            // Set param orderId trong tất cả trường hợp
-            preparedStatement.setInt(index++, orderId);
-            if (searchValue != null && !searchValue.isEmpty()) {
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-            }
-            preparedStatement.setInt(index++, start);
-            preparedStatement.setInt(index, length);
-
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                OrderDetailBean orderDetailBean = new OrderDetailBean();
-                orderDetailBean.setOrderId(resultSet.getInt("orderId"));
-                orderDetailBean.setProductId(resultSet.getInt("productId"));
-                orderDetailBean.setProductName(resultSet.getString("name"));
-                orderDetailBean.setOriginalPrice(resultSet.getDouble("originalPrice"));
-                orderDetailBean.setDiscountPrice(resultSet.getDouble("discountPrice"));
-                orderDetailBean.setDiscountPercent(resultSet.getDouble("discountPercent"));
-                orderDetailBean.setQuantity(resultSet.getInt("quantity"));
-
-                orderDetails.add(orderDetailBean);
-            }
-        } catch (SQLException e) {
+            Long result = query.getSingleResult();
+            count = result.intValue();
+        } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-        return orderDetails;
+
+        return count;
     }
 
-    public int getRecordsTotal(int orderId) {
-        int recordTotal = -1;
-        String sql = "SELECT COUNT(orderId) FROM order_details WHERE orderId = ?";
+//    @Transactional
+//    public int updateOrderDetail(OrderDetailDTO orderDetailDTO) {
+//        int affectedRows = 0;
+//
+//        String jpql = "UPDATE OrderDetailEntity od SET od.quantity = :quantity " +
+//                "WHERE od.orderId = :orderId AND od.productId = :productId";
+//
+//        Query query = entityManager.createQuery(jpql);
+//        query.setParameter("quantity", orderDetailDTO.getQuantity());
+//        query.setParameter("orderId", orderDetailDTO.getOrderId());
+//        query.setParameter("productId", orderDetailDTO.getProductId());
+//
+//        try {
+//            affectedRows = query.executeUpdate();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        return affectedRows;
+//    }
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, orderId);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                recordTotal = resultSet.getInt(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return recordTotal;
-    }
-
-    public int getRecordsFiltered(int orderId, String searchValue) {
-        int recordFiltered = -1;
-        String sql = "SELECT COUNT(orderId) FROM order_details INNER JOIN products" +
-                " ON order_details.productId = products.id" +
-                " WHERE orderId = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            int index = 1;
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " AND (order_details.productId LIKE ? OR products.name LIKE ? " +
-                        "OR products.originalPrice LIKE ? OR products.discountPrice LIKE ? " +
-                        "OR products.discountPercent LIKE ? OR order_details.quantity LIKE ?)";
-            }
-            preparedStatement = connection.prepareStatement(sql);
-
-            preparedStatement.setInt(index++, orderId);
-            if (searchValue != null && !searchValue.isEmpty()) {
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index, "%" + searchValue + "%");
-            }
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                recordFiltered = resultSet.getInt(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return recordFiltered;
-    }
-
-    public List<Integer> getUnreviewedProductByOrderId(int orderId) {
-        List<Integer> productIds = new ArrayList<>();
-        String sql = "SELECT productId FROM order_details WHERE (orderId = ? AND reviewed = 0)";
-
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            preStat = conn.prepareStatement(sql);
-            SetParameterUtil.setParameter(preStat, orderId);
-            rs = preStat.executeQuery();
-
-            while (rs.next()) {
-                productIds.add(rs.getInt("productId"));
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
-        }
-        return productIds;
-    }
-
-    public void setSuccessReview(int productId, int orderId) {
-        String sql = "UPDATE order_details SET reviewed = 1 WHERE (productId = ? AND orderId = ?)";
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            conn.setAutoCommit(false);
-            preStat = conn.prepareStatement(sql);
-            SetParameterUtil.setParameter(preStat, productId, orderId);
-            preStat.executeUpdate();
-            conn.commit();
-        } catch (SQLException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preStat, conn);
-        }
-    }
+//    public OrderDetailDTO findOrderDetailByOrderIdAndProductId(int orderId, int productId) {
+//        OrderDetailDTO result = null;
+//
+//        String jpql = "SELECT new com.handicrafts.dto.OrderDetailDTO(od.orderId, od.productId, p.name, " +
+//                "p.originalPrice, p.discountPrice, od.quantity) " +
+//                "FROM OrderDetailEntity od " +
+//                "INNER JOIN ProductEntity p ON od.productId = p.id " +
+//                "WHERE od.orderId = :orderId AND od.productId = :productId";
+//
+//        TypedQuery<OrderDetailDTO> query = entityManager.createQuery(jpql, OrderDetailDTO.class);
+//        query.setParameter("orderId", orderId);
+//        query.setParameter("productId", productId);
+//
+//        try {
+//            result = query.getSingleResult();
+//        } catch (Exception e) {
+//            // No result found or other exception
+//        }
+//
+//        return result;
+//    }
 }
