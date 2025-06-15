@@ -1,10 +1,9 @@
-package com.handicrafts.repository.intf;
+package com.handicrafts.repository;
 
 import java.util.List;
 
-public interface IRepository<T> {
+public interface IRepositoryNonUpdate<T> {
     List<T> getAll();
     int create(T t);
-    int update(T t);
     int delete(int[] ids);
 }
