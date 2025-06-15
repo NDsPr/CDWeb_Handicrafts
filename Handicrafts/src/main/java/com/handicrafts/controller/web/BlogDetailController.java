@@ -4,7 +4,7 @@ import com.handicrafts.dto.BlogDTO;
 import com.handicrafts.dto.CustomizeDTO;
 import com.handicrafts.repository.BlogRepository;
 import com.handicrafts.repository.CustomizeRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.DTOs.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;

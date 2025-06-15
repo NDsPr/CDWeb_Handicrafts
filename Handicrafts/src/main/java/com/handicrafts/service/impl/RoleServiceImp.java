@@ -3,7 +3,6 @@ package com.handicrafts.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.handicrafts.converter.RoleConverter;
-import com.handicrafts.repository.RoleRepository;
 import com.handicrafts.service.IRoleService;
 
 @Service

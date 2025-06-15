@@ -10,7 +10,7 @@ target/
 .factorypath
 .project
 .settings
-.springBeans
+.springDTOs
 .sts4-cache
 
 ### IntelliJ IDEA ###
@@ -19,7 +19,7 @@ target/
 *.iml
 *.ipr
 
-### NetBeans ###
+### NetDTOs ###
 /nbproject/private/
 /nbbuild/
 /dist/

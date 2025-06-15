@@ -3,7 +3,7 @@ package com.handicrafts.service.impl;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.entity.UserEntity;
-import com.handicrafts.repository.impl.UserRepository;
+import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.AuthenticationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

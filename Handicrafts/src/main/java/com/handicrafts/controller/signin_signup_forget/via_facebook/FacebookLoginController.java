@@ -5,11 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
-import com.handicrafts.repository.RoleRepository;
-import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.JwtService;
 import com.handicrafts.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,14 +29,14 @@ public class FacebookLoginController {
     @Value("${oauth.facebook.redirect-uri}")
     private String redirectUri;
 
-    private final UserRepository userRepository;
+    private final IUserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserService userService;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
 
     public FacebookLoginController(
-            UserRepository userRepository,
+            IUserRepository userRepository,
             RoleRepository roleRepository,
             UserService userService,
             JwtService jwtService) {

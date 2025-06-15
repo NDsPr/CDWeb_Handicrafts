@@ -1,6 +1,6 @@
 package com.handicrafts.controller.admin.product;
 
-import com.handicrafts.bean.ProductBean;
+import com.handicrafts.DTO.ProductDTO;
 import com.handicrafts.bean.ProductImageBean;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;

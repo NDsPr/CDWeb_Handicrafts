@@ -3,8 +3,6 @@ package com.handicrafts.security.service;
 import com.handicrafts.dto.LogDTO;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.dto.LogAddressDTO;
-import com.handicrafts.repository.ILogRepository;
-import com.handicrafts.repository.impl.LogRepository;
 import com.handicrafts.util.SessionUtil;
 import com.handicrafts.util.TransferDataUtil;
 
