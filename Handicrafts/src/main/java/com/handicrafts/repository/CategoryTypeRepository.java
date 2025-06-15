@@ -4,6 +4,7 @@ import com.handicrafts.dto.CategoryTypeDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.springframework.stereotype.Repository;
 
 
 import java.sql.Connection;
@@ -12,7 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
+@Repository
 public class CategoryTypeRepository {
     public List<CategoryTypeDTO> findCategoryTypeByCategoryId(int categoryId) {
         List<CategoryTypeDTO> categoryTypes = new ArrayList<>();
