@@ -3,21 +3,21 @@ package com.handicrafts.controller.signin_signup_forget.via_facebook;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
+import com.handicrafts.repository.RoleRepository;
 import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.JwtService;
 import com.handicrafts.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/auth/facebook")
@@ -33,21 +33,22 @@ public class FacebookLoginController {
     private String redirectUri;
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final UserService userService;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
 
     public FacebookLoginController(
             UserRepository userRepository,
+            RoleRepository roleRepository,
             UserService userService,
-            JwtService jwtService,
-            RestTemplate restTemplate) {
+            JwtService jwtService) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.userService = userService;
         this.jwtService = jwtService;
-        this.restTemplate = restTemplate;
+        this.restTemplate = new RestTemplate();
     }
-
     /**
      * Trả về URL để chuyển hướng người dùng đến trang đăng nhập Facebook
      */
@@ -91,7 +92,7 @@ public class FacebookLoginController {
 
             // Bước 2: Lấy thông tin người dùng từ Facebook
             String userInfoUrl = "https://graph.facebook.com/v18.0/me" +
-                    "?fields=id,email,first_name,last_name" +
+                    "?fields=id,email,name" +
                     "&access_token=" + accessToken;
 
             ResponseEntity<String> userInfoResponse = restTemplate.getForEntity(userInfoUrl, String.class);
@@ -105,8 +106,7 @@ public class FacebookLoginController {
             JsonNode userInfo = mapper.readTree(userInfoResponse.getBody());
             String facebookId = userInfo.get("id").asText();
             String email = userInfo.has("email") ? userInfo.get("email").asText() : facebookId + "@facebook.com";
-            String firstName = userInfo.get("first_name").asText();
-            String lastName = userInfo.get("last_name").asText();
+            String fullname = userInfo.get("name").asText();
 
             // Bước 3: Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
             Optional<UserEntity> existingUser = userRepository.findByEmail(email);
@@ -116,26 +116,28 @@ public class FacebookLoginController {
                 // Người dùng đã tồn tại, cập nhật thông tin nếu cần
                 user = existingUser.get();
 
-                // Nếu tài khoản được tạo thông qua đăng ký thông thường, cập nhật thành OAuth
-                if (user.getViaOAuth() == 0) {
-                    user.setViaOAuth(1); // 1 = Facebook
-                    user.setModifiedDate(Timestamp.from(Instant.now()));
-                    user.setModifiedBy("FACEBOOK_AUTH");
+                // Nếu tài khoản chưa được đánh dấu là từ provider Facebook
+                if (user.getProvider() == null || !user.getProvider().equals("facebook")) {
+                    user.setProvider("facebook");
+                    user.setUpdatedAt(new Date());
                     userRepository.save(user);
                 }
             } else {
                 // Người dùng chưa tồn tại, tạo mới
                 user = new UserEntity();
                 user.setEmail(email);
-                user.setFirstName(firstName);
-                user.setLastName(lastName);
+                user.setFullname(fullname);
+                user.setUsername(email.split("@")[0]); // Tạo username từ phần đầu email
                 user.setPassword(""); // Không cần mật khẩu cho đăng nhập OAuth
-                user.setRoleId(2); // Giả sử 2 là role "USER"
-                user.setStatus(1); // Giả sử 1 là "ACTIVE"
-                user.setViaOAuth(1); // 1 = Facebook
-                user.setKey(facebookId); // Lưu Facebook ID vào trường key
-                user.setCreatedDate(Timestamp.from(Instant.now()));
-                user.setCreatedBy("FACEBOOK_AUTH");
+                user.setStatus(true); // Đặt trạng thái active
+                user.setIsEnable(true); // Đã xác thực
+                user.setProvider("facebook"); // Đánh dấu là từ Facebook
+                user.setCreatedAt(new Date());
+
+                // Thêm role USER cho người dùng mới
+                RoleEntity userRole = roleRepository.findByName("ROLE_USER")
+                        .orElseThrow(() -> new RuntimeException("Role USER not found"));
+                user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
 
                 userRepository.save(user);
             }
@@ -160,5 +162,10 @@ public class FacebookLoginController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error during Facebook authentication: " + e.getMessage());
         }
+    }
+
+    // Thêm phương thức tiện ích để kiểm tra tài khoản OAuth
+    private boolean isOAuthAccount(UserEntity user) {
+        return user.getProvider() != null && !user.getProvider().isEmpty();
     }
 }

@@ -26,7 +26,7 @@ public class JwtService {
     /**
      * Tạo JWT token từ thông tin người dùng
      */
-    public String generateToken(User user) {
+    public String generateToken(UserEntity user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", user.getId());
         claims.put("email", user.getEmail());
