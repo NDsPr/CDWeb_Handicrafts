@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDetail implements Serializable {
+public class OrderDetailId implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,7 +27,7 @@ public class OrderDetail implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        OrderDetail that = (OrderDetail) o;
+        OrderDetailId that = (OrderDetailId) o;
 
         if (!orderId.equals(that.orderId)) return false;
         return productId.equals(that.productId);
