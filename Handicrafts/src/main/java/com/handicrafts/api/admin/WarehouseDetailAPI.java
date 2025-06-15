@@ -1,9 +1,9 @@
 package com.handicrafts.api.admin;
 
-import com.ltw.bean.WarehouseDetailBean;
-import com.ltw.dao.WarehouseDetailDAO;
-import com.ltw.dto.DatatableDTO;
-import com.ltw.util.TransferDataUtil;
+import com.handicrafts.bean.WarehouseDetailBean;
+import com.handicrafts.dao.WarehouseDetailDAO;
+import com.handicrafts.dto.DatatableDTO;
+import com.handicrafts.util.TransferDataUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

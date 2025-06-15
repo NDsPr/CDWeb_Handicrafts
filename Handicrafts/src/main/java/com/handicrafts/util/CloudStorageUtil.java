@@ -4,7 +4,7 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import com.ltw.bean.ProductImageBean;
+import com.handicrafts.bean.ProductImageBean;
 
 import javax.servlet.http.Part;
 import java.io.IOException;
@@ -59,12 +59,12 @@ public class CloudStorageUtil {
     }
 
     private static String uploadAndGetBaseLink(InputStream inputStream, String fileName) {
-        DbxRequestConfig config = DbxRequestConfig.newBuilder("LTW_Group33").build();
+        DbxRequestConfig config = DbxRequestConfig.newBuilder("handicrafts_Group33").build();
         DbxClientV2 client = new DbxClientV2(config, accessTokenBundle.getString("access-token"));
 
         try {
             // Upload file lên Dropbox
-            FileMetadata metadata = client.files().uploadBuilder("/LTW_Repository/" + fileName)
+            FileMetadata metadata = client.files().uploadBuilder("/handicrafts_Repository/" + fileName)
                     .withMode(WriteMode.ADD)
                     .uploadAndFinish(inputStream);
 
@@ -77,10 +77,10 @@ public class CloudStorageUtil {
     }
 
     public static boolean delete(String imageNameContainExtension) {
-        DbxRequestConfig config = DbxRequestConfig.newBuilder("LTW_Group33").build();
+        DbxRequestConfig config = DbxRequestConfig.newBuilder("handicrafts_Group33").build();
         DbxClientV2 client = new DbxClientV2(config, accessTokenBundle.getString("access-token"));
         try {
-            String pathLinkToDelete = "/LTW_Repository/" + imageNameContainExtension;
+            String pathLinkToDelete = "/handicrafts_Repository/" + imageNameContainExtension;
             DeleteResult deleteResult = client.files().deleteV2(pathLinkToDelete);
             return deleteResult != null;
         } catch (DbxException e) {

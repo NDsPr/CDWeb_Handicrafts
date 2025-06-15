@@ -1,14 +1,14 @@
 package com.handicrafts.controller.admin.product;
 
-import com.ltw.bean.ProductBean;
-import com.ltw.bean.ProductImageBean;
-import com.ltw.constant.LogLevel;
-import com.ltw.constant.LogState;
-import com.ltw.dao.ImageDAO;
-import com.ltw.dao.ProductDAO;
-import com.ltw.service.LogService;
-import com.ltw.util.NumberValidateUtil;
-import com.ltw.util.ValidateParamUtil;
+import com.handicrafts.DTO.ProductBean;
+import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.constant.LogLevel;
+import com.handicrafts.constant.LogState;
+import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.service.LogService;
+import com.handicrafts.util.NumberValidateUtil;
+import com.handicrafts.util.ValidateParamUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

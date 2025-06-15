@@ -3,10 +3,8 @@ package com.handicrafts.service.impl;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
-import com.handicrafts.repository.RoleRepository;
-import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.DTOs.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +21,7 @@ import java.util.stream.Collectors;
 public class UserServiceImp implements UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private IUserRepository userRepository;
 
     @Autowired
     private RoleRepository roleRepository;

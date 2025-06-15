@@ -1,7 +1,7 @@
 package com.handicrafts.security.filter;
 
-import com.ltw.bean.UserBean;
-import com.ltw.util.SessionUtil;
+import com.handicrafts.bean.UserBean;
+import com.handicrafts.util.SessionUtil;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;

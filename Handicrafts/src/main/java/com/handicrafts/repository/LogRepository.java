@@ -1,7 +1,6 @@
-package com.handicrafts.repository.impl;
+package com.handicrafts.repository;
 
 import com.handicrafts.dto.LogDTO;
-import com.handicrafts.repository.IRepositoryNonUpdate;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;

@@ -1,5 +1,5 @@
 package com.handicrafts.controller.admin.contact;
-import com.ltw.dao.ContactDAO;
+import com.handicrafts.dao.ContactDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

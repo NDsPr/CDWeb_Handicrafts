@@ -1,10 +1,10 @@
 package com.handicrafts.api.cart;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ltw.bean.ProductBean;
-import com.ltw.bean.ProductImageBean;
-import com.ltw.dao.ImageDAO;
-import com.ltw.dao.ProductDAO;
+import com.handicrafts.bean.ProductBean;
+import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dao.ProductDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

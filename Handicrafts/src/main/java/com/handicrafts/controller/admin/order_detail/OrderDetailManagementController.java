@@ -1,7 +1,7 @@
 package com.handicrafts.controller.admin.order_detail;
 
-import com.ltw.bean.OrderDetailBean;
-import com.ltw.dao.OrderDetailDAO;
+import com.handicrafts.bean.OrderDetailBean;
+import com.handicrafts.dao.OrderDetailDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

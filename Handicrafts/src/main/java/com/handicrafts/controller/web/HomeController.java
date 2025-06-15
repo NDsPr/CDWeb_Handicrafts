@@ -1,9 +1,9 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.*;
-import com.ltw.dao.BlogDAO;
-import com.ltw.dao.CategoryDAO;
-import com.ltw.dao.CustomizeDAO;
+import com.handicrafts.bean.*;
+import com.handicrafts.dao.BlogDAO;
+import com.handicrafts.dao.CategoryDAO;
+import com.handicrafts.dao.CustomizeDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

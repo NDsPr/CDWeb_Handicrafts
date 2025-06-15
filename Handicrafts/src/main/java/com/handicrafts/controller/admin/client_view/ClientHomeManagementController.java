@@ -1,9 +1,9 @@
 package com.handicrafts.controller.admin.client_view;
 
-import com.ltw.bean.CustomizeBean;
-import com.ltw.dao.CustomizeDAO;
-import com.ltw.util.BlankInputUtil;
-import com.ltw.util.DetectTypeFileUtil;
+import com.handicrafts.bean.CustomizeBean;
+import com.handicrafts.dao.CustomizeDAO;
+import com.handicrafts.util.BlankInputUtil;
+import com.handicrafts.util.DetectTypeFileUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

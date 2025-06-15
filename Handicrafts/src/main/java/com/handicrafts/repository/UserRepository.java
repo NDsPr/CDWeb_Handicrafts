@@ -1,100 +1,331 @@
 package com.handicrafts.repository;
 
 import com.handicrafts.entity.UserEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+public class UserRepository {
 
-    // Tìm user theo username và đã được kích hoạt
-    Optional<UserEntity> findByUsernameAndIsEnableIsTrue(String username);
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    // Tìm user theo email
-    Optional<UserEntity> findByEmail(String email);
+    public UserEntity save(UserEntity entity) {
+        if (entity.getId() == null) {
+            entityManager.persist(entity);
+        } else {
+            entity = entityManager.merge(entity);
+        }
+        return entity;
+    }
 
-    // Tìm user theo email và đã được kích hoạt
-    Optional<UserEntity> findByEmailAndIsEnableIsTrue(String email);
+    public Optional<UserEntity> findById(Integer id) {
+        UserEntity entity = entityManager.find(UserEntity.class, id);
+        return Optional.ofNullable(entity);
+    }
 
-    // Tìm user theo email và đã được kích hoạt và status là true
-    Optional<UserEntity> findByEmailAndIsEnableIsTrueAndStatusIsTrue(String email);
+    public List<UserEntity> findAll() {
+        return entityManager.createQuery("SELECT u FROM UserEntity u", UserEntity.class).getResultList();
+    }
 
-    // Tìm user theo email (không phân biệt hoa thường)
-    @Query("SELECT u FROM UserEntity u WHERE LOWER(u.email) = LOWER(:email)")
-    Optional<UserEntity> findByEmailIgnoreCase(@Param("email") String email);
+    public void deleteById(Integer id) {
+        UserEntity entity = entityManager.find(UserEntity.class, id);
+        if (entity != null) {
+            entityManager.remove(entity);
+        }
+    }
 
-    // Tìm user theo email, isEnable và status
-    @Query("SELECT u FROM UserEntity u WHERE LOWER(u.email) = LOWER(:email) AND u.isEnable = :isEnable AND u.status = :status")
-    Optional<UserEntity> findByEmailIgnoreCaseAndIsEnableAndStatus(
-            @Param("email") String email,
-            @Param("isEnable") boolean isEnable,
-            @Param("status") boolean status);
+    public Optional<UserEntity> findByEmail(String email) {
+        try {
+            TypedQuery<UserEntity> query = entityManager.createQuery(
+                    "SELECT u FROM UserEntity u WHERE u.email = :email", UserEntity.class);
+            query.setParameter("email", email);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 
-    // Tìm user theo userID
-    Optional<UserEntity> findByUserID(int userID);
-    /**
-     * Tìm người dùng theo tên đăng nhập
-     * @param username Tên đăng nhập cần tìm
-     * @return Optional chứa UserEntity nếu tìm thấy, ngược lại là Optional rỗng
-     */
-    Optional<UserEntity> findByUsername(String username);
-    Optional<UserEntity> findByEmailAndIsEnableTrue(String email);
+    public Integer findIdByEmail(String email) {
+        try {
+            TypedQuery<Integer> query = entityManager.createQuery(
+                    "SELECT u.id FROM UserEntity u WHERE u.email = :email", Integer.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 
-    // Tìm user theo token xác nhận
-    Optional<UserEntity> findByConfirmToken(String confirmToken);
+    public Optional<UserEntity> findUserById(Integer id) {
+        try {
+            TypedQuery<UserEntity> query = entityManager.createQuery(
+                    "SELECT u FROM UserEntity u WHERE u.id = :id", UserEntity.class);
+            query.setParameter("id", id);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 
-    // Lấy confirm token theo userID
-    @Query("SELECT u.confirmToken FROM UserEntity u WHERE u.userID = :userID")
-    String getConfirmTokenById(@Param("userID") int userID);
+    public Optional<UserEntity> findActiveAccountByEmail(String email) {
+        try {
+            TypedQuery<UserEntity> query = entityManager.createQuery(
+                    "SELECT u FROM UserEntity u WHERE u.email = :email AND u.status = 1", UserEntity.class);
+            query.setParameter("email", email);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 
-    // Kiểm tra username đã tồn tại chưa
-    boolean existsByUsername(String username);
+    public Optional<UserEntity> findByVerifiedCode(String verifiedCode) {
+        try {
+            TypedQuery<UserEntity> query = entityManager.createQuery(
+                    "SELECT u FROM UserEntity u WHERE u.verifiedCode = :verifiedCode", UserEntity.class);
+            query.setParameter("verifiedCode", verifiedCode);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 
-    // Kiểm tra email đã tồn tại chưa
-    boolean existsByEmail(String email);
+    public String checkOAuthAccount(String email) {
+        try {
+            TypedQuery<String> query = entityManager.createQuery(
+                    "SELECT u.viaOAuth FROM UserEntity u WHERE u.email = :email", String.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 
-    // Cập nhật thông tin người dùng
-    @Modifying
+    public Optional<UserEntity> findUserByOrderId(Integer orderId) {
+        try {
+            TypedQuery<UserEntity> query = entityManager.createQuery(
+                    "SELECT u FROM UserEntity u WHERE u.id = (SELECT o.user.id FROM OrderEntity o WHERE o.id = :orderId)",
+                    UserEntity.class);
+            query.setParameter("orderId", orderId);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
     @Transactional
-    @Query("UPDATE UserEntity u SET u.username = :username, u.fullname = :fullname, u.birthdate = :birthdate, " +
-            "u.gender = :gender, u.phone = :phone, u.updatedAt = :updatedAt WHERE u.userID = :userID")
-    void updateUser(
-            @Param("userID") int userID,
-            @Param("username") String username,
-            @Param("fullname") String fullname,
-            @Param("birthdate") LocalDate birthdate,
-            @Param("gender") boolean gender,
-            @Param("phone") String phone,
-            @Param("updatedAt") LocalDate updatedAt);
+    public void setEmptyCode(String email) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.verifiedCode = '' WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.executeUpdate();
+    }
 
-    // Cập nhật mật khẩu
-    @Modifying
     @Transactional
-    @Query("UPDATE UserEntity u SET u.password = :password WHERE u.userID = :userID")
-    void updatePass(@Param("password") String password, @Param("userID") int userID);
+    public void saveNewCodeByEmail(String email, String verifiedCode) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.verifiedCode = :verifiedCode WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.setParameter("verifiedCode", verifiedCode);
+        query.executeUpdate();
+    }
 
-    // Xóa user theo userID
-    @Modifying
     @Transactional
-    @Query("DELETE FROM UserEntity u WHERE u.userID = :userID")
-    void deleteByUserID(@Param("userID") int userID);
+    public int saveRenewPasswordByEmail(String email, String password) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.password = :password WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.setParameter("password", password);
+        return query.executeUpdate();
+    }
 
-    // Cập nhật trạng thái kích hoạt
-    @Modifying
     @Transactional
-    @Query("UPDATE UserEntity u SET u.isEnable = :isEnable WHERE u.userID = :userID")
-    void updateEnableStatus(@Param("isEnable") boolean isEnable, @Param("userID") int userID);
+    public void activeAccount(String email) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.status = 1 WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.executeUpdate();
+    }
 
-    // Cập nhật token xác nhận
-    @Modifying
     @Transactional
-    @Query("UPDATE UserEntity u SET u.confirmToken = :confirmToken WHERE u.userID = :userID")
-    void updateConfirmToken(@Param("confirmToken") String confirmToken, @Param("userID") int userID);
+    public void saveKeyByEmail(String email, String key) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.changePwHash = :key WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.setParameter("key", key);
+        query.executeUpdate();
+    }
+
+    @Transactional
+    public void setEmptyKey(String email) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.changePwHash = '' WHERE u.email = :email");
+        query.setParameter("email", email);
+        query.executeUpdate();
+    }
+
+    public String getChangePwHashByEmail(String email) {
+        try {
+            TypedQuery<String> query = entityManager.createQuery(
+                    "SELECT u.changePwHash FROM UserEntity u WHERE u.email = :email", String.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public String getHashedPasswordByEmail(String email) {
+        try {
+            TypedQuery<String> query = entityManager.createQuery(
+                    "SELECT u.password FROM UserEntity u WHERE u.email = :email", String.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public int getRecordsTotal() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(u) FROM UserEntity u", Long.class);
+        return query.getSingleResult().intValue();
+    }
+
+    public int getRecordsFiltered(String searchValue) {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(u) FROM UserEntity u WHERE u.email LIKE :search OR " +
+                        "u.firstName LIKE :search OR u.lastName LIKE :search OR " +
+                        "CAST(u.roleId AS string) LIKE :search OR " +
+                        "CAST(u.status AS string) LIKE :search OR " +
+                        "u.addressLine LIKE :search OR " +
+                        "u.addressWard LIKE :search OR " +
+                        "u.addressDistrict LIKE :search OR " +
+                        "u.addressProvince LIKE :search", Long.class);
+        query.setParameter("search", "%" + searchValue + "%");
+        return query.getSingleResult().intValue();
+    }
+
+    public List<UserEntity> getUsersDatatable(String searchValue, String columnOrder, String orderDir, Pageable pageable) {
+        String queryStr = "SELECT u FROM UserEntity u WHERE " +
+                "(:searchValue IS NULL OR " +
+                "u.email LIKE :search OR " +
+                "u.firstName LIKE :search OR " +
+                "u.lastName LIKE :search OR " +
+                "CAST(u.roleId AS string) LIKE :search OR " +
+                "CAST(u.status AS string) LIKE :search OR " +
+                "u.addressLine LIKE :search OR " +
+                "u.addressWard LIKE :search OR " +
+                "u.addressDistrict LIKE :search OR " +
+                "u.addressProvince LIKE :search) " +
+                "ORDER BY ";
+
+        // Xử lý sắp xếp
+        if ("asc".equals(orderDir)) {
+            switch (columnOrder) {
+                case "id": queryStr += "u.id ASC"; break;
+                case "email": queryStr += "u.email ASC"; break;
+                case "firstName": queryStr += "u.firstName ASC"; break;
+                case "lastName": queryStr += "u.lastName ASC"; break;
+                case "roleId": queryStr += "u.roleId ASC"; break;
+                case "status": queryStr += "u.status ASC"; break;
+                case "createdDate": queryStr += "u.createdDate ASC"; break;
+                default: queryStr += "u.id ASC";
+            }
+        } else {
+            switch (columnOrder) {
+                case "id": queryStr += "u.id DESC"; break;
+                case "email": queryStr += "u.email DESC"; break;
+                case "firstName": queryStr += "u.firstName DESC"; break;
+                case "lastName": queryStr += "u.lastName DESC"; break;
+                case "roleId": queryStr += "u.roleId DESC"; break;
+                case "status": queryStr += "u.status DESC"; break;
+                case "createdDate": queryStr += "u.createdDate DESC"; break;
+                default: queryStr += "u.id DESC";
+            }
+        }
+
+        TypedQuery<UserEntity> query = entityManager.createQuery(queryStr, UserEntity.class);
+        query.setParameter("searchValue", searchValue);
+        query.setParameter("search", "%" + searchValue + "%");
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return query.getResultList();
+    }
+
+    public Integer getUserStatus(String email) {
+        try {
+            TypedQuery<Integer> query = entityManager.createQuery(
+                    "SELECT u.status FROM UserEntity u WHERE u.email = :email", Integer.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    @Transactional
+    public int updateAccount(String firstName, String lastName, String addressLine,
+                             String addressWard, String addressDistrict,
+                             String addressProvince, Integer id) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.firstName = :firstName, u.lastName = :lastName, " +
+                        "u.addressLine = :addressLine, u.addressWard = :addressWard, " +
+                        "u.addressDistrict = :addressDistrict, u.addressProvince = :addressProvince, " +
+                        "u.modifiedDate = :now WHERE u.id = :id");
+        query.setParameter("firstName", firstName);
+        query.setParameter("lastName", lastName);
+        query.setParameter("addressLine", addressLine);
+        query.setParameter("addressWard", addressWard);
+        query.setParameter("addressDistrict", addressDistrict);
+        query.setParameter("addressProvince", addressProvince);
+        query.setParameter("now", Timestamp.valueOf(LocalDateTime.now()));
+        query.setParameter("id", id);
+        return query.executeUpdate();
+    }
+
+    @Transactional
+    public void updateAccountForAdmin(Integer roleId, Integer status, Integer id) {
+        Query query = entityManager.createQuery(
+                "UPDATE UserEntity u SET u.roleId = :roleId, u.status = :status, " +
+                        "u.modifiedDate = :now WHERE u.id = :id");
+        query.setParameter("roleId", roleId);
+        query.setParameter("status", status);
+        query.setParameter("now", Timestamp.valueOf(LocalDateTime.now()));
+        query.setParameter("id", id);
+        query.executeUpdate();
+    }
+//    @Transactional
+//    public int createInRegister(String email, String password, String verifiedCode) {
+//        Query query = entityManager.createNativeQuery(
+//                "INSERT INTO users (email, password, roleId, status, verifiedCode, createdDate, modifiedDate) " +
+//                        "VALUES (:email, :password, 1, 2, :verifiedCode, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+//        query.setParameter("email", email);
+//        query.setParameter("password", password);
+//        query.setParameter("verifiedCode", verifiedCode);
+//        return query.executeUpdate();
+//    }
+//
+//    @Transactional
+//    public int createOAuth(String email, String password, String platform) {
+//        Query query = entityManager.createNativeQuery(
+//                "INSERT INTO users (email, password, roleId, status, viaOAuth, createdDate, modifiedDate) " +
+//                        "VALUES (:email, :password, 1, 1, :platform, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
+//        query.setParameter("email", email);
+//        query.setParameter("password", password);
+//        query.setParameter("platform", platform);
+//        return query.executeUpdate();
+//    }
+
 }

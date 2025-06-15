@@ -1,8 +1,8 @@
 package com.handicrafts.security.service;
 
-import com.ltw.bean.UserBean;
-import com.ltw.dao.UserDAO;
-import com.ltw.util.EncryptPasswordUtil;
+import com.handicrafts.bean.UserBean;
+import com.handicrafts.dao.UserDAO;
+import com.handicrafts.util.EncryptPasswordUtil;
 
 import java.util.Random;
 import java.util.regex.Matcher;

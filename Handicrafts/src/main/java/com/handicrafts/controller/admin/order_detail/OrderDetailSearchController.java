@@ -1,6 +1,6 @@
 package com.handicrafts.controller.admin.order_detail;
 
-import com.ltw.util.BlankInputUtil;
+import com.handicrafts.util.BlankInputUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

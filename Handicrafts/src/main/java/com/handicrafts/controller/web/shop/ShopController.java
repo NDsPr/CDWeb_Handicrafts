@@ -1,60 +1,70 @@
 package com.handicrafts.controller.web.shop;
 
-import com.ltw.bean.*;
-import com.ltw.dao.*;
+import com.handicrafts.dto.*;
+import com.handicrafts.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet(value = {"/shop"})
-public class ShopController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final CategoryTypeDAO categoryTypeDAO = new CategoryTypeDAO();
-    private final ProductDAO productDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
+@Controller
+public class ShopController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra customize web
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
-        // Sử dụng cho navigation bên trái
-        List<CategoryBean> categories = categoryDAO.findAllCategories();
-        Map<Integer, List<CategoryTypeBean>> categoryTypeMap = new HashMap<>();
-        // Hiển thị nội dung ở giữa
-        Map<Integer, List<ProductBean>> productMap = new HashMap<>();
-        Map<Integer, ProductImageBean> imageMap = new HashMap<>();
+    private final CustomizeRepository customizeRepository;
+    private final CategoryRepository categoryRepository;
+    private final CategoryTypeRepository categoryTypeRepository;
+    private final ProductRepository productRepository;
+    private final ImageRepository imageRepository;
 
-        // Đưa sản phẩm tương ứng với categoryId vào map
-        for (CategoryBean category : categories) {
+    @Autowired
+    public ShopController(CustomizeRepository customizeRepository,
+                          CategoryRepository categoryRepository,
+                          CategoryTypeRepository categoryTypeRepository,
+                          ProductRepository productRepository,
+                          ImageRepository imageRepository) {
+        this.customizeRepository = customizeRepository;
+        this.categoryRepository = categoryRepository;
+        this.categoryTypeRepository = categoryTypeRepository;
+        this.productRepository = productRepository;
+        this.imageRepository = imageRepository;
+    }
+
+    @GetMapping("/shop")
+    public String showShopPage(Model model) {
+        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
+        List<CategoryDTO> categories = categoryRepository.findAllCategories();
+
+        Map<Integer, List<CategoryTypeDTO>> categoryTypeMap = new HashMap<>();
+        Map<Integer, List<ProductDTO>> productMap = new HashMap<>();
+        Map<Integer, ProductImageDTO> imageMap = new HashMap<>();
+
+        for (CategoryDTO category : categories) {
             int categoryId = category.getId();
-            List<ProductBean> products = productDAO.findThreeProductByCategoryId(categoryId);
-            // Đưa ảnh tương ứng với productId vào map của ảnh
-            for (ProductBean product : products) {
-                imageMap.put(product.getId(), imageDAO.findOneByProductId(product.getId()));
-            }
+
+            // Sản phẩm theo category
+            List<ProductDTO> products = productRepository.findThreeProductByCategoryId(categoryId);
             productMap.put(categoryId, products);
-        }
 
-        // // Đưa phân loại sản phẩm tương ứng với categoryId vào map (navigation bên trái)
-        for (CategoryBean category : categories) {
-            int categoryId = category.getId();
-            List<CategoryTypeBean> categoryTypes = categoryTypeDAO.findCategoryTypeByCategoryId(categoryId);
+            // Ảnh theo product
+            for (ProductDTO product : products) {
+                imageMap.put(product.getId(), imageRepository.findOneByProductId(product.getId()));
+            }
+
+            // Loại sản phẩm theo category
+            List<CategoryTypeDTO> categoryTypes = categoryTypeRepository.findCategoryTypeByCategoryId(categoryId);
             categoryTypeMap.put(categoryId, categoryTypes);
         }
 
-        req.setAttribute("customizeInfo", customizeInfo);
-        req.setAttribute("categories", categories);
-        req.setAttribute("categoryTypeMap", categoryTypeMap);
-        req.setAttribute("productMap", productMap);
-        req.setAttribute("imageMap", imageMap);
-        req.getRequestDispatcher("/shop.jsp").forward(req, resp);
+        model.addAttribute("customizeInfo", customizeInfo);
+        model.addAttribute("categories", categories);
+        model.addAttribute("categoryTypeMap", categoryTypeMap);
+        model.addAttribute("productMap", productMap);
+        model.addAttribute("imageMap", imageMap);
+
+        return "shop"; // shop.jsp (JSP) hoặc shop.html (Thymeleaf)
     }
 }

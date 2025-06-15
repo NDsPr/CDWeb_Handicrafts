@@ -1,6 +1,6 @@
 package com.handicrafts.controller.admin.home;
 
-import com.ltw.dao.AdminHomeDAO;
+import com.handicrafts.dao.AdminHomeDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

@@ -1,53 +1,71 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.*;
-import com.ltw.constant.LogLevel;
-import com.ltw.constant.LogState;
-import com.ltw.dao.*;
-import com.ltw.dto.FullOrderDTO;
-import com.ltw.service.LogService;
-import com.ltw.util.SessionUtil;
-import com.ltw.util.ValidateParamUtil;
+import com.handicrafts.dto.*;
+import com.handicrafts.constant.LogLevel;
+import com.handicrafts.constant.LogState;
+import com.handicrafts.dto.FullOrderDTO;
+import com.handicrafts.repository.*;
+import com.handicrafts.service.LogService;
+import com.handicrafts.util.SessionUtil;
+import com.handicrafts.util.ValidateParamUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
-@WebServlet(value = {"/checkout"})
-public class CheckoutController extends HttpServlet {
-    private final CustomizeDAO customizeDAO = new CustomizeDAO();
-    private final UserDAO userDAO = new UserDAO();
-    private final OrderDAO orderDAO = new OrderDAO();
-    private final OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
-    private final ProductDAO productDAO = new ProductDAO();
-    private LogService<UserBean> userLogService = new LogService<>();
-    private LogService<FullOrderDTO> orderLogService = new LogService<>();
+@Controller
+@RequestMapping("/checkout")
+public class CheckoutController {
+
+    @Autowired
+    private CustomizeRepository customizeRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private LogService<UserBean> userLogService;
+
+    @Autowired
+    private LogService<FullOrderDTO> orderLogService;
+
     private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
+    @GetMapping
+    public String doGet(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        CustomizeBean customizeInfo = customizeRepository.getCustomizeInfo();
         // Kiểm tra só lượng trước khi cho phép checkout
         Cart cart = (Cart) SessionUtil.getInstance().getValue(req, "cart");
         List<Item> items = cart.getItems();
 
         for (Item item : items) {
             if (item.getQuantity() > item.getProduct().getQuantity()) {
-                resp.sendRedirect(req.getContextPath() + "/cart-management?error=e&productId=" + item.getProduct().getId() + "&quantity=" + item.getProduct().getQuantity());
-                return;
+                return "redirect:/cart-management?error=e&productId=" + item.getProduct().getId()
+                        + "&quantity=" + item.getProduct().getQuantity();
             }
         }
         req.setAttribute("customizeInfo", customizeInfo);
-        req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
+        return "checkout";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @PostMapping
+    public String doPost(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         req.setCharacterEncoding("UTF-8");
         String firstName = req.getParameter("firstName");
         String lastName = req.getParameter("lastName");
@@ -75,7 +93,8 @@ public class CheckoutController extends HttpServlet {
 
         UserBean user = (UserBean) SessionUtil.getInstance().getValue(req, "user");
         Cart cart = (Cart) SessionUtil.getInstance().getValue(req, "cart");
-        UserBean prevUser = userDAO.findUserById(user.getId());
+        UserBean prevUser = userRepository.findById(user.getId()).orElse(null);
+
         if (isValid) {
             // Lưu thông tin của người dùng đã nhập
             UserBean userBean = new UserBean();
@@ -87,8 +106,8 @@ public class CheckoutController extends HttpServlet {
             userBean.setAddressDistrict(addressDistrict.trim());
             userBean.setAddressProvince(addressProvince.trim());
 
-            int affectedRows = userDAO.updateAccount(userBean);
-            UserBean currentUser = userDAO.findUserById(user.getId());
+            int affectedRows = userRepository.updateAccount(userBean);
+            UserBean currentUser = userRepository.findById(user.getId()).orElse(null);
             if (affectedRows <= 0) {
                 userLogService.log(req, "user-update-in-checkout", LogState.FAIL, LogLevel.ALERT, prevUser, currentUser);
             } else {
@@ -110,12 +129,12 @@ public class CheckoutController extends HttpServlet {
             orderBean.setModifiedDate(new Timestamp(System.currentTimeMillis()));
             orderBean.setModifiedBy(user.getEmail());
 
-            int orderId = orderDAO.createOrder(orderBean);
+            int orderId = orderRepository.createOrder(orderBean);
             if (orderId <= 0) {
                 req.setAttribute("insertError", "ie");
-                CustomizeBean customizeInfo = customizeDAO.getCustomizeInfo();
+                CustomizeBean customizeInfo = customizeRepository.getCustomizeInfo();
                 req.setAttribute("customizeInfo", customizeInfo);
-                req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
+                return "checkout";
             } else {
                 List<OrderDetailBean> orderDetails = new ArrayList<>();
 
@@ -128,24 +147,24 @@ public class CheckoutController extends HttpServlet {
                     orderDetailBean.setReviewed(0);
 
                     orderDetails.add(orderDetailBean);
-                    orderDetailDAO.createOrderDetail(orderDetailBean);
+                    orderDetailRepository.save(orderDetailBean);
 
-                    int quantityProductAfterOrder = productDAO.getTotalItems() - item.getQuantity();
+                    int quantityProductAfterOrder = productRepository.getTotalItems() - item.getQuantity();
                     // Set lại số lượng product
-                    productDAO.updateQuantity(item.getProduct().getId(), quantityProductAfterOrder);
+                    productRepository.updateQuantity(item.getProduct().getId(), quantityProductAfterOrder);
                 }
                 // Ghi log thành công
-                FullOrderDTO fullOrder = new FullOrderDTO(orderDAO.findOrderById(orderId), orderDetails);
+                FullOrderDTO fullOrder = new FullOrderDTO(orderRepository.findById(orderId).orElse(null), orderDetails);
                 orderLogService.log(req, "order-in-checkout", LogState.SUCCESS, LogLevel.INFO, null, fullOrder);
                 SessionUtil.getInstance().removeValue(req, "cart");
 
-                resp.sendRedirect(req.getContextPath() + "/thankyou");
+                return "redirect:/thankyou";
             }
         } else {
             req.setAttribute("errors", errors);
             // Ghi log thất bại
             orderLogService.log(req, "order-in-checkout", LogState.FAIL, LogLevel.ALERT, null, null);
-            req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
+            return "checkout";
         }
     }
 

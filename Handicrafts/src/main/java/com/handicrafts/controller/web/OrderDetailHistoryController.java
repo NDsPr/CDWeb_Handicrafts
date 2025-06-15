@@ -1,8 +1,8 @@
 package com.handicrafts.controller.web;
 
-import com.ltw.bean.CustomizeBean;
-import com.ltw.dao.CustomizeDAO;
-import com.ltw.dao.OrderDAO;
+import com.handicrafts.bean.CustomizeBean;
+import com.handicrafts.dao.CustomizeDAO;
+import com.handicrafts.dao.OrderDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

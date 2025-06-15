@@ -1,7 +1,7 @@
 package com.handicrafts.controller.image;
 
-import com.ltw.bean.ProductImageBean;
-import com.ltw.dao.ImageDAO;
+import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.dao.ImageDAO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

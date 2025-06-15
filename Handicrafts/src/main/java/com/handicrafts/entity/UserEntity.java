@@ -5,8 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.Set;
+import java.sql.Timestamp;
 
 @Entity
 @Table(name = "users")
@@ -17,54 +16,55 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "userID")
-    private int id;
+    private Integer id;
 
-    @Column(unique = true, nullable = false)
+    @Column(length = 50, nullable = false)
     private String email;
 
-    @Column
-    private String fullname;
-
-    @Column(nullable = false)
-    private String username;
-
-    @Column
-    @Temporal(TemporalType.DATE)
-    private Date birthdate;
-
-    @Column
-    private Boolean gender;
-
-    @Column(length = 12)
-    private String phone;
-
-    @Column(length = 70)
+    @Column(length = 255, nullable = false)
     private String password;
 
-    @Column
-    private Boolean status;
+    @Column(length = 30)
+    private String firstName;
 
-    @Column(name = "is_enable")
-    private Boolean isEnable;
+    @Column(length = 50)
+    private String lastName;
 
-    @Column(length = 25)
-    private String provider;
+    @Column(nullable = false)
+    private Integer roleId;
 
-    @Column(name = "created_at")
-    @Temporal(TemporalType.DATE)
-    private Date createdAt;
+    @Column(nullable = false)
+    private Integer status;
 
-    @Column(name = "updated_at")
-    @Temporal(TemporalType.DATE)
-    private Date updatedAt;
+    @Column(length = 500)
+    private String verifiedCode;
 
-    // Thêm mối quan hệ với Role
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<RoleEntity> roles;
+    @Column(length = 255)
+    private String changePwHash;
+
+    private Timestamp expiredTime;
+
+    @Column(length = 100)
+    private String addressLine;
+
+    @Column(length = 100)
+    private String addressWard;
+
+    @Column(length = 100)
+    private String addressDistrict;
+
+    @Column(length = 100)
+    private String addressProvince;
+
+    private Timestamp createdDate;
+
+    private Timestamp modifiedDate;
+
+    @Column(length = 255)
+    private String viaOAuth;
+
+    // Mối quan hệ với Role
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "roleId", referencedColumnName = "id", insertable = false, updatable = false)
+    private RoleEntity role;
 }

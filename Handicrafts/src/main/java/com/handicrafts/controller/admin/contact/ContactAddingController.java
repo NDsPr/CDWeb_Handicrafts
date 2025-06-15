@@ -1,8 +1,8 @@
 package com.handicrafts.controller.admin.contact;
 
-import com.ltw.bean.ContactBean;
-import com.ltw.dao.ContactDAO;
-import com.ltw.util.BlankInputUtil;
+import com.handicrafts.bean.ContactBean;
+import com.handicrafts.dao.ContactDAO;
+import com.handicrafts.util.BlankInputUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

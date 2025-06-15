@@ -2,21 +2,26 @@ package com.handicrafts.repository;
 
 import com.handicrafts.dto.OrderDetailDTO;
 import com.handicrafts.entity.OrderDetailEntity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
+
+import com.handicrafts.entity.OrderDetailId;
+import com.handicrafts.entity.OrderEntity;
+import com.handicrafts.entity.ProductEntity;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Repository
 public class OrderDetailRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
 
 //    public List<OrderDetailDTO> findOrderDetailByOrderId(int orderId) {
 //        List<OrderDetailDTO> result = new ArrayList<>();
@@ -184,4 +189,5 @@ public class OrderDetailRepository {
 //
 //        return result;
 //    }
+
 }

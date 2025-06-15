@@ -1,7 +1,7 @@
 package com.handicrafts.repository;
 
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

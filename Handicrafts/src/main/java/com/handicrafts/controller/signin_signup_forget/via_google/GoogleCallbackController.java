@@ -13,9 +13,9 @@ import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.UserCredentials;
-import com.ltw.bean.UserBean;
-import com.ltw.dao.UserDAO;
-import com.ltw.util.SessionUtil;
+import com.handicrafts.bean.UserBean;
+import com.handicrafts.dao.UserDAO;
+import com.handicrafts.util.SessionUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

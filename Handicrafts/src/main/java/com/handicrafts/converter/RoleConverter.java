@@ -1,5 +1,6 @@
 package com.handicrafts.converter;
 
+import com.handicrafts.dto.RoleDTO;
 import org.springframework.stereotype.Component;
 import com.handicrafts.entity.RoleEntity;
 import org.modelmapper.ModelMapper;

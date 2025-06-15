@@ -1,9 +1,9 @@
 package com.handicrafts.repository;
 
-import com.ltw.bean.WarehouseBean;
-import com.ltw.util.CloseResourceUtil;
-import com.ltw.util.OpenConnectionUtil;
-import com.ltw.util.SetParameterUtil;
+import com.handicrafts.bean.WarehouseBean;
+import com.handicrafts.util.CloseResourceUtil;
+import com.handicrafts.util.OpenConnectionUtil;
+import com.handicrafts.util.SetParameterUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

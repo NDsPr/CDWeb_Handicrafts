@@ -9,15 +9,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.handicrafts.entity.UserEntity;
-import com.handicrafts.repository.RoleRepository;
-import com.handicrafts.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 @Service
 public class UserDetailServiceImp implements UserDetailsService {
     @Autowired
-    private UserRepository userRepo;
+    private IUserRepository userRepo;
     @Autowired
     private RoleRepository roleRepo;
 

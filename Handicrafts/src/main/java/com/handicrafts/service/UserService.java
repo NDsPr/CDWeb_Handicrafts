@@ -1,6 +1,7 @@
 package com.handicrafts.service;
 
 import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.UserEntity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -45,4 +46,5 @@ public interface UserService extends UserDetailsService {
     // Kiểm tra email đã tồn tại chưa
     boolean existsByEmail(String email);
 
+    UserDTO convertToDTO(UserEntity user);
 }
