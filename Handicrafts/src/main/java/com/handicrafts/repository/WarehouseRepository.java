@@ -1,217 +1,28 @@
 package com.handicrafts.repository;
 
-import com.handicrafts.bean.WarehouseBean;
+import com.handicrafts.dto.WarehouseDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class WarehouseRepository {
-    public static List<WarehouseBean> findAllWarehouses() {
-        String sql = "SELECT id, shippingFrom, shippingStart, shippingDone, " +
-                "description, createdDate, createdBy"+
-                "FROM warehouses";
 
-        List<WarehouseBean> warehouseList = new ArrayList<>();
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                WarehouseBean warehouseBean = new WarehouseBean();
-                warehouseBean.setId(resultSet.getInt("id"));
-                warehouseBean.setShippingFrom(resultSet.getString("shippingFrom"));
-                warehouseBean.setShippingStart(resultSet.getTimestamp("shippingStart"));
-                warehouseBean.setShippingDone(resultSet.getTimestamp("shippingDone"));
-                warehouseBean.setDescription(resultSet.getString("description"));
-                warehouseBean.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                warehouseBean.setCreatedBy(resultSet.getString("createdBy"));
-
-                warehouseList.add(warehouseBean);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return warehouseList;
-    }
-
-    public int createWarehouse(WarehouseBean warehouseBean) {
-        int id = -1;
-        StringBuilder sql = new StringBuilder();
-        sql.append("INSERT INTO warehouses ")
-                .append("(shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?)");
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql.toString(), PreparedStatement.RETURN_GENERATED_KEYS);
-
-            SetParameterUtil.setParameter(preparedStatement, warehouseBean.getShippingFrom(), warehouseBean.getShippingStart(),
-                    warehouseBean.getShippingDone(), warehouseBean.getDescription(), warehouseBean.getCreatedDate(),
-                    warehouseBean.getCreatedBy());
-
-            int affectedRows = preparedStatement.executeUpdate();
-            if (affectedRows > 0) {
-                resultSet = preparedStatement.getGeneratedKeys();
-                if (resultSet.next()) {
-                    id = resultSet.getInt(1);
-                }
-            }
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return id;
-    }
-
-    public WarehouseBean findWarehouseById(int id) {
-        WarehouseBean warehouse = null;
-        String sql = "SELECT id, shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy " +
-                "FROM warehouses WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                warehouse = new WarehouseBean();
-                warehouse.setId(resultSet.getInt("id"));
-                warehouse.setShippingFrom(resultSet.getString("shippingFrom"));
-                warehouse.setShippingStart(resultSet.getTimestamp("shippingStart"));
-                warehouse.setShippingDone(resultSet.getTimestamp("shippingDone"));
-                warehouse.setDescription(resultSet.getString("description"));
-                warehouse.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                warehouse.setCreatedBy(resultSet.getString("createdBy"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return warehouse;
-    }
-
-    public int updateWarehouse(WarehouseBean warehouse) {
-        int affectedRows = -1;
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE warehouses SET shippingFrom = ?, shippingStart = ?, shippingDone = ?, description = ?, createdDate = ?, createdBy = ? WHERE id = ?");
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement, warehouse.getShippingFrom(), warehouse.getShippingStart(),
-                    warehouse.getShippingDone(), warehouse.getDescription(), warehouse.getCreatedDate(),
-                    warehouse.getCreatedBy(), warehouse.getId());
-            affectedRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affectedRows;
-    }
-
-    public int deleteWarehouse(int id) {
-        int affectRows;
-        String sql = "DELETE FROM warehouses WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            affectRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                return -1;
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                return -1;
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affectRows;
-    }
-
-    public List<WarehouseBean> getWarehousesDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<WarehouseBean> warehouses = new ArrayList<>();
+    public List<WarehouseDTO> findAllWarehouses() {
+        List<WarehouseDTO> warehouseList = new ArrayList<>();
         String sql = "SELECT id, shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy FROM warehouses";
-        int index = 1;
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " WHERE (id LIKE ? OR shippingFrom LIKE ? OR shippingStart LIKE ? OR shippingDone LIKE ? OR description LIKE ? OR createdDate LIKE ? OR createdBy LIKE ?)";
-            }
-            sql += " ORDER BY " + columnOrder + " " + orderDir + " ";
-            sql += "LIMIT ?, ?";
-
-            preStat = conn.prepareStatement(sql);
-            if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-            }
-            preStat.setInt(index++, start);
-            preStat.setInt(index, length);
-
-            rs = preStat.executeQuery();
             while (rs.next()) {
-                WarehouseBean warehouse = new WarehouseBean();
+                WarehouseDTO warehouse = new WarehouseDTO();
                 warehouse.setId(rs.getInt("id"));
                 warehouse.setShippingFrom(rs.getString("shippingFrom"));
                 warehouse.setShippingStart(rs.getTimestamp("shippingStart"));
@@ -220,74 +31,185 @@ public class WarehouseRepository {
                 warehouse.setCreatedDate(rs.getTimestamp("createdDate"));
                 warehouse.setCreatedBy(rs.getString("createdBy"));
 
-                warehouses.add(warehouse);
+                warehouseList.add(warehouse);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
         }
-        return warehouses;
+
+        return warehouseList;
+    }
+
+    public int createWarehouse(WarehouseDTO warehouse) {
+        int id = -1;
+        String sql = "INSERT INTO warehouses (shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            conn.setAutoCommit(false);
+            SetParameterUtil.setParameter(stmt,
+                    warehouse.getShippingFrom(),
+                    warehouse.getShippingStart(),
+                    warehouse.getShippingDone(),
+                    warehouse.getDescription(),
+                    warehouse.getCreatedDate(),
+                    warehouse.getCreatedBy());
+
+            int rows = stmt.executeUpdate();
+            if (rows > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) id = rs.getInt(1);
+                rs.close();
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return id;
+    }
+
+    public WarehouseDTO findWarehouseById(int id) {
+        String sql = "SELECT id, shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy FROM warehouses WHERE id = ?";
+        WarehouseDTO warehouse = null;
+
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            SetParameterUtil.setParameter(stmt, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                warehouse = new WarehouseDTO();
+                warehouse.setId(rs.getInt("id"));
+                warehouse.setShippingFrom(rs.getString("shippingFrom"));
+                warehouse.setShippingStart(rs.getTimestamp("shippingStart"));
+                warehouse.setShippingDone(rs.getTimestamp("shippingDone"));
+                warehouse.setDescription(rs.getString("description"));
+                warehouse.setCreatedDate(rs.getTimestamp("createdDate"));
+                warehouse.setCreatedBy(rs.getString("createdBy"));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return warehouse;
+    }
+
+    public int updateWarehouse(WarehouseDTO warehouse) {
+        int result = -1;
+        String sql = "UPDATE warehouses SET shippingFrom = ?, shippingStart = ?, shippingDone = ?, description = ?, createdDate = ?, createdBy = ? WHERE id = ?";
+
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+            SetParameterUtil.setParameter(stmt,
+                    warehouse.getShippingFrom(),
+                    warehouse.getShippingStart(),
+                    warehouse.getShippingDone(),
+                    warehouse.getDescription(),
+                    warehouse.getCreatedDate(),
+                    warehouse.getCreatedBy(),
+                    warehouse.getId());
+
+            result = stmt.executeUpdate();
+            conn.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
+    }
+
+    public int deleteWarehouse(int id) {
+        String sql = "DELETE FROM warehouses WHERE id = ?";
+
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+            SetParameterUtil.setParameter(stmt, id);
+            int rows = stmt.executeUpdate();
+            conn.commit();
+            return rows;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<WarehouseDTO> getWarehousesDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
+        List<WarehouseDTO> list = new ArrayList<>();
+        String sql = "SELECT id, shippingFrom, shippingStart, shippingDone, description, createdDate, createdBy FROM warehouses";
+        if (searchValue != null && !searchValue.isEmpty()) {
+            sql += " WHERE (id LIKE ? OR shippingFrom LIKE ? OR shippingStart LIKE ? OR shippingDone LIKE ? OR description LIKE ? OR createdDate LIKE ? OR createdBy LIKE ?)";
+        }
+        sql += " ORDER BY " + columnOrder + " " + orderDir + " LIMIT ?, ?";
+
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            int index = 1;
+            if (searchValue != null && !searchValue.isEmpty()) {
+                for (int i = 0; i < 7; i++) {
+                    stmt.setString(index++, "%" + searchValue + "%");
+                }
+            }
+            stmt.setInt(index++, start);
+            stmt.setInt(index, length);
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                WarehouseDTO dto = new WarehouseDTO();
+                dto.setId(rs.getInt("id"));
+                dto.setShippingFrom(rs.getString("shippingFrom"));
+                dto.setShippingStart(rs.getTimestamp("shippingStart"));
+                dto.setShippingDone(rs.getTimestamp("shippingDone"));
+                dto.setDescription(rs.getString("description"));
+                dto.setCreatedDate(rs.getTimestamp("createdDate"));
+                dto.setCreatedBy(rs.getString("createdBy"));
+                list.add(dto);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return list;
     }
 
     public int getRecordsTotal() {
-        int recordsTotal = -1;
-        String sql = "SELECT COUNT(id) FROM warehouses";
-
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            preStat = conn.prepareStatement(sql);
-            rs = preStat.executeQuery();
-
-            if (rs.next()) {
-                recordsTotal = rs.getInt(1);
-            }
+        String sql = "SELECT COUNT(*) FROM warehouses";
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
         }
-        return recordsTotal;
     }
 
     public int getRecordsFiltered(String searchValue) {
-        int recordsFiltered = -1;
-        String sql = "SELECT COUNT(id) FROM warehouses";
+        String sql = "SELECT COUNT(*) FROM warehouses";
+        if (searchValue != null && !searchValue.isEmpty()) {
+            sql += " WHERE (id LIKE ? OR shippingFrom LIKE ? OR shippingStart LIKE ? OR shippingDone LIKE ? OR description LIKE ? OR createdDate LIKE ? OR createdBy LIKE ?)";
+        }
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        try {
-            conn = OpenConnectionUtil.openConnection();
             if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " WHERE (id LIKE ? OR shippingFrom LIKE ? OR shippingStart LIKE ? OR shippingDone LIKE ? OR description LIKE ? OR createdDate LIKE ? OR createdBy LIKE ?)";
+                for (int i = 1; i <= 7; i++) {
+                    stmt.setString(i, "%" + searchValue + "%");
+                }
             }
-            preStat = conn.prepareStatement(sql);
-            int index = 1;
-            if (searchValue != null && !searchValue.isEmpty()) {
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index++, "%" + searchValue + "%");
-                preStat.setString(index, "%" + searchValue + "%");
-            }
-            rs = preStat.executeQuery();
 
-            if (rs.next()) {
-                recordsFiltered = rs.getInt(1);
-            }
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt(1) : 0;
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
         }
-        return recordsFiltered;
     }
 }

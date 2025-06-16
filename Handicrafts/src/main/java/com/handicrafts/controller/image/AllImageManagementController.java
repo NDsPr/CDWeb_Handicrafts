@@ -1,24 +1,24 @@
 package com.handicrafts.controller.image;
 
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.repository.ImageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/admin/all-image-management"})
-public class AllImageManagementController extends HttpServlet {
-    private final ImageDAO imageDAO = new ImageDAO();
+@Controller
+public class AllImageManagementController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<ProductImageBean> allImages = imageDAO.findAllImages();
-        req.setAttribute("allImages", allImages);
-        req.getRequestDispatcher("/all-image-management.jsp").forward(req, resp);
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @GetMapping("/admin/all-image-management")
+    public String showAllImages(Model model) {
+        List<ProductImageDTO> allImages = imageRepository.findAllImages();
+        model.addAttribute("allImages", allImages);
+        return "all-image-management"; // all-image-management.jsp trong thư mục templates (nếu dùng Thymeleaf)
     }
 }

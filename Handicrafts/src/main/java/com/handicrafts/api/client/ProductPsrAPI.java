@@ -2,53 +2,69 @@ package com.handicrafts.api.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.handicrafts.bean.ProductBean;
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
-import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.repository.ImageRepository;
+import com.handicrafts.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-// TODO: Thêm ảnh vào JSON của sản phẩm
-@WebServlet(value = {"/api/product-psr"})
-public class ProductPsrAPI extends HttpServlet {
-    private final ProductDAO productDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String categoryTypeId = req.getParameter("categoryTypeId");
-        // Pagination
-        String recentPage = req.getParameter("recentPage");
-        // Sort & Range
-        String sort = req.getParameter("sort");
-        String range = req.getParameter("range");
-        int totalPages = getTotalPagesByCategoryType(Integer.parseInt(categoryTypeId));
+@RestController
+public class ProductPsrAPI {
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @GetMapping("/api/product-psr")
+    public ResponseEntity<String> getProductsByCategory(
+            @RequestParam("categoryTypeId") int categoryTypeId,
+            @RequestParam("recentPage") int recentPage,
+            @RequestParam("sort") String sort,
+            @RequestParam("range") String range
+    ) throws JsonProcessingException {
+        int totalPages = getTotalPagesByCategoryType(categoryTypeId);
         double[] rangeLimit = getLimitRange(range);
 
-        // Lấy ra danh sách sản phẩm sau khi đã filter (Loc) qua pagination, sort, range
-        List<ProductBean> products = productDAO.findByTypeIdAndLimit(Integer.parseInt(categoryTypeId), rangeLimit, sort, getStartLimit(Integer.parseInt(recentPage)), 2);
-        // Thêm ảnh tương ứng vào sản phẩm trong danh sách
-        for (ProductBean product : products) {
-            List<ProductImageBean> thumbnailImage = new ArrayList<>();
-            thumbnailImage.add(imageDAO.findOneByProductId(product.getId()));
+        List<ProductDTO> products = productRepository.findByTypeIdAndLimit(
+                categoryTypeId,
+                rangeLimit,
+                sort,
+                getStartLimit(recentPage),
+                2 // fixed page size
+        );
+
+        for (ProductDTO product : products) {
+            List<ProductImageDTO> thumbnailImage = new ArrayList<>();
+            thumbnailImage.add(imageRepository.findOneByProductId(product.getId()));
             product.setImages(thumbnailImage);
         }
 
-        String jsonToClient = combineJson(products, Integer.parseInt(recentPage), totalPages);
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        resp.getWriter().write(jsonToClient);
+        Map<String, Object> response = new HashMap<>();
+        response.put("products", products);
+        response.put("recentPage", recentPage);
+        response.put("totalPages", totalPages);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonToClient = objectMapper.writeValueAsString(response);
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(jsonToClient);
     }
 
     private double[] getLimitRange(String range) {
-        if (!range.equals("none")) {
+        if (!"none".equals(range)) {
             double[] rangeLimit = new double[2];
             switch (range) {
                 case "0-to-499":
@@ -70,26 +86,16 @@ public class ProductPsrAPI extends HttpServlet {
             }
             return rangeLimit;
         } else {
-            // Đã xử lý trường hợp null
             return null;
         }
     }
 
-    // Pagination
     private int getTotalPagesByCategoryType(int categoryTypeId) {
-        int totalItems = productDAO.getTotalItemsByCategoryType(categoryTypeId);
+        int totalItems = productRepository.getTotalItemsByCategoryType(categoryTypeId);
         return (int) Math.ceil((double) totalItems / 2);
     }
 
-    // Pagination
     private int getStartLimit(int page) {
         return 2 * (page - 1);
-    }
-
-    // JSON Kết hợp Product và 2 thuộc tính totalPages, recentPage để phân trang
-    private String combineJson(List<ProductBean> products, int recentPage, int totalPages) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String productJson = objectMapper.writeValueAsString(products);
-        return "{\"products\": " + productJson + ", \"recentPage\": " + recentPage + ", \"totalPages\": " + totalPages + "}";
     }
 }

@@ -1,117 +1,108 @@
 package com.handicrafts.api.admin;
 
-import com.handicrafts.bean.ProductBean;
-import com.handicrafts.bean.UserBean;
-import com.handicrafts.bean.WarehouseBean;
-import com.handicrafts.bean.WarehouseDetailBean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.ProductDAO;
-import com.handicrafts.dao.WarehouseDAO;
-import com.handicrafts.dao.WarehouseDetailDAO;
 import com.handicrafts.dto.DatatableDTO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.dto.WarehouseDTO;
+import com.handicrafts.dto.WarehouseDetailDTO;
+import com.handicrafts.repository.ProductRepository;
+import com.handicrafts.repository.WarehouseDetailRepository;
+import com.handicrafts.repository.WarehouseRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
-import com.handicrafts.util.TransferDataUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(value = {"/api/admin/warehouse"})
-public class WarehouseAPI extends HttpServlet {
-    private final WarehouseDAO warehouseDAO = new WarehouseDAO();
-    private WarehouseBean prevWarehouse;
-    private final LogService<WarehouseBean> logService = new LogService<>();
-    private final WarehouseDetailDAO warehouseDetailDAO = new WarehouseDetailDAO();
-    private final ProductDAO productDAO = new ProductDAO();
+@RestController
+@RequestMapping("/api/admin/warehouse")
+public class WarehouseAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra các Property mà DataTable gửi về
-        // Thông tin về phân trang
-        int draw = Integer.parseInt(req.getParameter("draw"));      // Số thứ tự của request hiện tại
-        int start = Integer.parseInt(req.getParameter("start"));    // Vị trí bắt đầu của dữ liệu
-        int length = Integer.parseInt(req.getParameter("length"));  // Số phần tử trên một trang
+    @Autowired
+    private WarehouseRepository warehouseRepository;
 
-        // Thông tin về tìm kiếm
-        String searchValue = req.getParameter("search[value]");
+    @Autowired
+    private WarehouseDetailRepository warehouseDetailRepository;
 
-        // Thông tin về sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");      // Tên của cột muốn sắp xếp
+    @Autowired
+    private ProductRepository productRepository;
 
-        List<WarehouseBean> warehouses = warehouseDAO.getWarehousesDatatable(start, length, columnOrder, orderDir, searchValue);
-        int recordsTotal = warehouseDAO.getRecordsTotal();
-        // Tổng số record khi filter search
-        int recordsFiltered = warehouseDAO.getRecordsFiltered(searchValue);
-        draw++;
+    @Autowired
+    private ILogService<WarehouseDTO> logService;
 
-        DatatableDTO<WarehouseBean> warehouseDatatableDTO = new DatatableDTO<>(warehouses, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<WarehouseBean>>().toJson(warehouseDatatableDTO);
+    @PostMapping
+    public ResponseEntity<String> getWarehouseDatatable(@RequestParam int draw,
+                                                        @RequestParam int start,
+                                                        @RequestParam int length,
+                                                        @RequestParam("columns[0][data]") String orderColumn,
+                                                        @RequestParam("order[0][dir]") String orderDir,
+                                                        @RequestParam("search[value]") String searchValue) throws JsonProcessingException {
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        List<WarehouseDTO> warehouses = warehouseRepository.getWarehousesDatatable(start, length, orderColumn, orderDir, searchValue);
+        int recordsTotal = warehouseRepository.getRecordsTotal();
+        int recordsFiltered = warehouseRepository.getRecordsFiltered(searchValue);
+
+        DatatableDTO<WarehouseDTO> response = new DatatableDTO<>(warehouses, recordsTotal, recordsFiltered, draw + 1);
+        ObjectMapper mapper = new ObjectMapper();
+        return ResponseEntity.ok(mapper.writeValueAsString(response));
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
+    @DeleteMapping
+    public ResponseEntity<String> deleteWarehouse(@RequestParam int id, HttpServletRequest request) {
         String status;
         String notify;
 
-        prevWarehouse = warehouseDAO.findWarehouseById(id);
-        int affectedRow = warehouseDAO.deleteWarehouse(id);
+        WarehouseDTO prevWarehouse = warehouseRepository.findWarehouseById(id);
+        int affectedRow = warehouseRepository.deleteWarehouse(id);
 
         if (affectedRow < 1) {
-            WarehouseBean currentWarehouse = warehouseDAO.findWarehouseById(id);
-            logService.log(req, "admin-delete-warehouse", LogState.FAIL, LogLevel.ALERT, prevWarehouse, currentWarehouse);
+            WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
+            logService.log(request, "admin-delete-warehouse", LogState.FAIL, LogLevel.ALERT, prevWarehouse, currentWarehouse);
             status = "error";
             notify = "Có lỗi khi xóa kho!";
         } else {
-            List<WarehouseDetailBean> warehouseDetail = warehouseDetailDAO.findWarehouseDetailByWarehouseId(id);
+            List<WarehouseDetailDTO> warehouseDetails = warehouseDetailRepository.findWarehouseDetailByWarehouseId(id);
             int count = 0;
-            List<Integer> newQuantity = new ArrayList<>();
+            List<Integer> newQuantities = new ArrayList<>();
             List<Integer> productIds = new ArrayList<>();
-            for (WarehouseDetailBean detail : warehouseDetail) {
-                ProductBean product = productDAO.findProductById(detail.getProductId());
+
+            for (WarehouseDetailDTO detail : warehouseDetails) {
+                ProductDTO product = productRepository.findById(detail.getProductId());
                 if (detail.getQuantity() > product.getQuantity()) {
                     count++;
                 } else {
-                    newQuantity.add(product.getQuantity() - detail.getQuantity());
+                    newQuantities.add(product.getQuantity() - detail.getQuantity());
                     productIds.add(detail.getProductId());
                 }
             }
 
-            // Bằng 0 thì xóa được
             if (count == 0) {
-                for (int i = 0; i < newQuantity.size(); i++) {
-                    productDAO.updateQuantity(newQuantity.get(i), productIds.get(i));
+                for (int i = 0; i < newQuantities.size(); i++) {
+                    productRepository.updateQuantity(productIds.get(i), newQuantities.get(i));
                 }
-                logService.log(req, "admin-delete-warehouse", LogState.SUCCESS, LogLevel.WARNING, prevWarehouse, null);
+                logService.log(request, "admin-delete-warehouse", LogState.SUCCESS, LogLevel.WARNING, prevWarehouse, null);
                 status = "success";
                 notify = "Xóa kho thành công!";
-                UserBean user = (UserBean) SessionUtil.getInstance().getValue(req, "user");
+
+                UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
                 SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), prevWarehouse.getId(), "Warehouse");
             } else {
-                logService.log(req, "admin-delete-warehouse", LogState.FAIL, LogLevel.ALERT, prevWarehouse, null);
+                logService.log(request, "admin-delete-warehouse", LogState.FAIL, LogLevel.ALERT, prevWarehouse, null);
                 status = "error";
                 notify = "Số lượng hàng thực tế ít hơn nhập hàng, không thể hủy!";
             }
         }
 
-        String jsonData = "{\"status\": \"" + status + "\", \"notify\": \"" + notify + "\"}";
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        String jsonData = String.format("{\"status\": \"%s\", \"notify\": \"%s\"}", status, notify);
+        return ResponseEntity.ok(jsonData);
     }
 }

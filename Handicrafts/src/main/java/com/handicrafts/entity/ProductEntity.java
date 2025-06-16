@@ -108,7 +108,7 @@ public class ProductEntity {
         this.description = description;
     }
 
-    public Double getOriginalPrice() {
+    public BigDecimal getOriginalPrice() {
         return originalPrice;
     }
 
@@ -116,7 +116,7 @@ public class ProductEntity {
         this.originalPrice = originalPrice;
     }
 
-    public Double getDiscountPrice() {
+    public BigDecimal getDiscountPrice() {
         return discountPrice;
     }
 

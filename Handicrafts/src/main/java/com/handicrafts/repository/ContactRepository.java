@@ -5,12 +5,13 @@ import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
 import org.springframework.stereotype.Repository;
 
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 @Repository
 public class ContactRepository {
+
     public int createContact(ContactDTO contactDTO) {
         int id = -1;
         String sql = "INSERT INTO contacts (email, firstName, lastName, message, status) VALUES (?, ?, ?, ?, 1)";
@@ -57,37 +58,82 @@ public class ContactRepository {
         return contact;
     }
 
-    public List<ContactDTO> findAllContacts() {
-        List<ContactDTO> contactList = new ArrayList<>();
-        String sql = "SELECT * FROM contacts";
+    public List<ContactDTO> getContactsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
+        List<ContactDTO> contacts = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM contacts");
+
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" WHERE email LIKE ? OR firstName LIKE ? OR lastName LIKE ? OR message LIKE ?");
+        }
+        sql.append(" ORDER BY ").append(columnOrder).append(" ").append(orderDir);
+        sql.append(" LIMIT ?, ?");
 
         try (Connection connection = OpenConnectionUtil.openConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
-            while (resultSet.next()) {
-                contactList.add(extractContactFromResultSet(resultSet));
+            int index = 1;
+            if (searchValue != null && !searchValue.trim().isEmpty()) {
+                String query = "%" + searchValue + "%";
+                for (int i = 0; i < 4; i++) {
+                    preparedStatement.setString(index++, query);
+                }
+            }
+            preparedStatement.setInt(index++, start);
+            preparedStatement.setInt(index, length);
+
+            ResultSet rs = preparedStatement.executeQuery();
+            while (rs.next()) {
+                contacts.add(extractContactFromResultSet(rs));
+            }
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return contacts;
+    }
+
+    public int getRecordsTotal() {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM contacts";
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                count = rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return contactList;
+        return count;
     }
 
-    public void updateContact(ContactDTO contact) {
-        String sql = "UPDATE contacts SET firstName = ?, lastName = ?, message = ?, status = ?, modifiedDate = ?, modifiedBy = ? WHERE id = ?";
+    public int getRecordsFiltered(String searchValue) {
+        int count = 0;
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM contacts");
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        if (searchValue != null && !searchValue.trim().isEmpty()) {
+            sql.append(" WHERE email LIKE ? OR firstName LIKE ? OR lastName LIKE ? OR message LIKE ?");
+        }
 
-            connection.setAutoCommit(false);
-            SetParameterUtil.setParameter(preparedStatement, contact.getFirstName(), contact.getLastName(),
-                    contact.getMessage(), contact.getStatus(), contact.getModifiedDate(), contact.getModifiedBy(), contact.getId());
-            preparedStatement.executeUpdate();
-            connection.commit();
+        try (Connection conn = OpenConnectionUtil.openConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            if (searchValue != null && !searchValue.trim().isEmpty()) {
+                String query = "%" + searchValue + "%";
+                for (int i = 1; i <= 4; i++) {
+                    ps.setString(i, query);
+                }
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+            rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return count;
     }
 
     public int deleteContact(int id) {
@@ -122,6 +168,4 @@ public class ContactRepository {
         contact.setModifiedBy(rs.getString("modifiedBy"));
         return contact;
     }
-
-    // The rest methods (getContactsDatatable, getRecordsTotal, getRecordsFiltered) should also follow the same ContactDTO refactor.
 }

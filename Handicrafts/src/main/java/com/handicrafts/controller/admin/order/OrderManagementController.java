@@ -1,20 +1,27 @@
 package com.handicrafts.controller.admin.order;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import com.handicrafts.dto.OrderDTO;
+import com.handicrafts.entity.OrderEntity;
+import com.handicrafts.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@WebServlet(value = {"/admin/order-management"})
+import java.util.List;
 
-public class OrderManagementController extends HttpServlet {
-//    private final OrderDAO orderDAO = new OrderDAO();
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-//        List<OrderBean> listOrders = orderDAO.findAllOrders();
-//
-//        request.setAttribute("listOrders", listOrders);
-        request.getRequestDispatcher("/order-management.jsp").forward(request,response);
+@Controller
+@RequestMapping("/admin/order-management")
+public class OrderManagementController {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @GetMapping
+    public String showOrderManagementPage(Model model) {
+        List<OrderEntity> listOrders = orderRepository.findAll();
+        model.addAttribute("listOrders", listOrders);
+        return "order-management";
     }
 }

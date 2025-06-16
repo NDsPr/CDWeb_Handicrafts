@@ -15,6 +15,10 @@ public class CustomOAuth2User implements OAuth2User {
         this.clientName = clientName;
     }
 
+    public CustomOAuth2User() {
+
+    }
+
     @Override
     public <A> A getAttribute(String name) {
         return OAuth2User.super.getAttribute(name);

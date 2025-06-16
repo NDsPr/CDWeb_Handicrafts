@@ -1,86 +1,73 @@
+// Spring Boot version of ContactAPI (RestController)
 package com.handicrafts.api.admin;
 
-import com.handicrafts.bean.ContactBean;
-import com.handicrafts.bean.UserBean;
-import com.handicrafts.constant.LogLevel;
-import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.ContactDAO;
+import com.handicrafts.dto.ContactDTO;
 import com.handicrafts.dto.DatatableDTO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.service.IContactService;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
-import com.handicrafts.util.TransferDataUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/api/admin/contact"})
-public class ContactAPI extends HttpServlet {
-    private final ContactDAO contactDAO = new ContactDAO();
-    private ContactBean prevContact;
-    private LogService<ContactBean> logService = new LogService<>();
+@RestController
+@RequestMapping("/api/admin/contact")
+public class ContactAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra các Property mà DataTable gửi về
-        // Thông tin về phân trang
-        int draw = Integer.parseInt(req.getParameter("draw"));      // Số thứ tự của request hiện tại
-        int start = Integer.parseInt(req.getParameter("start"));    // Vị trí bắt đầu của dữ liệu
-        int length = Integer.parseInt(req.getParameter("length"));  // Số phần tử trên một trang
+    @Autowired
+    private IContactService contactService;
 
-        // Thông tin về tìm kiếm
-        String searchValue = req.getParameter("search[value]");
+    @Autowired
+    private ILogService<ContactDTO> logService;
 
-        // Thông tin về sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");      // Tên của cột muốn sắp xếp
-
-        List<ContactBean> contacts = contactDAO.getContactsDatatable(start, length, columnOrder, orderDir, searchValue);
-        int recordsTotal = contactDAO.getRecordsTotal();
-        // Tổng số record khi filter search
-        int recordsFiltered = contactDAO.getRecordsFiltered(searchValue);
+    @GetMapping
+    public ResponseEntity<DatatableDTO<ContactDTO>> getContactsDatatable(
+            @RequestParam int draw,
+            @RequestParam int start,
+            @RequestParam int length,
+            @RequestParam(value = "search[value]", required = false) String searchValue,
+            @RequestParam(value = "order[0][column]", defaultValue = "0") String orderBy,
+            @RequestParam(value = "order[0][dir]", defaultValue = "asc") String orderDir,
+            @RequestParam(value = "columns[{orderBy}][data]", defaultValue = "id") String columnOrder
+    ) {
+        List<ContactDTO> contacts = contactService.getContactsDatatable(start, length, columnOrder, orderDir, searchValue);
+        int recordsTotal = contactService.getRecordsTotal();
+        int recordsFiltered = contactService.getRecordsFiltered(searchValue);
         draw++;
 
-        DatatableDTO<ContactBean> contactDatatableDTO = new DatatableDTO<>(contacts, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<ContactBean>>().toJson(contactDatatableDTO);
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        DatatableDTO<ContactDTO> datatable = new DatatableDTO<>(contacts, recordsTotal, recordsFiltered, draw);
+        return ResponseEntity.ok(datatable);
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
+    @DeleteMapping
+    public ResponseEntity<?> deleteContact(@RequestParam int id, HttpServletRequest request) {
         String status;
         String notify;
 
-        prevContact = contactDAO.findContactById(id);
-        int affectedRow = contactDAO.deleteContact(id);
+        ContactDTO prevContact = contactService.findContactById(id);
+        int affectedRow = contactService.delete(id);
 
         if (affectedRow < 1) {
-            ContactBean currentContact = contactDAO.findContactById(id);
-            logService.log(req, "admin-delete-contact", LogState.FAIL, LogLevel.ALERT, prevContact, currentContact);
+            ContactDTO currentContact = contactService.findContactById(id);
+            logService.log(request, "admin-delete-contact", "FAIL", 2, prevContact, currentContact);
             status = "error";
-            notify = "Có lỗi khi xóa log!";
+            notify = "Có lỗi khi xóa contact!";
         } else {
-            logService.log(req, "admin-delete-contact", LogState.SUCCESS, LogLevel.WARNING, prevContact, null);
+            logService.log(request, "admin-delete-contact", "SUCCESS", 1, prevContact, null);
             status = "success";
-            notify = "Xóa log thành công!";
-            UserBean user = (UserBean) SessionUtil.getInstance().getValue(req, "user");
+            notify = "Xóa contact thành công!";
+
+            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
             SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), prevContact.getId(), "Contact");
         }
 
-        String jsonData = "{\"status\": \"" + status + "\", \"notify\": \"" + notify + "\"}";
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        return ResponseEntity.ok("{" +
+                "\"status\": \"" + status + "\"," +
+                "\"notify\": \"" + notify + "\"}");
     }
 }

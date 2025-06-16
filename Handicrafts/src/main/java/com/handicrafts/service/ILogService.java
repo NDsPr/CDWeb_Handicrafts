@@ -11,6 +11,8 @@ public interface ILogService<T> {
 
     int save(LogDTO dto);
 
+    LogDTO findById(int id);
+
     List<LogDTO> findAll();
 
     LogDTO findById(Integer id);
@@ -18,4 +20,6 @@ public interface ILogService<T> {
     void deleteById(Integer id);
 
     Page<LogDTO> searchLogs(String keyword, int page, int size, String sortField, String sortDir);
+
+    void deleteById(int id);
 }

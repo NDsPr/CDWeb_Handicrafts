@@ -1,50 +1,38 @@
 package com.handicrafts.api.admin;
 
-import com.handicrafts.bean.WarehouseDetailBean;
-import com.handicrafts.dao.WarehouseDetailDAO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.dto.DatatableDTO;
-import com.handicrafts.util.TransferDataUtil;
+import com.handicrafts.dto.WarehouseDetailDTO;
+import com.handicrafts.repository.WarehouseDetailRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/api/admin/warehouse-detail"})
-public class WarehouseDetailAPI extends HttpServlet {
-    private final WarehouseDetailDAO warehouseDetailDAO = new WarehouseDetailDAO();
+@RestController
+@RequestMapping("/api/admin/warehouse-detail")
+public class WarehouseDetailAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra các Property mà DataTable gửi về
-        // Thông tin về phân trang
-        int warehouseId = Integer.parseInt(req.getParameter("warehouseId"));
-        int draw = Integer.parseInt(req.getParameter("draw"));      // Số thứ tự của request hiện tại
-        int start = Integer.parseInt(req.getParameter("start"));    // Vị trí bắt đầu của dữ liệu
-        int length = Integer.parseInt(req.getParameter("length"));  // Số phần tử trên một trang
+    @Autowired
+    private WarehouseDetailRepository warehouseDetailRepository;
 
-        // Thông tin về tìm kiếm
-        String searchValue = req.getParameter("search[value]");
+    @PostMapping
+    public ResponseEntity<String> getWarehouseDetailDatatable(@RequestParam int warehouseId,
+                                                              @RequestParam int draw,
+                                                              @RequestParam int start,
+                                                              @RequestParam int length,
+                                                              @RequestParam("columns[0][data]") String orderColumn,
+                                                              @RequestParam("order[0][dir]") String orderDir,
+                                                              @RequestParam("search[value]") String searchValue) throws JsonProcessingException {
 
-        // Thông tin về sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");      // Tên của cột muốn sắp xếp
+        List<WarehouseDetailDTO> details = warehouseDetailRepository.getWarehouseDetailsDatatable(warehouseId, start, length, orderColumn, orderDir, searchValue);
+        int recordsTotal = warehouseDetailRepository.getRecordsTotal();
+        int recordsFiltered = warehouseDetailRepository.getRecordsFiltered(warehouseId, searchValue);
 
-        List<WarehouseDetailBean> warehouseDetails = warehouseDetailDAO.getWarehouseDetailsDatatable(warehouseId, start, length, columnOrder, orderDir, searchValue);
-        int recordsTotal = warehouseDetailDAO.getRecordsTotal();
-        // Tổng số record khi filter search
-        int recordsFiltered = warehouseDetailDAO.getRecordsFiltered(warehouseId, searchValue);
-        draw++;
-
-        DatatableDTO<WarehouseDetailBean> warehouseDetailDatatableDTO = new DatatableDTO<>(warehouseDetails, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<WarehouseDetailBean>>().toJson(warehouseDetailDatatableDTO);
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        DatatableDTO<WarehouseDetailDTO> response = new DatatableDTO<>(details, recordsTotal, recordsFiltered, draw + 1);
+        ObjectMapper mapper = new ObjectMapper();
+        return ResponseEntity.ok(mapper.writeValueAsString(response));
     }
 }

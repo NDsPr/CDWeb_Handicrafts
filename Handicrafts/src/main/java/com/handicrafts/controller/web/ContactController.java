@@ -7,7 +7,7 @@ import com.handicrafts.dto.CustomizeDTO;
 import com.handicrafts.repository.ContactRepository;
 import com.handicrafts.repository.CustomizeRepository;
 
-import com.handicrafts.security.service.LogService;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.BlankInputUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,10 +22,10 @@ public class ContactController {
 
     private final CustomizeRepository customizeRepository;
     private final ContactRepository contactRepository;
-    private final LogService<ContactDTO> logService;
+    private final ILogService<ContactDTO> logService;
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
-    public ContactController(CustomizeRepository customizeRepository, ContactRepository contactRepository, LogService<ContactDTO> logService) {
+    public ContactController(CustomizeRepository customizeRepository, ContactRepository contactRepository, ILogService<ContactDTO> logService) {
         this.customizeRepository = customizeRepository;
         this.contactRepository = contactRepository;
         this.logService = logService;
@@ -70,10 +70,10 @@ public class ContactController {
             ContactDTO savedContact = contactRepository.findContactById(id);
 
             if (id <= 0) {
-                logService.log(request, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
                 msg = "error";
             } else {
-                logService.log(request, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, savedContact);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, savedContact);
                 msg = "success";
             }
         }

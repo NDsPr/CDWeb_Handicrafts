@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
+import com.handicrafts.repository.RoleRepository;
+import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.impl.JwtService;
 import com.handicrafts.service.IUserService;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.Date;
 
@@ -29,14 +32,14 @@ public class FacebookLoginController {
     @Value("${oauth.facebook.redirect-uri}")
     private String redirectUri;
 
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final IUserService userService;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
 
     public FacebookLoginController(
-            IUserRepository userRepository,
+            UserRepository userRepository,
             RoleRepository roleRepository,
             IUserService userService,
             JwtService jwtService) {
@@ -114,27 +117,24 @@ public class FacebookLoginController {
                 user = existingUser.get();
 
                 // Nếu tài khoản chưa được đánh dấu là từ provider Facebook
-                if (user.getProvider() == null || !user.getProvider().equals("facebook")) {
-                    user.setProvider("facebook");
-                    user.setUpdatedAt(new Date());
+                if (user.getAddressProvince() == null || !user.getAddressProvince().equals("facebook")) {
+                    user.setAddressProvince("facebook");
+                    user.setModifiedDate((Timestamp) new Date());
                     userRepository.save(user);
                 }
             } else {
                 // Người dùng chưa tồn tại, tạo mới
                 user = new UserEntity();
                 user.setEmail(email);
-                user.setFullname(fullname);
-                user.setUsername(email.split("@")[0]); // Tạo username từ phần đầu email
+
                 user.setPassword(""); // Không cần mật khẩu cho đăng nhập OAuth
-                user.setStatus(true); // Đặt trạng thái active
-                user.setIsEnable(true); // Đã xác thực
-                user.setProvider("facebook"); // Đánh dấu là từ Facebook
-                user.setCreatedAt(new Date());
+                user.setAddressProvince("facebook"); // Đánh dấu là từ Facebook
+                user.setCreatedDate((Timestamp) new Date());
 
                 // Thêm role USER cho người dùng mới
                 RoleEntity userRole = roleRepository.findByName("ROLE_USER")
                         .orElseThrow(() -> new RuntimeException("Role USER not found"));
-                user.setRoles(new HashSet<>(Collections.singletonList(userRole)));
+                user.setRole(new RoleEntity(Collections.singletonList(userRole)));
 
                 userRepository.save(user);
             }
@@ -163,6 +163,6 @@ public class FacebookLoginController {
 
     // Thêm phương thức tiện ích để kiểm tra tài khoản OAuth
     private boolean isOAuthAccount(UserEntity user) {
-        return user.getProvider() != null && !user.getProvider().isEmpty();
+        return user.getAddressProvince() != null && !user.getAddressProvince().isEmpty();
     }
 }

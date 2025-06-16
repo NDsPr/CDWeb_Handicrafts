@@ -6,7 +6,7 @@ import com.github.scribejava.apis.FacebookApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.oauth.OAuth20Service;
-import com.handicrafts.dto.OAuth2UserInfo;
+import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.OAuth2Service;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -50,10 +50,10 @@ public class FacebookOAuth2ServiceImpl implements OAuth2Service {
     }
 
     @Override
-    public OAuth2UserInfo getUserInfo(OAuth2AccessToken accessToken) throws IOException {
+    public CustomOAuth2User getUserInfo(OAuth2AccessToken accessToken) throws IOException {
         JsonNode userInfo = getJsonUserInfo(accessToken);
 
-        OAuth2UserInfo userInfoDto = new OAuth2UserInfo();
+        CustomOAuth2User userInfoDto = new CustomOAuth2User();
         userInfoDto.setName(userInfo.get("name").asText());
         userInfoDto.setEmail(userInfo.has("email") ? userInfo.get("email").asText() : null);
         userInfoDto.setProvider("facebook");

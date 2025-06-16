@@ -1,17 +1,15 @@
 package com.handicrafts.repository;
 
+import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -318,26 +316,54 @@ public class UserRepository {
             return null;
         }
     }
-//    @Transactional
-//    public int createInRegister(String email, String password, String verifiedCode) {
-//        Query query = entityManager.createNativeQuery(
-//                "INSERT INTO users (email, password, roleId, status, verifiedCode, createdDate, modifiedDate) " +
-//                        "VALUES (:email, :password, 1, 2, :verifiedCode, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
-//        query.setParameter("email", email);
-//        query.setParameter("password", password);
-//        query.setParameter("verifiedCode", verifiedCode);
-//        return query.executeUpdate();
-//    }
-//
-//    @Transactional
-//    public int createOAuth(String email, String password, String platform) {
-//        Query query = entityManager.createNativeQuery(
-//                "INSERT INTO users (email, password, roleId, status, viaOAuth, createdDate, modifiedDate) " +
-//                        "VALUES (:email, :password, 1, 1, :platform, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)");
-//        query.setParameter("email", email);
-//        query.setParameter("password", password);
-//        query.setParameter("platform", platform);
-//        return query.executeUpdate();
-//    }
+
+    /**
+     * Đăng ký tài khoản thường (với verified code, trạng thái mặc định là chưa active)
+     */
+    @Transactional
+    public int createInRegister(UserDTO userDTO) {
+        UserEntity user = new UserEntity();
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword()); // Ensure password is encoded before this point
+        user.setFirstName(userDTO.getFullName());
+        user.setRoleId(1); // Default role
+        user.setStatus(2); // Unverified status
+        user.setVerifiedCode(userDTO.getConfirmToken());
+        user.setCreatedDate((Timestamp) new Date());
+        user.setModifiedDate((Timestamp) new Date());
+
+        try {
+            entityManager.persist(user);
+            return user.getId(); // Assuming getId() returns the generated ID
+        } catch (PersistenceException e) {
+            // Handle potential duplicate email or other constraints
+            return -1;
+        }
+    }
+
+
+    /**
+     * Đăng ký tài khoản thông qua OAuth (status = active ngay lập tức)
+     */
+    @Transactional
+    public int createOAuth(UserDTO userDTO) {
+        UserEntity user = new UserEntity();
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword()); // Ensure password is handled appropriately
+        user.setRoleId(1); // Default role
+        user.setStatus(1); // Active status for OAuth
+        user.setAddressProvince(userDTO.getProvider());
+        user.setCreatedDate((Timestamp) new Date());
+        user.setModifiedDate((Timestamp) new Date());
+
+        try {
+            entityManager.persist(user);
+            return user.getId(); // Assuming getId() returns the generated ID
+        } catch (PersistenceException e) {
+            // Handle potential duplicate email or other constraints
+            return -1;
+        }
+    }
+
 
 }

@@ -1,90 +1,76 @@
+// Spring Boot version of ProductAPI
 package com.handicrafts.api.admin;
 
-import com.handicrafts.bean.ProductBean;
-import com.handicrafts.bean.UserBean;
-import com.handicrafts.constant.LogLevel;
-import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.ImageDAO;
-import com.handicrafts.dao.ProductDAO;
 import com.handicrafts.dto.DatatableDTO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.service.ImageService;
+import com.handicrafts.service.ILogService;
+import com.handicrafts.service.IProductService;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
-import com.handicrafts.util.TransferDataUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/api/admin/product"})
-public class ProductAPI extends HttpServlet {
-    private final ProductDAO productDAO = new ProductDAO();
-    private ImageDAO imageDAO = new ImageDAO();
-    private LogService<ProductBean> logService = new LogService<>();
+@RestController
+@RequestMapping("/api/admin/product")
+public class ProductAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra các Property mà DataTable gửi về
-        // Thông tin về phân trang
-        int draw = Integer.parseInt(req.getParameter("draw"));      // Số thứ tự của request hiện tại
-        int start = Integer.parseInt(req.getParameter("start"));    // Vị trí bắt đầu của dữ liệu
-        int length = Integer.parseInt(req.getParameter("length"));  // Số phần tử trên một trang
+    @Autowired
+    private IProductService productService;
 
-        // Thông tin về tìm kiếm
-        String searchValue = req.getParameter("search[value]");
+    @Autowired
+    private ImageService imageService;
 
-        // Thông tin về sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");      // Tên của cột muốn sắp xếp
+    @Autowired
+    private ILogService<ProductDTO> logService;
 
-        List<ProductBean> products = productDAO.getProductsDatatable(start, length, columnOrder, orderDir, searchValue);
-        for (ProductBean product : products) {
-            product.setImages(imageDAO.findImagesByProductId(product.getId()));
-        }
-        int recordsTotal = productDAO.getRecordsTotal();
-        // Tổng số record khi filter search
-        int recordsFiltered = productDAO.getRecordsFiltered(searchValue);
+    @GetMapping
+    public ResponseEntity<DatatableDTO<ProductDTO>> getProducts(
+            @RequestParam int draw,
+            @RequestParam int start,
+            @RequestParam int length,
+            @RequestParam(value = "search[value]", required = false) String searchValue,
+            @RequestParam(value = "order[0][column]", defaultValue = "0") String orderBy,
+            @RequestParam(value = "order[0][dir]", defaultValue = "asc") String orderDir,
+            @RequestParam(value = "columns[{orderBy}][data]", defaultValue = "id") String columnOrder
+    ) {
+        List<ProductDTO> products = productService.getProductsDatatable(start, length, columnOrder, orderDir, searchValue);
+        products.forEach(p -> p.setImages(imageService.findImagesByProductId(p.getId())));
+
+        int recordsTotal = productService.getRecordsTotal();
+        int recordsFiltered = productService.getRecordsFiltered(searchValue);
+
         draw++;
-
-        DatatableDTO<ProductBean> productDatatableDTO = new DatatableDTO<>(products, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<ProductBean>>().toJson(productDatatableDTO);
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        DatatableDTO<ProductDTO> dto = new DatatableDTO<>(products, recordsTotal, recordsFiltered, draw);
+        return ResponseEntity.ok(dto);
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
+    @DeleteMapping
+    public ResponseEntity<?> deleteProduct(@RequestParam int id, HttpServletRequest request) {
+        ProductDTO prevProduct = productService.findById(id);
+        int affectedRows = productService.disableProduct(id);
+
         String status;
         String notify;
 
-        // Lấy ra UserBean từ session để lấy
-        int affectedRows = productDAO.disableProduct(id);
-
-        // Product trước đó (Trong db)
-        ProductBean prevProduct = productDAO.findProductById(id);
         if (affectedRows > 0) {
-            logService.log(req, "admin-delete-product", LogState.SUCCESS, LogLevel.WARNING, prevProduct, null);
-            status = "error";
-            notify = "Có lỗi khi vô hiệu hóa sản phẩm!";
-        } else {
-            logService.log(req, "admin-delete-product", LogState.FAIL, LogLevel.ALERT, prevProduct, prevProduct);
+            logService.log(request, "admin-delete-product", "SUCCESS", 1, prevProduct, null);
             status = "success";
             notify = "Vô hiệu hóa sản phẩm thành công!";
-            UserBean user = (UserBean) SessionUtil.getInstance().getValue(req, "user");
+            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
             SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), prevProduct.getId(), "Product");
+        } else {
+            logService.log(request, "admin-delete-product", "FAIL", 2, prevProduct, prevProduct);
+            status = "error";
+            notify = "Có lỗi khi vô hiệu hóa sản phẩm!";
         }
-        String jsonData = "{\"status\": \"" + status + "\", \"notify\": \"" + notify + "\"}";
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        String json = String.format("{\"status\": \"%s\", \"notify\": \"%s\"}", status, notify);
+        return ResponseEntity.ok(json);
     }
 }

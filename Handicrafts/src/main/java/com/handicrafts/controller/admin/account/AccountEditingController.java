@@ -5,7 +5,6 @@ import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.UserRepository;
-import com.handicrafts.security.service.LogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import org.springframework.beans.BeanUtils;

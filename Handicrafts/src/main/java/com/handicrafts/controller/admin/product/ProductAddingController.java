@@ -6,7 +6,6 @@ import com.handicrafts.repository.ProductRepository;
 import com.handicrafts.repository.ImageRepository;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.security.service.LogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;

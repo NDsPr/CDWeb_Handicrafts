@@ -1,63 +1,67 @@
 package com.handicrafts.controller.admin.order;
 
-import com.handicrafts.bean.OrderBean;
-import com.handicrafts.bean.UserBean;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.OrderDAO;
-import com.handicrafts.dao.UserDAO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.OrderDTO;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.OrderEntity;
+import com.handicrafts.repository.OrderRepository;
+import com.handicrafts.repository.UserRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.ValidateParamUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
-@WebServlet(value = {"/admin/order-management/editing"})
-public class OrderEditingController extends HttpServlet {
-    private final OrderDAO orderDAO = new OrderDAO();
-    private final UserDAO userDAO = new UserDAO();
-    private LogService<OrderBean> logService = new LogService<>();
+@Controller
+@RequestMapping("/admin/order-management/editing")
+public class OrderEditingController {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ILogService<OrderDTO> logService;
+
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
-        OrderBean orderBean = orderDAO.findOrderById(id);
-        req.setAttribute("displayOrder", orderBean);
-        req.getRequestDispatcher("/editing-order.jsp").forward(req, resp);
+    @GetMapping
+    public String getEditForm(@RequestParam("id") int id, Model model) {
+        Optional<OrderEntity> order = orderRepository.findById(id);
+        model.addAttribute("displayOrder", order);
+        return "editing-order";
     }
 
-    // TODO: Sửa lại code
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        // Lấy id kiểu int ra để lưu vào database
-        int id = Integer.parseInt(req.getParameter("id"));
-        String shipToDate = req.getParameter("shipToDate");
-        String status = req.getParameter("status");
-
-        // Biến thông báo thành công
-        String msg = "";
+    @PostMapping
+    public String editOrder(@RequestParam("id") int id,
+                            @RequestParam("shipToDate") @DateTimeFormat(pattern = "yyyy-MM-dd") String shipToDate,
+                            @RequestParam("status") String status,
+                            Model model,
+                            HttpServletRequest request) {
 
         String[] inputsForm = {shipToDate, status};
-        // Biến bắt lỗi
         boolean isValid = true;
+        String msg;
 
-        // Kiểm tra input rằng/null trong hàm checkEmptyParam
         List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
-
-        // Nếu có lỗi (khác null) trả về isValid = false
         for (String error : errors) {
             if (error != null) {
                 isValid = false;
@@ -65,51 +69,49 @@ public class OrderEditingController extends HttpServlet {
             }
         }
 
-        // Lấy ra Order trong Database làm giá trị previous
-        OrderBean prevOrder = orderDAO.findOrderById(id);
+        Optional<OrderEntity> prevOrder = orderRepository.findById(id);
+
         if (isValid) {
-            java.util.Date parsedDate;
+            Timestamp shipDate;
             try {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                parsedDate = dateFormat.parse(shipToDate);
+                shipDate = new Timestamp(dateFormat.parse(shipToDate).getTime());
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
 
-            Timestamp shipToDateConvert = new Timestamp(parsedDate.getTime());
-
-            // Nếu không lỗi thì lưu vào database
-            // Đổi String về số
             int statusInt = NumberValidateUtil.toInt(status);
-            // Set thuộc tính vào bean
-            OrderBean orderBean = new OrderBean();
-            orderBean.setId(id);
-            orderBean.setStatus(statusInt);
-            orderBean.setShipToDate(shipToDateConvert);
 
-            int affectedRows = orderDAO.updateOrder(orderBean);
-            OrderBean currentOrder = orderDAO.findOrderById(id);
-            if (affectedRows > 0) {
-                logService.log(req, "admin-update-order", LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
-                msg = "success";
-                if (prevOrder.getStatus() != currentOrder.getStatus()) {
-                    UserBean user = userDAO.findUserByOrderId(id);
-                    SendEmailUtil.sendOrderNotify(user.getEmail(), currentOrder.getId(), currentOrder.getStatus());
-                }
-            } else {
-                logService.log(req, "admin-update-order", LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
-                msg = "fail";
-            }
-        } else {
-            req.setAttribute("errors", errors);
-            OrderBean currentOrder = orderDAO.findOrderById(id);
-            logService.log(req, "admin-update-order", LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
-            msg = "error";
-        }
+            OrderDTO updatedOrder = new OrderDTO();
+            updatedOrder.setId(id);
+            updatedOrder.setStatus(statusInt);
+            updatedOrder.setShipToDate(shipDate);
 
-        OrderBean displayOrder = orderDAO.findOrderById(id);
-        req.setAttribute("msg", msg);
-        req.setAttribute("displayOrder", displayOrder);
-        req.getRequestDispatcher("/editing-order.jsp").forward(req, resp);
+            int affectedRows = orderRepository.updateOrder(updatedOrder.toEntity());
+            Optional<OrderEntity> currentOrder = orderRepository.findById(id);
+
+//            if (affectedRows > 0) {
+//                logService.log(request, "admin-update-order", LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
+//                msg = "success";
+//                if (prevOrder.getStatus() != currentOrder.getStatus()) {
+//                    UserDTO user = userRepository.findUserByOrderId(id);
+//                    SendEmailUtil.sendOrderNotify(user.getEmail(), currentOrder.getId(), currentOrder.getStatus());
+//                }
+//            } else {
+//                logService.log(request, "admin-update-order", LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
+//                msg = "fail";
+//            }
+//        } else {
+//            OrderDTO currentOrder = orderRepository.findOrderById(id);
+//            model.addAttribute("errors", errors);
+//            logService.log(request, "admin-update-order", LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
+//            msg = "error";
+      }
+
+        Optional<OrderEntity> displayOrder = orderRepository.findById(id);
+        //model.addAttribute("msg", msg);
+        model.addAttribute("displayOrder", displayOrder);
+
+        return "editing-order";
     }
 }

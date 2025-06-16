@@ -1,73 +1,68 @@
+// Spring Boot version of OrderAddingController
 package com.handicrafts.controller.admin.order;
 
-
-import com.handicrafts.bean.OrderBean;
-import com.handicrafts.dao.OrderDAO;
+import com.handicrafts.dto.OrderDTO;
+import com.handicrafts.service.IOrderService;
 import com.handicrafts.util.BlankInputUtil;
 import com.handicrafts.util.NumberValidateUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-@WebServlet("/admin/order-management/adding")
+@Controller
+@RequestMapping("/admin/order-management/adding")
+public class OrderAddingController {
 
-public class OrderAddingController extends HttpServlet {
+    @Autowired
+    private IOrderService orderService;
 
-    private final OrderDAO orderDAO = new OrderDAO();
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/adding-order.jsp").forward(req, resp);
+    @GetMapping
+    public String showForm(Model model) {
+        return "admin/adding-order"; // view name (adding-order.jsp equivalent)
     }
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
 
-        String userId = req.getParameter("userId");
-        String total = req.getParameter("total");
-        String paymentMethod = req.getParameter("paymentMethod");
-        String status = req.getParameter("status");
+    @PostMapping
+    public String handleAddOrder(@RequestParam("userId") String userId,
+                                 @RequestParam("total") String total,
+                                 @RequestParam("paymentMethod") String paymentMethod,
+                                 @RequestParam("status") String status,
+                                 Model model) {
 
-        String success = "success";
-        String[] inputsForm = new String[] {userId, total, paymentMethod, status};
-        ArrayList<String> errors = new ArrayList<>();
-        // Biến bắt lỗi
+        List<String> errors = new ArrayList<>();
         boolean isValid = true;
-
-        for (String string : inputsForm) {
-            if (BlankInputUtil.isBlank(string)) {
+        for (String input : new String[]{userId, total, paymentMethod, status}) {
+            if (BlankInputUtil.isBlank(input)) {
                 errors.add("e");
-                if (isValid) {
-                    isValid = false;
-                }
+                isValid = false;
             } else {
                 errors.add(null);
             }
         }
-        req.setAttribute("errors", errors);
+        model.addAttribute("errors", errors);
 
-        // Nếu không lỗi thì lưu vào database
         if (isValid) {
-            // Đổi String về số
-            int statusInt = NumberValidateUtil.toInt(status);
             int userIdInt = NumberValidateUtil.toInt(userId);
-            // Set thuộc tính vào bean
-            OrderBean orderBean = new OrderBean();
-            orderBean.setUserId(userIdInt);
-            orderBean.setTotal(Double.parseDouble(total));
-            orderBean.setPaymentMethod(paymentMethod);
-            orderBean.setStatus(statusInt);
+            double totalVal = Double.parseDouble(total);
+            int statusInt = NumberValidateUtil.toInt(status);
 
+            OrderDTO order = new OrderDTO();
+            order.setUserId(userIdInt);
+            order.setTotal(totalVal);
+            order.setPaymentMethod(paymentMethod);
+            order.setStatus(statusInt);
 
+            orderService.createOrder(order);
 
-            orderDAO.createOrder(orderBean);
-            resp.sendRedirect(req.getContextPath() + "/admin/order-management/adding?success=" + success);
+            return "redirect:/admin/order-management/adding?success=success";
         } else {
-            req.getRequestDispatcher("/adding-order.jsp").forward(req, resp);
+            return "admin/adding-order";
         }
     }
 }
-
-

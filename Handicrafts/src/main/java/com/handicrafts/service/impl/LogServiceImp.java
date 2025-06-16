@@ -1,22 +1,16 @@
 package com.handicrafts.service.impl;
 
 import com.handicrafts.dto.LogDTO;
-import com.handicrafts.dto.UserDTO;
-import com.handicrafts.entity.LogEntity;
 import com.handicrafts.repository.LogRepository;
 import com.handicrafts.service.ILogService;
-import com.handicrafts.util.SessionUtil;
 import com.handicrafts.util.TransferDataUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 @Service
 public class LogServiceImp<T> implements ILogService<T> {
@@ -24,102 +18,56 @@ public class LogServiceImp<T> implements ILogService<T> {
     @Autowired
     private LogRepository logRepository;
 
-    private final ResourceBundle bundle = ResourceBundle.getBundle("log-content");
-
     @Override
-    public void log(HttpServletRequest request, String function, String state, int level, T previous, T current) {
-        UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
-
+    public void log(HttpServletRequest request, String function, String state, int level, T previousInfo, T currentInfo) {
         String ip = request.getRemoteAddr();
-        String national = ""; // nếu cần lấy quốc gia từ IP
-        String createdBy = (user != null) ? user.getEmail() : "anonymous";
-        int userId = (user != null) ? user.getId() : -1;
+        String address = new TransferDataUtil<String>().toJson(function + "-" + state);
+        String previousValue = previousInfo != null ? new TransferDataUtil<T>().toJson(previousInfo) : null;
+        String currentValue = currentInfo != null ? new TransferDataUtil<T>().toJson(currentInfo) : null;
 
-        String key = function + "-" + state;
-        String content = bundle.containsKey(key) ? bundle.getString(key) : key;
-        String address = content + " | userId=" + userId;
+        LogDTO logDTO = new LogDTO();
+        logDTO.setIp(ip);
+        logDTO.setLevel(level);
+        logDTO.setAddress(address);
+        logDTO.setPreviousValue(previousValue);
+        logDTO.setCurrentValue(currentValue);
+        logDTO.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
-        String previousValue = (previous != null) ? new TransferDataUtil<T>().toJson(previous) : null;
-        String currentValue = (current != null) ? new TransferDataUtil<T>().toJson(current) : null;
-
-        LogEntity entity = new LogEntity();
-        entity.setIp(ip);
-        entity.setNational(national);
-        entity.setLevel(level);
-        entity.setAddress(address);
-        entity.setPreviousValue(previousValue);
-        entity.setCurrentValue(currentValue);
-        entity.setCreatedDate(new Timestamp(System.currentTimeMillis()));
-        entity.setCreatedBy(createdBy);
-
-        logRepository.save(entity);
+        save(logDTO);
     }
 
     @Override
     public int save(LogDTO dto) {
-        LogEntity entity = toEntity(dto);
-        logRepository.save(entity);
-        return 1;
+        return logRepository.save(dto);
     }
 
     @Override
-    public LogDTO findById(Integer id) {
-        Optional<LogEntity> entity = logRepository.findById(id);
-        return entity.map(this::toDTO).orElse(null);
+    public LogDTO findById(int id) {
+        return logRepository.findById(id);
     }
 
     @Override
     public List<LogDTO> findAll() {
-        return logRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return logRepository.findAll();
+    }
+
+    @Override
+    public LogDTO findById(Integer id) {
+        return null;
     }
 
     @Override
     public void deleteById(Integer id) {
-        logRepository.deleteById(id);
+
     }
 
     @Override
     public Page<LogDTO> searchLogs(String keyword, int page, int size, String sortField, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortField).ascending() : Sort.by(sortField).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        Page<LogEntity> pageResult = logRepository.searchLogs(keyword.toLowerCase(), pageable);
-        List<LogDTO> dtos = pageResult.getContent().stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(dtos, pageable, pageResult.getTotalElements());
+        return null;
     }
 
-    // ========== Mapping ==========
-    private LogDTO toDTO(LogEntity entity) {
-        LogDTO dto = new LogDTO();
-        dto.setId(entity.getId());
-        dto.setIp(entity.getIp());
-        dto.setNational(entity.getNational());
-        dto.setLevel(entity.getLevel());
-        dto.setAddress(entity.getAddress());
-        dto.setPreviousValue(entity.getPreviousValue());
-        dto.setCurrentValue(entity.getCurrentValue());
-        dto.setCreatedDate(entity.getCreatedDate());
-        dto.setCreatedBy(entity.getCreatedBy());
-        return dto;
-    }
-
-    private LogEntity toEntity(LogDTO dto) {
-        LogEntity entity = new LogEntity();
-        entity.setId(dto.getId());
-        entity.setIp(dto.getIp());
-        entity.setNational(dto.getNational());
-        entity.setLevel(dto.getLevel());
-        entity.setAddress(dto.getAddress());
-        entity.setPreviousValue(dto.getPreviousValue());
-        entity.setCurrentValue(dto.getCurrentValue());
-        entity.setCreatedDate(dto.getCreatedDate());
-        entity.setCreatedBy(dto.getCreatedBy());
-        return entity;
+    @Override
+    public void deleteById(int id) {
+        logRepository.deleteById(id);
     }
 }

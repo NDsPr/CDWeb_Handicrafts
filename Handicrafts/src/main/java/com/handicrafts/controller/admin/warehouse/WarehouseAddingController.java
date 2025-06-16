@@ -1,50 +1,51 @@
 package com.handicrafts.controller.admin.warehouse;
 
-import com.handicrafts.bean.WarehouseBean;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.WarehouseDAO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.WarehouseDTO;
+import com.handicrafts.repository.WarehouseRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.ValidateParamUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ResourceBundle;
 
-@WebServlet("/admin/warehouse-management/adding")
-public class WarehouseAddingController extends HttpServlet {
-    private final WarehouseDAO warehouseDAO = new WarehouseDAO();
-    private LogService<WarehouseBean> logService = new LogService<>();
-    private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+@Controller
+@RequestMapping("/admin/warehouse-management/adding")
+public class WarehouseAddingController {
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/adding-warehouse.jsp").forward(req, resp);
+    @Autowired
+    private WarehouseRepository warehouseRepository;
+
+    @Autowired
+    private ILogService<WarehouseDTO> logService;
+
+    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+
+    @GetMapping
+    public String showAddForm() {
+        return "adding-warehouse"; // mapping đến adding-warehouse.jsp hoặc .html
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-
-        String shippingFrom = req.getParameter("shippingFrom");
-        String shippingStart = req.getParameter("shippingStart");
-        String shippingDone = req.getParameter("shippingDone");
-        String description = req.getParameter("description");
-        String createdBy = req.getParameter("createdBy");
-
-        String msg = null;
-        String[] inputsForm = {shippingFrom, shippingStart, shippingDone, description, createdBy};
-        // Biến bắt lỗi
+    @PostMapping
+    public String handleAddWarehouse(@RequestParam("shippingFrom") String shippingFrom,
+                                     @RequestParam("shippingStart") String shippingStart,
+                                     @RequestParam("shippingDone") String shippingDone,
+                                     @RequestParam("description") String description,
+                                     @RequestParam("createdBy") String createdBy,
+                                     Model model,
+                                     HttpServletRequest request) {
         boolean isValid = true;
-
-        // Kiểm tra input rỗng/null trong hàm checkEmptyParam
+        String[] inputsForm = {shippingFrom, shippingStart, shippingDone, description, createdBy};
         List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
 
-        // Nếu có lỗi (khác null) trả về isValid = false
         for (String error : errors) {
             if (error != null) {
                 isValid = false;
@@ -52,37 +53,33 @@ public class WarehouseAddingController extends HttpServlet {
             }
         }
 
-        // Nếu không lỗi thì lưu vào database cùng với
+        String msg;
         if (isValid) {
-            // Chuyển đổi các thông số ngày tháng
             Timestamp shippingStartTimestamp = Timestamp.valueOf(shippingStart);
             Timestamp shippingDoneTimestamp = Timestamp.valueOf(shippingDone);
 
-            // Set thuộc tính vào bean
-            WarehouseBean nowChange = new WarehouseBean();
-            nowChange.setShippingFrom(shippingFrom);
-            nowChange.setShippingStart(shippingStartTimestamp);
-            nowChange.setShippingDone(shippingDoneTimestamp);
-            nowChange.setDescription(description);
-            nowChange.setCreatedBy(createdBy);
+            WarehouseDTO newWarehouse = new WarehouseDTO();
+            newWarehouse.setShippingFrom(shippingFrom);
+            newWarehouse.setShippingStart(shippingStartTimestamp);
+            newWarehouse.setShippingDone(shippingDoneTimestamp);
+            newWarehouse.setDescription(description);
+            newWarehouse.setCreatedBy(createdBy);
 
-            int id = warehouseDAO.createWarehouse(nowChange);
-
+            int id = warehouseRepository.createWarehouse(newWarehouse);
             if (id <= 0) {
-                logService.log(req, "admin-add-warehouse", LogState.FAIL, LogLevel.ALERT, null, null);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-warehouse", LogState.FAIL, LogLevel.ALERT, null, null);
                 msg = "error";
             } else {
-                WarehouseBean currentWarehouse = warehouseDAO.findWarehouseById(id);
-                logService.log(req, "admin-add-warehouse", LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
+                WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-warehouse", LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
                 msg = "success";
             }
         } else {
-            // Lỗi nhập liệu người dùng thì không ghi log
-            req.setAttribute("errors", errors);
+            model.addAttribute("errors", errors);
             msg = "error";
         }
 
-        req.setAttribute("msg", msg);
-        req.getRequestDispatcher("/adding-warehouse.jsp").forward(req, resp);
+        model.addAttribute("msg", msg);
+        return "adding-warehouse";
     }
 }

@@ -4,7 +4,7 @@ import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.files.*;
-import com.handicrafts.bean.ProductImageBean;
+import com.handicrafts.dto.ProductImageDTO;
 
 import javax.servlet.http.Part;
 import java.io.IOException;
@@ -20,8 +20,8 @@ import java.util.ResourceBundle;
 public class CloudStorageUtil {
     private static final ResourceBundle accessTokenBundle = ResourceBundle.getBundle("storage-token");
 
-    public static ProductImageBean uploadOneImageToCloudStorage(Part part) throws IOException {
-        ProductImageBean image = new ProductImageBean();
+    public static ProductImageDTO uploadOneImageToCloudStorage(Part part) throws IOException {
+        ProductImageDTO image = new ProductImageDTO();
         // Kiểm tra xem part có phải là input field không
         if (!isFormField(part)) {
             // Nếu file có kiểu MIME là ảnh (bắt đầu dạng image) thì mới upload
@@ -31,7 +31,7 @@ public class CloudStorageUtil {
                 String imageBaseLink = uploadAndGetBaseLink(imageInputStream, imageName);
                 String imageRawLink = convertToRawLink(imageBaseLink);
                 if (imageRawLink != null) {
-                    image = new ProductImageBean();
+                    image = new ProductImageDTO();
                     // Set nameInStorage cho link tại đây luôn
                     image.setNameInStorage(imageName);
                     image.setLink(imageRawLink);
@@ -41,8 +41,8 @@ public class CloudStorageUtil {
         return image;
     }
 
-    public static List<ProductImageBean> uploadListImageToCloudStorage(List<Part> imageParts) throws IOException {
-        List<ProductImageBean> imageList = new ArrayList<>();
+    public static List<ProductImageDTO> uploadListImageToCloudStorage(List<Part> imageParts) throws IOException {
+        List<ProductImageDTO> imageList = new ArrayList<>();
         for (Part part : imageParts) {
             imageList.add(uploadOneImageToCloudStorage(part));
         }

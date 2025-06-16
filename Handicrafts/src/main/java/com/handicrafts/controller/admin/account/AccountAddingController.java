@@ -5,7 +5,7 @@ import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.UserRepository;
-import com.handicrafts.security.service.LogService;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.EncryptPasswordUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import jakarta.transaction.Transactional;
@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
 public class AccountAddingController {
 
     private final UserRepository userRepository;
-    private final LogService<UserDTO> logService;
+    private final ILogService<UserDTO> logService;
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
     @GetMapping("/adding")
@@ -84,11 +84,11 @@ public class AccountAddingController {
                 userRepository.save(entity);
 
                 // Ghi log thành công
-                logService.log(request, "admin-add-account", LogState.SUCCESS, LogLevel.INFO, null, userDTO);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-account", LogState.SUCCESS, LogLevel.INFO, null, userDTO);
                 msg = "success";
             } catch (Exception e) {
                 // Ghi log lỗi
-                logService.log(request, "admin-add-account", LogState.FAIL, LogLevel.ALERT, null, null);
+                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-account", LogState.FAIL, LogLevel.ALERT, null, null);
                 msg = "error";
             }
         } else {

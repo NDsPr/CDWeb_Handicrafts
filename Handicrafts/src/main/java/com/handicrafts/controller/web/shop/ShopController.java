@@ -67,4 +67,5 @@ public class ShopController {
 
         return "shop"; // shop.jsp (JSP) hoặc shop.html (Thymeleaf)
     }
+
 }

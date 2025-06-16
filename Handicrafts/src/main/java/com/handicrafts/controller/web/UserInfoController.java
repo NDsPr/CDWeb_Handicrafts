@@ -2,11 +2,8 @@ package com.handicrafts.controller.web;
 
 import com.handicrafts.dto.CustomizeDTO;
 import com.handicrafts.dto.UserDTO;
-import com.handicrafts.constant.LogLevel;
-import com.handicrafts.constant.LogState;
 import com.handicrafts.repository.CustomizeRepository;
 import com.handicrafts.repository.UserRepository;
-import com.handicrafts.security.service.LogService;
 import com.handicrafts.util.BlankInputUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
