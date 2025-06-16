@@ -1,18 +1,34 @@
 package com.handicrafts.service;
 
+import com.handicrafts.dto.OrderDTO;
+import com.handicrafts.entity.OrderEntity;
+
 import java.util.List;
+import java.util.Optional;
 
 public interface IOrderService {
-    public void save(OrderDTO order);
 
-    public List<OrderDTO> findAllByUserId(int id);
+    // Tạo đơn hàng mới (cart hoặc order)
+    OrderDTO createOrder(OrderDTO dto);
 
-    public List<OrderDTO> findAll();
+    // Cập nhật đơn hàng (thay đổi thông tin, thanh toán, v.v.)
+    OrderDTO updateOrder(OrderDTO dto);
 
-    public OrderDTO findById(int id);
+    // Lấy đơn hàng theo ID
+    Optional<OrderDTO> getOrderById(Integer id);
 
-    public void update(OrderDTO order, int id);
+    // Lấy danh sách đơn hàng theo người dùng
+    List<OrderDTO> getOrdersByUserId(Integer userId);
 
-    public void deleteById(int id);
-    public OrderDTO findLastSave();
+    // Lấy toàn bộ đơn hàng (admin)
+    List<OrderDTO> getAllOrders();
+
+    // Xoá đơn hàng theo ID
+    void deleteOrder(Integer id);
+
+    // Xử lý thanh toán đơn hàng (thay đổi status, ngày giao hàng...)
+    boolean checkoutOrder(Integer userId, String paymentMethod, String modifiedBy);
+
+    // Chuyển từ entity sang DTO
+    OrderDTO convertToDTO(OrderEntity entity);
 }
