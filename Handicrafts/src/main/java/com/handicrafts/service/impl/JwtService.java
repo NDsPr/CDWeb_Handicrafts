@@ -1,4 +1,4 @@
-package com.handicrafts.service;
+package com.handicrafts.service.impl;
 
 import com.handicrafts.entity.UserEntity;
 import io.jsonwebtoken.Claims;

@@ -1,32 +1,32 @@
 package com.handicrafts.util;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SessionUtil {
-    private static SessionUtil session;
+
+    private static final SessionUtil INSTANCE = new SessionUtil();
 
     public static SessionUtil getInstance() {
-        if (session == null) {
-            session = new SessionUtil();
+        return INSTANCE;
+    }
+
+    public void setValue(HttpServletRequest request, String key, Object value) {
+        HttpSession session = request.getSession();
+        session.setAttribute(key, value);
+    }
+
+    public Object getValue(HttpServletRequest request, String key) {
+        HttpSession session = request.getSession(false);
+        return (session != null) ? session.getAttribute(key) : null;
+    }
+
+    public void remove(HttpServletRequest request, String key) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.removeAttribute(key);
         }
-        return session;
     }
-
-    public HttpSession getSession(HttpServletRequest req) {
-        return req.getSession();
-    }
-
-    public void putValue(HttpServletRequest req, String key, Object value) {
-        req.getSession().setAttribute(key, value);
-    }
-
-    public Object getValue(HttpServletRequest req, String key) {
-        return req.getSession().getAttribute(key);
-    }
-
-    public void removeValue(HttpServletRequest req, String key) {
-        req.getSession().removeAttribute(key);
-    }
-
 }

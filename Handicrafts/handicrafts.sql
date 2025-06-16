@@ -281,15 +281,17 @@ INSERT INTO `logs` VALUES (59, '0:0:0:0:0:0:0:1', '1', '{\"function\":\"login-ac
 -- Table structure for order_details
 -- ----------------------------
 DROP TABLE IF EXISTS `order_details`;
-CREATE TABLE `order_details`  (
-                                  `orderId` int NOT NULL,
-                                  `productId` int NOT NULL,
-                                  `quantity` int NOT NULL,
-                                  `reviewed` int NOT NULL,
-                                  PRIMARY KEY (`orderId`, `productId`) USING BTREE,
-                                  INDEX `detail_product`(`productId` ASC) USING BTREE,
-                                  CONSTRAINT `detail_product` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+CREATE TABLE `order_details` (
+                                 `id` INT NOT NULL AUTO_INCREMENT,
+                                 `orderId` INT NOT NULL,
+                                 `productId` INT NOT NULL,
+                                 `quantity` INT NOT NULL,
+                                 `reviewed` INT NOT NULL,
+                                 PRIMARY KEY (`id`), -- ✅ id là khóa chính
+                                 UNIQUE KEY unique_order_product (`orderId`, `productId`), -- ✅ đảm bảo không trùng sản phẩm trong cùng 1 đơn
+                                 INDEX `detail_product`(`productId` ASC),
+                                 CONSTRAINT `detail_product` FOREIGN KEY (`productId`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------
 -- Records of order_details

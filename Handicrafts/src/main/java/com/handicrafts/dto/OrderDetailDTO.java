@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class OrderDetailDTO implements Serializable {
     private static final long serialVersionUID = 1L;
+    private Integer id;
 
     private Integer orderId;
     private Integer productId;
@@ -17,9 +18,10 @@ public class OrderDetailDTO implements Serializable {
     public OrderDetailDTO() {
     }
 
-    public OrderDetailDTO(Integer orderId, Integer productId, String productName,
-                          Double originalPrice, Double discountPrice, Double discountPercent,
+    public OrderDetailDTO(Integer id, Integer orderId, Integer productId, String productName,
+                          Double originalPrice, Double discountPrice, Integer discountPercent,
                           Integer quantity, Boolean reviewed) {
+        this.id = id;
         this.orderId = orderId;
         this.productId = productId;
         this.productName = productName;
@@ -42,6 +44,14 @@ public class OrderDetailDTO implements Serializable {
         this.discountPercent = discountPercent;
         this.quantity = quantity;
         this.reviewed = reviewed == 1;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getOrderId() {

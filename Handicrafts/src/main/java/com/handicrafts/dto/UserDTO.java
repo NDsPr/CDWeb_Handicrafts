@@ -91,7 +91,7 @@ public class UserDTO {
         this.password = password;
     }
 
-    public Boolean getStatus() {
+    public Integer getStatus() {
         return status;
     }
 

@@ -1,24 +1,12 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.dto.CartDTO;
-import com.handicrafts.dto.OrderDTO;
-import com.handicrafts.dto.OrderDetailDTO;
-import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.repository.OrderRepository;
 import com.handicrafts.repository.OrderDetailRepository;
 import com.handicrafts.service.IHandicraftService;
-import com.handicrafts.service.UserService;
+import com.handicrafts.service.IUserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
-
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 public class OrderController {
@@ -30,7 +18,7 @@ public class OrderController {
     private OrderDetailRepository orderDetailRepository;
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @Autowired
     private IHandicraftService handicraftService;

@@ -5,12 +5,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import com.handicrafts.oauth2.CustomOAuth2User;
-import com.handicrafts.service.UserService;
+import com.handicrafts.service.IUserService;
 
 @RestController
 public class UserController {
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @GetMapping("/check-mail")
     public String findByEmailAndIsEnable(@RequestParam(name = "email", required = false) String email) {

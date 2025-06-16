@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.RoleEntity;
 import com.handicrafts.entity.UserEntity;
-import com.handicrafts.service.JwtService;
-import com.handicrafts.service.UserService;
+import com.handicrafts.service.impl.JwtService;
+import com.handicrafts.service.IUserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,14 +31,14 @@ public class FacebookLoginController {
 
     private final IUserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final UserService userService;
+    private final IUserService userService;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
 
     public FacebookLoginController(
             IUserRepository userRepository,
             RoleRepository roleRepository,
-            UserService userService,
+            IUserService userService,
             JwtService jwtService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;

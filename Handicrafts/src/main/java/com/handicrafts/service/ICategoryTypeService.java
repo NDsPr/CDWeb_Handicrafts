@@ -1,15 +1,17 @@
 package com.handicrafts.service;
 
+import com.handicrafts.dto.CategoryTypeDTO;
+
 import java.util.List;
 
 public interface ICategoryTypeService {
-    public List<Category_typeDTO> findAll();
+    public List<CategoryTypeDTO> findAll();
 
-    public void save(Category_typeDTO category);
+    public void save(CategoryTypeDTO category);
 
-    public void update(Category_typeDTO category, int id);
+    public void update(CategoryTypeDTO category, int id);
 
-    public Category_typeDTO findById(int id);
+    public CategoryTypeDTO findById(int id);
 
     public void delete(int id);
 }

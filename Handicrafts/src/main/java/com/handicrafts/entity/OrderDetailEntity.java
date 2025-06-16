@@ -1,9 +1,7 @@
 package com.handicrafts.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "order_details")
@@ -12,22 +10,29 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderDetailEntity {
 
-    @EmbeddedId
-    private OrderDetailId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    @Column(name = "quantity")
+    @Column(nullable = false)
+    private Integer orderId;
+
+    @Column(nullable = false)
+    private Integer productId;
+
+    @Column(nullable = false)
     private Integer quantity;
 
-    @Column(name = "reviewed")
-    private Boolean reviewed = false;
+    @Column(nullable = false)
+    private Integer reviewed;
 
+    // Mối quan hệ tới ProductEntity (nếu cần)
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("productId")
-    @JoinColumn(name = "productId")
+    @JoinColumn(name = "productId", insertable = false, updatable = false)
     private ProductEntity product;
 
+    // Mối quan hệ tới OrderEntity (nếu cần)
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("orderId")
-    @JoinColumn(name = "orderId")
+    @JoinColumn(name = "orderId", insertable = false, updatable = false)
     private OrderEntity order;
 }

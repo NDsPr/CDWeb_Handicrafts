@@ -13,7 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import com.handicrafts.oauth2.CustomOAuth2User;
-import com.handicrafts.service.UserService;
+import com.handicrafts.service.IUserService;
 import com.handicrafts.service.impl.CustomOAuth2UserServiceImp;
 import com.handicrafts.service.impl.UserDetailServiceImp;
 
@@ -26,7 +26,7 @@ public class WebSecurityConfig {
     @Autowired
     private CustomOAuth2UserServiceImp oAuth2UserService;
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoderConfig;
