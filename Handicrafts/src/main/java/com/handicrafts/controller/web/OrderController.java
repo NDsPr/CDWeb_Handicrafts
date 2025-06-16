@@ -1,12 +1,21 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.repository.OrderRepository;
+import com.handicrafts.dto.*;
+import com.handicrafts.entity.OrderEntity;
 import com.handicrafts.repository.OrderDetailRepository;
-import com.handicrafts.service.IHandicraftService;
+import com.handicrafts.repository.OrderRepository;
+import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.IUserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class OrderController {
@@ -20,125 +29,108 @@ public class OrderController {
     @Autowired
     private IUserService userService;
 
-    @Autowired
-    private IHandicraftService handicraftService;
+    @GetMapping("/cart")
+    public ModelAndView showCart(Authentication authentication) {
+        ModelAndView mav = new ModelAndView("web/cart");
+        CartDTO cartDTO = new CartDTO();
 
-//    @GetMapping("/cart")
-//    public ModelAndView showCart(Authentication authentication) {
-//        ModelAndView mav = new ModelAndView("web/cart");
-//
-//        if (authentication != null && authentication.isAuthenticated()) {
-//            int userId = getUserId(authentication);
-//
-//            // Find cart (order with status = 1)
-//            List<OrderDTO> userOrders = orderRepository.findOrderByUserId(userId);
-//            OrderDTO cart = userOrders.stream()
-//                    .filter(order -> order.getStatus() == 1)
-//                    .findFirst()
-//                    .orElse(null);
-//
-//            if (cart != null) {
-//                // Get cart items
-//                List<OrderDetailDTO> cartItems = orderDetailRepository.findOrderDetailByOrderId(cart.getId());
-//
-//                // Convert to CartDTO objects with product details
-//                List<CartDTO> cartDTOs = new ArrayList<>();
-//                double total = 0;
-//
-//                for (OrderDetailDTO item : cartItems) {
-//                    CartDTO cartDTO = new CartDTO();
-//                    cartDTO.setOrderId(cart.getId());
-//                    cartDTO.setProductId(item.getProductId());
-//                    cartDTO.setQuantity(item.getQuantity());
-//
-//                    // Get product details from handicraft service
-//                    cartDTO.setProduct(handicraftService.findById(item.getProductId()));
-//
-//                    // Calculate subtotal
-//                    double price = cartDTO.getProduct().getPrice();
-//                    double subtotal = price * item.getQuantity();
-//                    cartDTO.setSubtotal(subtotal);
-//
-//                    total += subtotal;
-//                    cartDTOs.add(cartDTO);
-//                }
-//
-//                mav.addObject("cartItems", cartDTOs);
-//                mav.addObject("total", total);
-//                mav.addObject("cartId", cart.getId());
-//            } else {
-//                mav.addObject("cartItems", new ArrayList<>());
-//                mav.addObject("total", 0);
-//            }
-//        } else {
-//            mav.addObject("cartItems", new ArrayList<>());
-//            mav.addObject("total", 0);
-//        }
-//
-//        return mav;
-//    }
-//
-//    @PostMapping("/checkout")
-//    public ModelAndView checkout(@RequestParam(value = "paymentMethod", defaultValue = "COD") String paymentMethod,
-//                                 Authentication authentication) {
-//        ModelAndView mav = new ModelAndView("redirect:/order-success");
-//
-//        if (authentication != null && authentication.isAuthenticated()) {
-//            int userId = getUserId(authentication);
-//
-//            // Find cart
-//            List<OrderDTO> userOrders = orderRepository.findOrderByUserId(userId);
-//            OrderDTO cart = userOrders.stream()
-//                    .filter(order -> order.getStatus() == 1)
-//                    .findFirst()
-//                    .orElse(null);
-//
-//            if (cart != null) {
-//                // Update cart to order
-//                cart.setStatus(2); // 2 = ordered
-//                cart.setPaymentMethod(paymentMethod);
-//                cart.setShipToDate(Timestamp.valueOf(LocalDateTime.now().plusDays(5)));
-//                cart.setModifiedDate(Timestamp.valueOf(LocalDateTime.now()));
-//                cart.setModifiedBy(authentication.getName());
-//
-//                // Calculate total from order details
-//                List<OrderDetailDTO> orderDetails = orderDetailRepository.findOrderDetailByOrderId(cart.getId());
-//                double total = 0;
-//
-//                for (OrderDetailDTO detail : orderDetails) {
-//                    double price = handicraftService.findById(detail.getProductId()).getPrice();
-//                    total += price * detail.getQuantity();
-//                }
-//
-//                cart.setTotal(total);
-//
-//                // Update the order
-//                int affected = orderRepository.updateOrder(cart);
-//
-//                if (affected <= 0) {
-//                    mav.setViewName("redirect:/cart?error=checkout");
-//                }
-//            } else {
-//                mav.setViewName("redirect:/cart?error=nocart");
-//            }
-//        } else {
-//            mav.setViewName("redirect:/login");
-//        }
-//
-//        return mav;
-//    }
-//
-//    @GetMapping("/order-success")
-//    public ModelAndView orderSuccess() {
-//        return new ModelAndView("web/order-success");
-//    }
-//
-//    private int getUserId(Authentication authentication) {
-//        if (authentication.getPrincipal() instanceof CustomOAuth2User) {
-//            CustomOAuth2User oauthUser = (CustomOAuth2User) authentication.getPrincipal();
-//            return userService.findByEmail(oauthUser.getEmail()).getId();
-//        } else {
-//            return userService.findByUsername(authentication.getName()).getId();
-//        }
-//    }
+        if (authentication != null && authentication.isAuthenticated()) {
+            int userId = getUserId(authentication);
+
+            List<OrderEntity> userOrders = orderRepository.findOrderByUserId(userId);
+            OrderEntity cart = userOrders.stream()
+                    .filter(order -> order.getStatus() == 1)
+                    .findFirst()
+                    .orElse(null);
+
+            if (cart != null) {
+                List<OrderDetailDTO> cartItems = orderDetailRepository.findOrderDetailByOrderId(cart.getId());
+
+                for (OrderDetailDTO detail : cartItems) {
+                    ProductDTO product = detail.getProduct();
+                    if (product == null) {
+                        product = new ProductDTO();
+                        product.setId(detail.getProductId());
+                        product.setName(detail.getProductName());
+                        product.setOriginalPrice(detail.getOriginalPrice());
+                        product.setDiscountPrice(detail.getDiscountPrice());
+                    }
+
+                    ItemDTO item = new ItemDTO();
+                    item.setProduct(product);
+                    item.setQuantity(detail.getQuantity());
+
+                    cartDTO.addItem(item);
+                }
+
+                mav.addObject("cartId", cart.getId());
+            }
+        }
+
+        mav.addObject("cart", cartDTO);
+        return mav;
+    }
+
+    @PostMapping("/checkout")
+    public ModelAndView checkout(@RequestParam(defaultValue = "COD") String paymentMethod,
+                                 Authentication authentication) {
+        ModelAndView mav = new ModelAndView("redirect:/order-success");
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return new ModelAndView("redirect:/login");
+        }
+
+        int userId = getUserId(authentication);
+        List<OrderEntity> userOrders = orderRepository.findOrderByUserId(userId);
+        OrderEntity cart = userOrders.stream()
+                .filter(order -> order.getStatus() == 1)
+                .findFirst()
+                .orElse(null);
+
+        if (cart == null) {
+            return new ModelAndView("redirect:/cart?error=nocart");
+        }
+
+        List<OrderDetailDTO> details = orderDetailRepository.findOrderDetailByOrderId(cart.getId());
+        double total = 0;
+
+        for (OrderDetailDTO detail : details) {
+            ProductDTO product = detail.getProduct();
+            double price = 0;
+            if (product != null) {
+                price = product.getDiscountPrice();
+            } else if (detail.getDiscountPrice() != null) {
+                price = detail.getDiscountPrice();
+            }
+            total += price * detail.getQuantity();
+        }
+
+        // cập nhật thông tin đơn hàng
+        cart.setStatus(2);
+        cart.setPaymentMethod(paymentMethod);
+        cart.setShipToDate(Timestamp.valueOf(LocalDateTime.now().plusDays(5)));
+        cart.setModifiedDate(Timestamp.valueOf(LocalDateTime.now()));
+        cart.setModifiedBy(authentication.getName());
+        cart.setTotal(total);
+
+        int affected = orderRepository.updateOrder(cart);
+        if (affected <= 0) {
+            return new ModelAndView("redirect:/cart?error=checkout");
+        }
+
+        return mav;
+    }
+
+    @GetMapping("/order-success")
+    public ModelAndView orderSuccess() {
+        return new ModelAndView("web/order-success");
+    }
+
+    private int getUserId(Authentication authentication) {
+        if (authentication.getPrincipal() instanceof CustomOAuth2User oauthUser) {
+            return userService.findByEmail(oauthUser.getEmail()).getId();
+        } else {
+            return userService.findByUsername(authentication.getName()).getId();
+        }
+    }
 }

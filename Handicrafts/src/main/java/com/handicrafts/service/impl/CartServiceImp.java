@@ -7,7 +7,6 @@ import com.handicrafts.converter.CartConverter;
 import com.handicrafts.dto.CartDTO;
 import com.handicrafts.entity.CartEntity;
 import com.handicrafts.repository.CartRepository;
-import com.handicrafts.service.IHandicraftService;
 import com.handicrafts.service.ICartService;
 import com.handicrafts.service.IUserService;
 

@@ -157,4 +157,26 @@ public class UserServiceImp implements IUserService {
                 .roles(roles)
                 .build();
     }
+    @Override
+    public UserDTO findByEmail(String email) {
+        Optional<UserEntity> user = userRepository.findByEmail(email);
+        return mapToDTO(user.orElse(null));
+    }
+
+    @Override
+    public UserDTO findByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username);
+        return mapToDTO(user);
+    }
+
+    private UserDTO mapToDTO(UserEntity user) {
+        if (user == null) return null;
+
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setStatus(user.getStatus());
+        // map thêm nếu cần
+        return dto;
+    }
 }

@@ -49,4 +49,6 @@ public interface IUserService extends UserDetailsService {
     UserDTO convertToDTO(UserEntity user);
 
     UserEntity convertToEntity(UserDTO dto);
+    UserDTO findByEmail(String email);
+    UserDTO findByUsername(String username);
 }

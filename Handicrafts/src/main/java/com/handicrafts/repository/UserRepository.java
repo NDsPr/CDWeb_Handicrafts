@@ -306,6 +306,18 @@ public class UserRepository {
         query.setParameter("id", id);
         query.executeUpdate();
     }
+
+    public UserEntity findByUsername(String username) {
+        try {
+            return entityManager.createQuery(
+                            "SELECT u FROM UserEntity u WHERE u.email = :username OR u.firstName = :username OR u.lastName = :username",
+                            UserEntity.class
+                    ).setParameter("username", username)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 //    @Transactional
 //    public int createInRegister(String email, String password, String verifiedCode) {
 //        Query query = entityManager.createNativeQuery(

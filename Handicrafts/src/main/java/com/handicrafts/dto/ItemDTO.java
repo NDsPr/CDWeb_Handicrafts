@@ -9,6 +9,9 @@ public class ItemDTO {
     public ItemDTO(ProductDTO product, int quantity, String link) {
     }
 
+    public ItemDTO() {
+    }
+
     public ProductDTO getProduct() {
         return product;
     }

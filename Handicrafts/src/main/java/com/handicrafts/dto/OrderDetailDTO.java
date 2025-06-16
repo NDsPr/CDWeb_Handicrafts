@@ -14,12 +14,13 @@ public class OrderDetailDTO implements Serializable {
     private Double discountPercent;
     private Integer quantity;
     private Boolean reviewed;
+    private ProductDTO product;
 
     public OrderDetailDTO() {
     }
 
     public OrderDetailDTO(Integer id, Integer orderId, Integer productId, String productName,
-                          Double originalPrice, Double discountPrice, Integer discountPercent,
+                          Double originalPrice, Double discountPrice, Double discountPercent,
                           Integer quantity, Boolean reviewed) {
         this.id = id;
         this.orderId = orderId;
@@ -126,4 +127,12 @@ public class OrderDetailDTO implements Serializable {
     public void setReviewed(int reviewed) {
         this.reviewed = reviewed == 1;
     }
+    public ProductDTO getProduct() {
+        return product;
+    }
+
+    public void setProduct(ProductDTO product) {
+        this.product = product;
+    }
+
 }
