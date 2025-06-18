@@ -4,9 +4,9 @@ import com.handicrafts.dto.DatatableDTO;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.UserRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
-import com.handicrafts.util.TransferDataUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -15,8 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,6 +25,7 @@ public class AccountAPI {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final ILogService<UserDTO> logService;
 
     @PostMapping
     public ResponseEntity<?> getAccounts(HttpServletRequest req) {
@@ -55,20 +55,33 @@ public class AccountAPI {
     public ResponseEntity<?> deleteAccount(@RequestParam("id") Integer id, HttpServletRequest req) {
         Optional<UserEntity> optionalUser = userRepository.findById(id);
         if (optionalUser.isEmpty()) {
-            return ResponseEntity.badRequest().body("{\"status\": \"error\", \"notify\": \"Người dùng không tồn tại!\"}");
+            return ResponseEntity.badRequest().body(Map.of(
+                    "status", "error",
+                    "notify", "Người dùng không tồn tại!"
+            ));
         }
 
         UserEntity prevUser = optionalUser.get();
+        UserDTO prevUserDTO = modelMapper.map(prevUser, UserDTO.class);
+
         try {
             userRepository.deleteById(id);
 
-            // Lấy user đang đăng nhập để gửi email
             UserDTO currentUser = (UserDTO) SessionUtil.getInstance().getValue(req, "user");
             SendEmailUtil.sendDeleteNotify(currentUser.getId(), currentUser.getEmail(), prevUser.getId(), "User");
 
-            return ResponseEntity.ok("{\"status\": \"success\", \"notify\": \"Xóa người dùng thành công!\"}");
+            logService.log(req, "admin-delete-account", "SUCCESS", 1, prevUserDTO, null);
+
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "notify", "Xóa người dùng thành công!"
+            ));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("{\"status\": \"error\", \"notify\": \"Có lỗi khi xóa người dùng!\"}");
+            logService.log(req, "admin-delete-account", "FAIL", 2, prevUserDTO, prevUserDTO);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "status", "error",
+                    "notify", "Có lỗi khi xóa người dùng!"
+            ));
         }
     }
 }
