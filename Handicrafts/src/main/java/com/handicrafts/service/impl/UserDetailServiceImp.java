@@ -1,5 +1,6 @@
 package com.handicrafts.service.impl;
 
+import com.handicrafts.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
