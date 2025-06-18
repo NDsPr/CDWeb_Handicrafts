@@ -8,10 +8,12 @@ import com.handicrafts.dto.UserDTO;
 import com.handicrafts.repository.OrderRepository;
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.SendEmailUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 
 import java.util.*;
 
@@ -24,6 +26,8 @@ public class OrderAPI {
 
     @Autowired
     private ILogService<OrderDTO> logService;
+    @Autowired
+    private RequestMappingHandlerAdapter request;
 
     @PostMapping
     public ResponseEntity<DatatableDTO<OrderDTO>> getOrders(
@@ -61,11 +65,11 @@ public class OrderAPI {
         String notify;
 
         if (affected < 1) {
-            logService.log("admin-delete-order", LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
+            logService.log((HttpServletRequest) request, "admin-delete-order", LogState.FAIL.toString(), LogLevel.ALERT, prevOrder, currentOrder);
             status = "error";
             notify = "Có lỗi khi hủy đơn hàng!";
         } else {
-            logService.log("admin-delete-order", LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
+            logService.log((HttpServletRequest) request, "admin-delete-order", LogState.SUCCESS.toString(), LogLevel.WARNING, prevOrder, currentOrder);
             status = "success";
             notify = "Hủy đơn hàng thành công!";
 
@@ -74,6 +78,9 @@ public class OrderAPI {
                 SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), id, "Order");
             }
         }
+
+
+
 
         response.put("status", status);
         response.put("notify", notify);

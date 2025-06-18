@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -365,5 +366,23 @@ public class UserRepository {
         }
     }
 
+    public Integer countTotalUsers() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(u) FROM UserEntity u", Long.class);
+        return query.getSingleResult().intValue();
+    }
 
+    public Integer countAdminUsers() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(u) FROM UserEntity u WHERE u.roleId = 2", Long.class);
+        // Giả sử roleId = 2 là admin, điều chỉnh theo cấu trúc thực tế của bạn
+        return query.getSingleResult().intValue();
+    }
+
+    public List<Integer> countUser() {
+        List<Integer> result = new ArrayList<>();
+        result.add(countTotalUsers());
+        result.add(countAdminUsers());
+        return result;
+    }
 }

@@ -6,6 +6,9 @@ import com.handicrafts.dto.ProductDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -876,4 +879,21 @@ public class ProductRepository {
         }
         return affectedRows;
     }
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    // Các phương thức khác giữ nguyên
+
+    public Integer countTotalProducts() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(p) FROM ProductEntity p", Long.class);
+        return query.getSingleResult().intValue();
+    }
+
+    public Integer countAvailableProducts() {
+        TypedQuery<Long> query = entityManager.createQuery(
+                "SELECT COUNT(p) FROM ProductEntity p WHERE p.status = 1", Long.class);
+        return query.getSingleResult().intValue();
+    }
+
 }

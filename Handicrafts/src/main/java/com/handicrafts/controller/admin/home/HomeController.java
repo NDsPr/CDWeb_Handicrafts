@@ -1,29 +1,40 @@
 package com.handicrafts.controller.admin.home;
 
-import com.handicrafts.dao.AdminHomeDAO;
+import com.handicrafts.repository.UserRepository;
+import com.handicrafts.repository.ProductRepository;
+import com.handicrafts.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/admin/home"})
-public class HomeController extends HttpServlet {
-    private final AdminHomeDAO adminHomeDAO = new AdminHomeDAO();
+@Controller
+@RequestMapping("/admin")
+public class HomeController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        List<Integer> countUser = adminHomeDAO.countUser();
-        List<Integer> countProduct =  adminHomeDAO.countProduct();
-        List<Integer> countOrder = adminHomeDAO.countOrder();
+    @Autowired
+    private UserRepository userRepository;
 
-        req.setAttribute("countProduct", countProduct);
-        req.setAttribute("countUser", countUser);
-        req.setAttribute("countOrder", countOrder);
-        req.getRequestDispatcher("/admin-home.jsp").forward(req, resp);
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @GetMapping("/home")
+    public String home(Model model) {
+        List<Integer> countUser = userRepository.countUser();
+        List<Integer> countProduct = productRepository.countProduct();
+        List<Integer> countOrder = orderRepository.countOrder();
+
+        model.addAttribute("countProduct", countProduct);
+        model.addAttribute("countUser", countUser);
+        model.addAttribute("countOrder", countOrder);
+
+        return "admin-home"; // Tên của template Thymeleaf hoặc JSP (không cần .jsp)
     }
-}
 
+}
