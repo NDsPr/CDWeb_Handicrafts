@@ -10,4 +10,6 @@ public interface IProductService {
     int update(ProductDTO productDTO);
     int delete(int id);
     List<ProductDTO> search(String keyword);
+    List<ProductDTO> findSixProductsForSuggest(int productId, int categoryTypeId, int currentPos);
+
 }

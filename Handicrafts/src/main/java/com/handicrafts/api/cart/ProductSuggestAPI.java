@@ -1,44 +1,43 @@
 package com.handicrafts.api.cart;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.handicrafts.bean.ProductBean;
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
-import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.dto.ProductDTO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.repository.ImageRepository;
+import com.handicrafts.service.IProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-// Todo: Hiện thông báo khi hết sản phẩm trong db, Thêm "Đã bán" trên view
-@WebServlet(value = {"/api/product-suggest"})
-public class ProductSuggestAPI extends HttpServlet {
-    private final ProductDAO productDAO = new ProductDAO();
-    private final ImageDAO imageDAO = new ImageDAO();
+@RestController
+@RequestMapping("/api/product-suggest")
+@RequiredArgsConstructor
+public class ProductSuggestAPI {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int currentPos = Integer.parseInt(req.getParameter("currentPos"));
-        int categoryTypeId = Integer.parseInt(req.getParameter("categoryTypeId"));
-        int productId = Integer.parseInt(req.getParameter("productId"));
+    private final IProductService productService;
+    private final ImageRepository imageRepository;
 
-        List<ProductBean> productSuggest = productDAO.findSixProductsForSuggest(productId, categoryTypeId, currentPos);
-        for (ProductBean product : productSuggest) {
-            List<ProductImageBean> thumbnail = imageDAO.getThumbnailByProductId(product.getId());
-            product.setImages(thumbnail);
+    @GetMapping
+    public ResponseEntity<?> suggestProducts(
+            @RequestParam int currentPos,
+            @RequestParam int categoryTypeId,
+            @RequestParam int productId
+    ) {
+        List<ProductDTO> suggestedProducts = productService.findSixProductsForSuggest(productId, categoryTypeId, currentPos);
+
+        for (ProductDTO product : suggestedProducts) {
+            List<ProductImageDTO> thumbnails = imageRepository.findImagesByProductId(product.getId());
+            product.setImages(thumbnails);
         }
+
         currentPos += 6;
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String productsJson = objectMapper.writeValueAsString(productSuggest);
-        String responseJson = "{\"productList\": " + productsJson + ", \"currentPos\": " + currentPos + "}";
-
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        resp.getWriter().write(responseJson);
+        return ResponseEntity.ok().body(
+                new SuggestResponse(suggestedProducts, currentPos)
+        );
     }
+
+    // Inner class cho phản hồi JSON
+    private record SuggestResponse(List<ProductDTO> productList, int currentPos) {}
 }
