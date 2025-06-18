@@ -3,8 +3,7 @@ package com.handicrafts.config;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.DTOs.factory.annotation.Autowired;
-import org.springframework.context.annotation.DTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,7 +30,6 @@ public class WebSecurityConfig {
     private BCryptPasswordEncoder passwordEncoderConfig;
 
 
-    @DTO
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable());
         http.authorizeHttpRequests((authz) ->
@@ -74,7 +72,6 @@ public class WebSecurityConfig {
     }
 
     //thiết lập userDetailService với encoder
-    @DTO
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
