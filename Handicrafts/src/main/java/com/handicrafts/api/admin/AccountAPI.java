@@ -1,85 +1,74 @@
 package com.handicrafts.api.admin;
 
-import com.handicrafts.bean.UserBean;
-import com.handicrafts.constant.LogLevel;
-import com.handicrafts.constant.LogState;
-import com.handicrafts.dao.UserDAO;
 import com.handicrafts.dto.DatatableDTO;
-import com.handicrafts.service.LogService;
+import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.UserEntity;
+import com.handicrafts.repository.UserRepository;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
 import com.handicrafts.util.TransferDataUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@WebServlet(value = {"/api/admin/account"})
-public class AccountAPI extends HttpServlet {
-    private final UserDAO userDAO = new UserDAO();
-    private UserBean prevUser;
-    private LogService<UserBean> logService = new LogService<>();
+@RestController
+@RequestMapping("/api/admin/account")
+@RequiredArgsConstructor
+public class AccountAPI {
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Lấy ra các Property mà DataTable gửi về
-        // Thông tin về phân trang
-        int draw = Integer.parseInt(req.getParameter("draw"));      // Số thứ tự của request hiện tại
-        int start = Integer.parseInt(req.getParameter("start"));    // Vị trí bắt đầu của dữ liệu
-        int length = Integer.parseInt(req.getParameter("length"));  // Số phần tử trên một trang
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-        // Thông tin về tìm kiếm
+    @PostMapping
+    public ResponseEntity<?> getAccounts(HttpServletRequest req) {
+        int draw = Integer.parseInt(req.getParameter("draw"));
+        int start = Integer.parseInt(req.getParameter("start"));
+        int length = Integer.parseInt(req.getParameter("length"));
         String searchValue = req.getParameter("search[value]");
+        String orderBy = req.getParameter("order[0][column]");
+        String orderDir = req.getParameter("order[0][dir]");
+        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");
 
-        // Thông tin về sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");      // Tên của cột muốn sắp xếp
+        Pageable pageable = PageRequest.of(start / length, length);
+        List<UserEntity> entities = userRepository.getUsersDatatable(searchValue, columnOrder, orderDir, pageable);
+        List<UserDTO> users = entities.stream()
+                .map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
 
-        List<UserBean> users = userDAO.getUsersDatatable(start, length, columnOrder, orderDir, searchValue);
-        int recordsTotal = userDAO.getRecordsTotal();
-        // Tổng số record khi filter search
-        int recordsFiltered = userDAO.getRecordsFiltered(searchValue);
+        int recordsTotal = userRepository.getRecordsTotal();
+        int recordsFiltered = userRepository.getRecordsFiltered(searchValue);
         draw++;
 
-        DatatableDTO<UserBean> userDatatableDTO = new DatatableDTO<>(users, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<UserBean>>().toJson(userDatatableDTO);
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        DatatableDTO<UserDTO> userDatatableDTO = new DatatableDTO<>(users, recordsTotal, recordsFiltered, draw);
+        return ResponseEntity.ok(userDatatableDTO);
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
-        String status;
-        String notify;
-
-        prevUser = userDAO.findUserById(id);
-        int affectedRow = userDAO.deleteAccount(id);
-
-        if (affectedRow < 1) {
-            UserBean currentUser = userDAO.findUserById(id);
-            logService.log(req, "admin-delete-account", LogState.FAIL, LogLevel.ALERT, prevUser, currentUser);
-            status = "error";
-            notify = "Có lỗi khi xóa log!";
-        } else {
-            logService.log(req, "admin-delete-account", LogState.SUCCESS, LogLevel.WARNING, prevUser, null);
-            status = "success";
-            notify = "Xóa log thành công!";
-            UserBean user = (UserBean) SessionUtil.getInstance().getValue(req, "user");
-            SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), prevUser.getId(), "User");
+    @DeleteMapping
+    public ResponseEntity<?> deleteAccount(@RequestParam("id") Integer id, HttpServletRequest req) {
+        Optional<UserEntity> optionalUser = userRepository.findById(id);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.badRequest().body("{\"status\": \"error\", \"notify\": \"Người dùng không tồn tại!\"}");
         }
 
-        String jsonData = "{\"status\": \"" + status + "\", \"notify\": \"" + notify + "\"}";
+        UserEntity prevUser = optionalUser.get();
+        try {
+            userRepository.deleteById(id);
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+            // Lấy user đang đăng nhập để gửi email
+            UserDTO currentUser = (UserDTO) SessionUtil.getInstance().getValue(req, "user");
+            SendEmailUtil.sendDeleteNotify(currentUser.getId(), currentUser.getEmail(), prevUser.getId(), "User");
+
+            return ResponseEntity.ok("{\"status\": \"success\", \"notify\": \"Xóa người dùng thành công!\"}");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("{\"status\": \"error\", \"notify\": \"Có lỗi khi xóa người dùng!\"}");
+        }
     }
 }
