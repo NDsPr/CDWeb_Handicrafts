@@ -45,7 +45,7 @@ public class UserRepository {
         }
     }
 
-    public Optional<UserEntity> findByEmail(String email) {
+    public UserEntity findByEmail(String email) {
         try {
             TypedQuery<UserEntity> query = entityManager.createQuery(
                     "SELECT u FROM UserEntity u WHERE u.email = :email", UserEntity.class);
@@ -384,5 +384,8 @@ public class UserRepository {
         result.add(countTotalUsers());
         result.add(countAdminUsers());
         return result;
+    }
+
+    public UserEntity findByEmailIgnoreCaseAndStatusAndVerifiedCodeIsNull(String email, int i) {
     }
 }

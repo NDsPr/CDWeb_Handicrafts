@@ -1,40 +1,42 @@
 package com.handicrafts.controller.image;
 
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.service.ImageService;
 import com.handicrafts.util.CloudStorageUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import java.io.IOException;
-import java.util.List;
 
-@WebServlet(value = {"/admin/all-image-delete"})
-public class AllImageDeleteController extends HttpServlet {
-    private final ImageDAO imageDAO = new ImageDAO();
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        int id = Integer.parseInt(req.getParameter("id"));
-        // Xóa ảnh trong Cloud Storage
-        String nameInStorage = imageDAO.findNameInStorageById(id);
-        CloudStorageUtil.delete(nameInStorage);
+@Controller
+@RequestMapping("/admin")
+public class AllImageDeleteController {
 
-        // Xóa ảnh trong database
-        int affectedRows = imageDAO.deleteImage(id);
-        if (affectedRows > 0) {
-            req.setAttribute("success", "Xóa ảnh thành công!");
-        } else if (affectedRows == -1) {
-            req.setAttribute("error", "Lỗi hệ thống!");
-        } else if (affectedRows == 0){
-            req.setAttribute("error", "Ảnh không tồn tại!");
+    @Autowired
+    private ImageService imageService;
+
+    @GetMapping("/all-image-delete")
+    public String deleteImage(@RequestParam("id") int id, Model model) throws IOException {
+        ProductImageDTO image = imageService.findImageById(id);
+
+        if (image != null) {
+            // Xóa ảnh trên cloud storage
+            CloudStorageUtil.deleteImageFromCloudStorage(image.getNameInStorage());
+
+            // Xóa ảnh trong database
+            imageService.deleteImage(id);
+
+            model.addAttribute("success", "s");
+        } else {
+            model.addAttribute("error", "e");
         }
-        // Lấy danh sách sản phẩm lên để cập nhật hiển thị trên view
-        List<ProductImageBean> allImages = imageDAO.findAllImages();
-        req.setAttribute("allImages", allImages);
-        req.getRequestDispatcher("/all-image-management.jsp").forward(req, resp);
+
+        // Redirect để tránh việc refresh trang dẫn đến xóa lại
+        return "redirect:/admin/all-image-management";
     }
 }

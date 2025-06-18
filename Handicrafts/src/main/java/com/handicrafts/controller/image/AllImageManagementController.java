@@ -1,24 +1,27 @@
-package com.handicrafts.controller.image;
+package com.handicrafts.controller;
 
 import com.handicrafts.dto.ProductImageDTO;
-import com.handicrafts.repository.ImageRepository;
+import com.handicrafts.service.ImageService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/admin")
 public class AllImageManagementController {
 
     @Autowired
-    private ImageRepository imageRepository;
+    private ImageService imageService;
 
-    @GetMapping("/admin/all-image-management")
+    @GetMapping("/all-image-management")
     public String showAllImages(Model model) {
-        List<ProductImageDTO> allImages = imageRepository.findAllImages();
-        model.addAttribute("allImages", allImages);
-        return "all-image-management"; // all-image-management.jsp trong thư mục templates (nếu dùng Thymeleaf)
+        List<ProductImageDTO> images = imageService.findAllImages();
+        model.addAttribute("images", images);
+        return "all-image-management";
     }
 }

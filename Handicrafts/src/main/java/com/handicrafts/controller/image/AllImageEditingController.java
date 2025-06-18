@@ -1,51 +1,52 @@
 package com.handicrafts.controller.image;
 
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.service.ImageService;
 import com.handicrafts.util.BlankInputUtil;
 import com.handicrafts.util.CloudStorageUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
-@WebServlet(value = {"/admin/all-image-editing"})
-@MultipartConfig
-public class AllImageEditingController extends HttpServlet {
-    private final ImageDAO imageDAO = new ImageDAO();
+@Controller
+@RequestMapping("/admin")
+public class AllImageEditingController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
-        ProductImageBean image = imageDAO.findImageById(id);
-        req.setAttribute("image", image);
-        req.getRequestDispatcher("/all-image-editing.jsp").forward(req, resp);
+    @Autowired
+    private ImageService imageService;
+
+    @GetMapping("/all-image-editing")
+    public String showEditForm(@RequestParam("id") int id, Model model) {
+        ProductImageDTO image = imageService.findImageById(id);
+        model.addAttribute("image", image);
+        return "all-image-editing";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        int id = Integer.parseInt(req.getParameter("id"));
-        String name = req.getParameter("name");
-        String productId = req.getParameter("productId");
-        String link = req.getParameter("link");
-        Part part = req.getPart("imageFile");
-        ProductImageBean imageBean;
+    @PostMapping("/all-image-editing")
+    public String editImage(
+            @RequestParam("id") int id,
+            @RequestParam("name") String name,
+            @RequestParam("productId") String productId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            Model model) throws IOException {
 
-        String success;
+        ProductImageDTO image = imageService.findImageById(id);
         String[] inputsForm = new String[]{name, productId};
         ArrayList<String> errors = new ArrayList<>();
-
-        // Biến bắt lỗi
         boolean isValid = true;
 
+        // Kiểm tra lỗi cho các trường input
         for (String string : inputsForm) {
             if (BlankInputUtil.isBlank(string)) {
                 errors.add("e");
@@ -56,44 +57,34 @@ public class AllImageEditingController extends HttpServlet {
                 errors.add(null);
             }
         }
-        req.setAttribute("errors", errors);
+        model.addAttribute("errors", errors);
 
-        // Nếu không lỗi gì trong việc validate thì tiếp tục
         if (isValid) {
-            // Part <= 0 nghĩa là không upload ảnh, sẽ lưu lại ảnh cũ vào db
-            if (part.getSize() <= 0) {
-                imageBean = new ProductImageBean();
-                imageBean.setId(id);
-                imageBean.setName(name);
-                imageBean.setProductId(Integer.parseInt(productId));
-                imageBean.setLink(link);
-                // Cập nhật thời gian và người chỉnh sửa
-                imageBean.setModifiedDate(new Timestamp(System.currentTimeMillis()));
-                imageBean.setModifiedBy("");
-                // Câp nhật ảnh vào database
-                imageDAO.updateImageNotPart(imageBean);
-            } else {
-                // Không null nghĩa là có upload ảnh mới
-                // Upload ảnh lên Cloud Storage và lấy link instance ProductImageBean gồm tên ảnh và link ảnh
-                imageBean = CloudStorageUtil.uploadOneImageToCloudStorage(part);
-                // Xóa ảnh cũ trong storage
-                String nameInStorage = imageDAO.findNameInStorageById(id);
-                CloudStorageUtil.delete(nameInStorage);
-                // Đã thêm tên ảnh luôn được lưu trên Storage trong util (Để khi xóa sẽ lấy tên này ra)
-                imageBean.setId(id);
-                imageBean.setName(name);
-                imageBean.setProductId(Integer.parseInt(productId));
-                // Cập nhật thời gian và người chỉnh sửa
-                imageBean.setModifiedDate(new Timestamp(System.currentTimeMillis()));
-                imageBean.setModifiedBy("");
-                // Câp nhật ảnh vào database
-                imageDAO.updateImage(imageBean);
+            // Cập nhật thông tin cơ bản
+            image.setName(name);
+            image.setProductId(Integer.parseInt(productId));
+            image.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+            image.setModifiedBy("");
+
+            // Nếu có file mới được upload
+            if (file != null && !file.isEmpty() && file.getContentType() != null && file.getContentType().startsWith("image")) {
+                // Xóa ảnh cũ trên cloud storage
+                CloudStorageUtil.deleteImageFromCloudStorage(image.getNameInStorage());
+
+                // Upload ảnh mới
+                String nameInStorage = file.getOriginalFilename();
+                ProductImageDTO newImageInfo = CloudStorageUtil.uploadOneImageToCloudStorage((Part) file);
+
+                image.setLink(newImageInfo.getLink());
+                image.setNameInStorage(nameInStorage);
             }
-            success = "s";
-            req.setAttribute("success", success);
+
+            // Cập nhật vào database
+            imageService.updateImage(image);
+            model.addAttribute("success", "s");
         }
-        ProductImageBean image = imageDAO.findImageById(id);
-        req.setAttribute("image", image);
-        req.getRequestDispatcher("/all-image-editing.jsp").forward(req, resp);
+
+        model.addAttribute("image", image);
+        return "all-image-editing";
     }
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,5 +41,8 @@ public class RoleRepository {
     public Optional<RoleEntity> findById(Integer id) {
         RoleEntity role = entityManager.find(RoleEntity.class, id);
         return Optional.ofNullable(role);
+    }
+
+    public List<String> findRoleNameByUserId(Integer id) {
     }
 }

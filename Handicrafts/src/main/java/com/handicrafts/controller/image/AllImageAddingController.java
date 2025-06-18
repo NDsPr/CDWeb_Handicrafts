@@ -1,40 +1,43 @@
 package com.handicrafts.controller.image;
 
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.service.ImageService;
 import com.handicrafts.util.BlankInputUtil;
 import com.handicrafts.util.CloudStorageUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+@Controller
+@RequestMapping("/admin")
+public class AllImageAddingController {
 
-// TODO: Sửa lại createdBy và modifiedBy sau khi đã xong phần đăng nhập
-@WebServlet(value = {"/admin/all-image-adding"})
-@MultipartConfig
-public class AllImageAddingController extends HttpServlet {
-    private final ImageDAO imageDAO = new ImageDAO();
+    @Autowired
+    private ImageService imageService;
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/all-image-adding.jsp").forward(req, resp);
+    @GetMapping("/all-image-adding")
+    public String showAddImageForm() {
+        return "all-image-adding";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        String name = req.getParameter("name");
-        String productId = req.getParameter("productId");
-        List<Part> filePaths = imagePaths((List<Part>) req.getParts());
+    @PostMapping("/all-image-adding")
+    public String addImages(
+            @RequestParam("name") String name,
+            @RequestParam("productId") String productId,
+            @RequestParam("files") List<MultipartFile> files,
+            Model model) throws IOException {
 
         String success;
         String[] inputsForm = new String[]{name, productId};
@@ -56,7 +59,7 @@ public class AllImageAddingController extends HttpServlet {
         }
 
         // Kiểm tra lỗi cho input file ảnh
-        if (filePaths == null) {
+        if (files == null || files.isEmpty() || files.get(0).isEmpty()) {
             errors.add("e");
             if (isValid) {
                 isValid = false;
@@ -64,13 +67,15 @@ public class AllImageAddingController extends HttpServlet {
         } else {
             errors.add(null);
         }
-        req.setAttribute("errors", errors);
+        model.addAttribute("errors", errors);
 
         // Nếu không lỗi gì trong việc validate thì tiếp tục
         if (isValid) {
-            for (Part part : filePaths) {
-                String nameInStorage = part.getSubmittedFileName();
-                ProductImageBean image = CloudStorageUtil.uploadOneImageToCloudStorage(part);
+            List<MultipartFile> imageFiles = filterImageFiles(files);
+
+            for (MultipartFile file : imageFiles) {
+                String nameInStorage = file.getOriginalFilename();
+                ProductImageDTO image = CloudStorageUtil.uploadOneImageToCloudStorage((Part) file);
                 image.setName(name);
                 image.setNameInStorage(nameInStorage);
                 image.setProductId(Integer.parseInt(productId));
@@ -80,28 +85,24 @@ public class AllImageAddingController extends HttpServlet {
                 image.setModifiedBy("");
 
                 // Thêm ảnh vào database
-                imageDAO.insertProductImage(image);
-                success = "s";
-                req.setAttribute("success", success);
+                imageService.insertProductImage(image);
             }
+
+            success = "s";
+            model.addAttribute("success", success);
         }
-        req.getRequestDispatcher("/all-image-adding.jsp").forward(req, resp);
+
+        return "all-image-adding";
     }
 
-    // Lấy ra các Path không phải là trường nhập và là ảnh
-    private List<Part> imagePaths(List<Part> filePaths) {
-        List<Part> images = new ArrayList<>();
-        for (Part part : filePaths) {
-            if (!isFormField(part)) {
-                if (part.getContentType().startsWith("image")) {
-                    images.add(part);
-                }
+    // Lọc ra các file là ảnh
+    private List<MultipartFile> filterImageFiles(List<MultipartFile> files) {
+        List<MultipartFile> imageFiles = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (!file.isEmpty() && file.getContentType() != null && file.getContentType().startsWith("image")) {
+                imageFiles.add(file);
             }
         }
-        return images;
-    }
-    private boolean isFormField(Part part) {
-        String contentType = part.getHeader("content-type");
-        return contentType == null;
+        return imageFiles;
     }
 }

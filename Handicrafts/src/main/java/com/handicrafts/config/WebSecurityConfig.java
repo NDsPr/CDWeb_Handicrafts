@@ -15,7 +15,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.IUserService;
 import com.handicrafts.service.impl.CustomOAuth2UserServiceImp;
-import com.handicrafts.service.impl.UserDetailServiceImp;
 
 import java.io.IOException;
 

@@ -1,317 +1,124 @@
 package com.handicrafts.repository;
 
 import com.handicrafts.dto.ProductImageDTO;
-import com.handicrafts.util.CloseResourceUtil;
-import com.handicrafts.util.OpenConnectionUtil;
-import com.handicrafts.util.SetParameterUtil;
+import com.handicrafts.entity.ImageEntity;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-
-import java.sql.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 public class ImageRepository {
-    // TODO: Cần thêm status cho ảnh (Sẽ làm sau)
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public ProductImageDTO findImageById(int id) {
-        ProductImageDTO imageDTO = null;
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT id, name, link, productId ")
-                .append("FROM images WHERE id = ?");
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement, id);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                imageDTO = new ProductImageDTO();
-                imageDTO.setId(resultSet.getInt("id"));
-                imageDTO.setName(resultSet.getString("name"));
-                imageDTO.setLink(resultSet.getString("link"));
-                imageDTO.setProductId(resultSet.getInt("productId"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
+        ImageEntity entity = entityManager.find(ImageEntity.class, id);
+        if (entity == null) {
+            return null;
         }
-        return imageDTO;
+        return convertToDTO(entity);
     }
 
-    public int insertProductImage(ProductImageDTO image) {
-        int id = -1;
-        StringBuilder sql = new StringBuilder();
-        sql.append("INSERT INTO images ")
-                .append("(name, link, productId, createdBy, modifiedBy )")
-                .append(" VALUES ")
-                .append("(?, ?, ?, ?, ?)");
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql.toString(), Statement.RETURN_GENERATED_KEYS);
-
-            SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                    image.getCreatedBy(), image.getModifiedBy());
-            id = preparedStatement.executeUpdate();
-
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return id;
+    @Transactional
+    public int insertProductImage(ProductImageDTO imageDTO) {
+        ImageEntity entity = convertToEntity(imageDTO);
+        entityManager.persist(entity);
+        entityManager.flush(); // Để lấy ID được sinh ra
+        return entity.getId();
     }
 
     public List<ProductImageDTO> findAllImages() {
-        List<ProductImageDTO> allImages = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT id, name, link, productId, nameInStorage, createdDate, ")
-                .append("createdBy, modifiedDate, modifiedBy ")
-                .append("FROM images ");
+        Query query = entityManager.createQuery("SELECT i FROM ImageEntity i ORDER BY i.id DESC");
+        List<ImageEntity> entities = query.getResultList();
+        List<ProductImageDTO> dtos = new ArrayList<>();
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                ProductImageDTO imageDTO = new ProductImageDTO();
-                imageDTO.setId(resultSet.getInt("id"));
-                imageDTO.setName(resultSet.getString("name"));
-                imageDTO.setLink(resultSet.getString("link"));
-                imageDTO.setProductId(resultSet.getInt("productId"));
-                imageDTO.setNameInStorage(resultSet.getString("nameInStorage"));
-                imageDTO.setCreatedDate(resultSet.getTimestamp("createdDate"));
-                imageDTO.setCreatedBy(resultSet.getString("createdBy"));
-                imageDTO.setModifiedDate(resultSet.getTimestamp("modifiedDate"));
-                imageDTO.setModifiedBy(resultSet.getString("modifiedBy"));
-
-                allImages.add(imageDTO);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
+        for (ImageEntity entity : entities) {
+            dtos.add(convertToDTO(entity));
         }
-        return allImages;
+
+        return dtos;
     }
 
-    public void updateImage(ProductImageDTO image) {
-        String sql = "UPDATE images SET name = ?, link = ?, productId = ?, modifiedBy = ? " +
-                "WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-
-            SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                    image.getModifiedBy(), image.getId());
-            preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
+    @Transactional
+    public boolean deleteImage(int id) {
+        ImageEntity entity = entityManager.find(ImageEntity.class, id);
+        if (entity == null) {
+            return false;
         }
+        entityManager.remove(entity);
+        return true;
     }
 
-    public void updateImageNotPart(ProductImageDTO image) {
-        String sql = "UPDATE images SET name = ?, link = ?, productId = ?, modifiedDate = ?, modifiedBy = ? " +
-                "WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-
-            SetParameterUtil.setParameter(preparedStatement, image.getName(), image.getLink(), image.getProductId(),
-                    image.getModifiedDate(), image.getModifiedBy(),
-                    image.getId());
-            preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
+    @Transactional
+    public boolean updateImage(ProductImageDTO imageDTO) {
+        ImageEntity entity = entityManager.find(ImageEntity.class, imageDTO.getId());
+        if (entity == null) {
+            return false;
         }
+
+        // Cập nhật các thuộc tính
+        entity.setName(imageDTO.getName());
+        entity.setProductId(imageDTO.getProductId());
+
+        // Nếu có cập nhật link ảnh
+        if (imageDTO.getLink() != null) {
+            entity.setLink(imageDTO.getLink());
+            entity.setNameInStorage(imageDTO.getNameInStorage());
+        }
+
+        entity.setModifiedDate(imageDTO.getModifiedDate());
+        entity.setModifiedBy(imageDTO.getModifiedBy());
+
+        entityManager.merge(entity);
+        return true;
     }
 
-    public String findNameInStorageById(int id) {
-        String sql = "SELECT nameInStorage FROM images WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                return resultSet.getString("nameInStorage");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return null;
+    // Phương thức chuyển đổi từ Entity sang DTO
+    private ProductImageDTO convertToDTO(ImageEntity entity) {
+        ProductImageDTO dto = new ProductImageDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setLink(entity.getLink());
+        dto.setProductId(entity.getProductId());
+        dto.setNameInStorage(entity.getNameInStorage());
+        dto.setCreatedDate(entity.getCreatedDate());
+        dto.setCreatedBy(entity.getCreatedBy());
+        dto.setModifiedDate(entity.getModifiedDate());
+        dto.setModifiedBy(entity.getModifiedBy());
+        return dto;
     }
 
-    public int deleteImage(int id) {
-        int affectRows = -1;
-        String sql = "DELETE FROM images WHERE id = ?";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            affectRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                return -1;
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                return -1;
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affectRows;
-    }
-
-    public ProductImageDTO findOneByProductId(int productId) {
-        ProductImageDTO imageDTO = new ProductImageDTO();
-        String sql = "SELECT id, name, link, productId FROM images " +
-                "WHERE productId = ? " +
-                "LiMIT 1";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, productId);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                imageDTO.setId(resultSet.getInt("id"));
-                imageDTO.setName(resultSet.getString("name"));
-                imageDTO.setLink(resultSet.getString("link"));
-                imageDTO.setProductId(resultSet.getInt("productId"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return imageDTO;
-    }
-
-    public List<ProductImageDTO> getThumbnailByProductId(int productId) {
-        List<ProductImageDTO> thumbnail = new ArrayList<>();
-        String sql = "SELECT id, name, link, productId FROM images " +
-                "WHERE productId = ? " +
-                "LiMIT 1";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, productId);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                ProductImageDTO imageDTO = new ProductImageDTO();
-                imageDTO.setId(resultSet.getInt("id"));
-                imageDTO.setName(resultSet.getString("name"));
-                imageDTO.setLink(resultSet.getString("link"));
-                imageDTO.setProductId(resultSet.getInt("productId"));
-
-                thumbnail.add(imageDTO);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return thumbnail;
+    // Phương thức chuyển đổi từ DTO sang Entity
+    private ImageEntity convertToEntity(ProductImageDTO dto) {
+        ImageEntity entity = new ImageEntity();
+        // Không set ID khi tạo mới, để JPA tự sinh
+        entity.setName(dto.getName());
+        entity.setLink(dto.getLink());
+        entity.setProductId(dto.getProductId());
+        entity.setNameInStorage(dto.getNameInStorage());
+        entity.setCreatedDate(dto.getCreatedDate());
+        entity.setCreatedBy(dto.getCreatedBy());
+        entity.setModifiedDate(dto.getModifiedDate());
+        entity.setModifiedBy(dto.getModifiedBy());
+        return entity;
     }
 
     public List<ProductImageDTO> findImagesByProductId(int productId) {
-        List<ProductImageDTO> imageDTOs = new ArrayList<>();
-        String query = "SELECT id, link FROM images WHERE productId = ?";
+        Query query = entityManager.createQuery("SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC");
+        query.setParameter("productId", productId);
+        List<ImageEntity> entities = query.getResultList();
+        List<ProductImageDTO> dtos = new ArrayList<>();
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(query);
-            SetParameterUtil.setParameter(preparedStatement, productId);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                ProductImageDTO imageDTO = new ProductImageDTO();
-                imageDTO.setId(resultSet.getInt("id"));
-                imageDTO.setLink(resultSet.getString("link"));
-                imageDTOs.add(imageDTO);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
+        for (ImageEntity entity : entities) {
+            dtos.add(convertToDTO(entity));
         }
 
-        return imageDTOs;
+        return dtos;
     }
 }
