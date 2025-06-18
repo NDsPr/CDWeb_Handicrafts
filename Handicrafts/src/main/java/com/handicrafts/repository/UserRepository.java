@@ -45,7 +45,7 @@ public class UserRepository {
         }
     }
 
-    public UserEntity findByEmail(String email) {
+    public Optional<UserEntity> findByEmail(String email) {
         try {
             TypedQuery<UserEntity> query = entityManager.createQuery(
                     "SELECT u FROM UserEntity u WHERE u.email = :email", UserEntity.class);
@@ -55,6 +55,7 @@ public class UserRepository {
             return Optional.empty();
         }
     }
+
 
     public Integer findIdByEmail(String email) {
         try {
@@ -386,6 +387,17 @@ public class UserRepository {
         return result;
     }
 
-    public UserEntity findByEmailIgnoreCaseAndStatusAndVerifiedCodeIsNull(String email, int i) {
+    public UserEntity findByEmailIgnoreCaseAndStatusAndVerifiedCodeIsNull(String email, int status) {
+        String jpql = "SELECT u FROM UserEntity u WHERE LOWER(u.email) = LOWER(:email) AND u.status = :status AND u.verifiedCode IS NULL";
+
+        try {
+            return entityManager.createQuery(jpql, UserEntity.class)
+                    .setParameter("email", email)
+                    .setParameter("status", status)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
+
 }

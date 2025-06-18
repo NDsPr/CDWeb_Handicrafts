@@ -1,43 +1,62 @@
 package com.handicrafts.controller.signin_signup_forget.via_page;
 
-import com.handicrafts.bean.UserBean;
+import com.handicrafts.dto.UserDTO;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
-import com.handicrafts.service.CodeVerifyService;
-import com.handicrafts.service.LogService;
+import com.handicrafts.security.service.CodeVerifyService;
+import com.handicrafts.service.IUserService;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.SendEmailUtil;
-import com.handicrafts.util.SessionUtil;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
-@WebServlet(value = {"/signin"})
-public class SigninController extends HttpServlet {
-    private CodeVerifyService codeVerifyService = new CodeVerifyService();
-    private LogService<UserBean> logService = new LogService<>();
-    ResourceBundle notifyBundle = ResourceBundle.getBundle("notify-message");
+@Controller
+public class SigninController {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    @Autowired
+    private IUserService userService;
+
+    @Autowired
+    private CodeVerifyService codeVerifyService;
+
+    @Autowired
+    private ILogService<UserDTO> logService;
+
+    private ResourceBundle notifyBundle = ResourceBundle.getBundle("notify-message");
+
+    @GetMapping("/signin")
+    public String showSigninPage(
+            @RequestParam(value = "message", required = false) String message,
+            Model model) {
+
         // Nhận message khi bắt lỗi Authorization từ Filter
-        String message = req.getParameter("message");
         if (message != null) {
-            req.setAttribute("message", notifyBundle.getString(message));
+            model.addAttribute("message", notifyBundle.getString(message));
         }
-        req.getRequestDispatcher("/signin.jsp").forward(req, resp);
+        return "signin";
     }
 
-    // TODO: Hashing password + Hiển thị lỗi lên JSP
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String email = req.getParameter("email");
+    @PostMapping("/signin")
+    public String processSignin(
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "password", required = false) String password,
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request,
+            HttpSession session) {
+
         String emailError = null;
-        String password = req.getParameter("password");
 
         // Kiểm tra các trường hợp email
         // Nếu email không để trống thì tiếp tục
@@ -45,61 +64,68 @@ public class SigninController extends HttpServlet {
             // Nếu email không sai cú pháp thì tiếp tục
             if (codeVerifyService.isValidEmail(email)) {
                 // Nếu email đã tồn tại trong database thì tiếp tục
-                if (codeVerifyService.isExistEmail(email)) {
+                if (userService.existsByEmail(email)) {
                     // Nếu email và password không trùng khớp với database, trả về lỗi
                     if (!codeVerifyService.isValidLogin(email, password)) {
                         emailError = "Email hoặc mật khẩu không đúng!";
-                        req.setAttribute("emailError", emailError);
+                        model.addAttribute("emailError", emailError);
                     }
                 } else {
                     // Nếu email chưa tồn tại, thông báo email không tồn tại
                     emailError = "Email không tồn tại!";
-                    req.setAttribute("emailError", emailError);
+                    model.addAttribute("emailError", emailError);
                 }
             } else {
                 // Nếu email sai cú pháp, trả về lỗi cú pháp
                 emailError = "Email không hợp lệ!";
-                req.setAttribute("emailError", emailError);
+                model.addAttribute("emailError", emailError);
             }
         } else {
             // Nếu email để trống, trả về lỗi để trống
             emailError = "Email không được để trống!";
-            req.setAttribute("emailError", emailError);
+            model.addAttribute("emailError", emailError);
         }
 
-        // Nếu có lỗi (emailError != null) thì forward lại trang signin.jsp và thông báo lỗi
+        // Nếu có lỗi (emailError != null) thì trả về trang signin và thông báo lỗi
         if (emailError != null) {
-            req.getRequestDispatcher("signin.jsp").forward(req, resp);
+            return "signin";
         } else {
             // Nếu không có lỗi gì, kiểm tra xem tài khoản đã active chưa
-            // Nếu đã active thì tạo ra một Session, ghi log và redirect người dùng về trang home
-            UserBean user = codeVerifyService.findUserByEmail(email);
-            if (codeVerifyService.isActive(email)) {
-                if (user != null) {
+            UserDTO user = userService.findByEmail(email);
+
+            if (user != null) {
+                // Kiểm tra trạng thái active của tài khoản
+                if (codeVerifyService.isActive(email)) {
                     // Ghi lại log nếu tài khoản đã active
-                    logService.log(req, "login-active", LogState.SUCCESS, LogLevel.INFO, user, user);
+                    logService.log((jakarta.servlet.http.HttpServletRequest) request, "login-active", LogState.SUCCESS, LogLevel.INFO, user, user);
 
                     // Thêm tài khoản vào Session
-                    SessionUtil.getInstance().putValue(req, "user", user);
+                    session.setAttribute("user", user);
+
                     // Authentication
                     // Kiểm tra role khi đăng nhập để redirect (1 là client, 2 là admin, 3 là mod)
-                    if (user.getRoleId() == 1) {
-                        resp.sendRedirect(req.getContextPath() + "/home");
-                    } else if (user.getRoleId() == 2 || user.getRoleId() == 3) {
-                        resp.sendRedirect(req.getContextPath() + "/admin/home");
+                    if (user.getId() == 1) {
+                        return "redirect:/home";
+                    } else if (user.getId() == 2 || user.getId() == 3) {
+                        return "redirect:/admin/home";
                     }
                 } else {
                     // Nếu chưa active thì tạo ra verifiedCode mới, gửi về email người dùng và redirect sang trang verified
-                    String verifiedCode = codeVerifyService.generateVerifiedCode();
+                    String verifiedCode = UUID.randomUUID().toString();
                     codeVerifyService.setNewCodeByEmail(email, verifiedCode);
                     SendEmailUtil.sendVerificationCode(email, verifiedCode);
 
                     // Ghi lại log nếu tài khoản cần verify
-                    logService.log(req, "login-verify", LogState.SUCCESS, LogLevel.INFO, user, user);
-                    resp.sendRedirect(req.getContextPath() + "/code-verify.jsp?email=" + email);
+                    logService.log((jakarta.servlet.http.HttpServletRequest) request, "login-verify", LogState.SUCCESS, LogLevel.INFO, user, user);
+
+                    redirectAttributes.addAttribute("email", email);
+                    return "redirect:/code-verify";
                 }
             }
+
+            // Nếu không tìm thấy user (trường hợp này không nên xảy ra vì đã kiểm tra ở trên)
+            model.addAttribute("emailError", "Đã xảy ra lỗi trong quá trình đăng nhập");
+            return "signin";
         }
     }
 }
-

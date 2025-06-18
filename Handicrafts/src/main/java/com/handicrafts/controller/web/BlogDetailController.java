@@ -1,10 +1,8 @@
 package com.handicrafts.controller.web;
 
-import com.handicrafts.dto.BlogDTO;
-import com.handicrafts.dto.CustomizeDTO;
-import com.handicrafts.repository.BlogRepository;
 import com.handicrafts.repository.CustomizeRepository;
-import org.springframework.DTOs.factory.annotation.Autowired;
+import com.handicrafts.repository.BlogRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,12 +22,12 @@ public class BlogDetailController {
 
     @GetMapping("/blog-detail")
     public String showBlogDetail(@RequestParam("id") int blogId, Model model) {
-        CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
-        BlogDTO blogDetail = blogRepository.findBlogById(blogId);
+        // Lấy thông tin customize từ repository
+        model.addAttribute("customizeInfo", customizeRepository.getCustomizeInfo());
 
-        model.addAttribute("customizeInfo", customizeInfo);
-        model.addAttribute("blogDetail", blogDetail);
+        // Lấy chi tiết blog từ repository
+        model.addAttribute("blogDetail", blogRepository.findBlogById(blogId));
 
-        return "blog-detail"; // Trả về tên view (blog-detail.jsp hoặc blog-detail.html)
+        return "blog-detail";
     }
 }
