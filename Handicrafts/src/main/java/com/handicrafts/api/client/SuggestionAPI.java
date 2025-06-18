@@ -1,41 +1,26 @@
 package com.handicrafts.api.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.handicrafts.dao.ProductDAO;
+import com.handicrafts.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/api/suggest-key"})
-public class SuggestionAPI extends HttpServlet {
-    private final ProductDAO productDAO = new ProductDAO();
+@RestController
+@RequestMapping("/api/suggest-key")
+@RequiredArgsConstructor
+public class SuggestionAPI {
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String key = req.getParameter("key");
-        ObjectMapper objectMapper = new ObjectMapper();
-        String stringJSON;
-        if (key != null) {
-            if (!key.isEmpty()) {
-                List<String> suggestKeys = productDAO.getSuggestTitle(key);
-                // Chuyển từ Object sang String JSON
-                stringJSON = objectMapper.writeValueAsString(suggestKeys);
-            } else {
-                // Trường hợp key rỗng, thực hiện hành động tương ứng
-                stringJSON = objectMapper.writeValueAsString("");
-            }
-        } else {
-            // Trường hợp key rỗng, thực hiện hành động tương ứng
-            stringJSON = objectMapper.writeValueAsString("");
+    private final ProductRepository productRepository;
+
+    @GetMapping
+    public ResponseEntity<?> getSuggestKeys(@RequestParam(name = "key", required = false) String key) {
+        if (key == null || key.trim().isEmpty()) {
+            return ResponseEntity.ok(""); // Trường hợp không có key, trả về chuỗi rỗng
         }
 
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-        resp.getWriter().write(stringJSON);
+        List<String> suggestKeys = productRepository.getSuggestTitle(key.trim());
+        return ResponseEntity.ok(suggestKeys); // Spring Boot sẽ tự động chuyển thành JSON
     }
 }
