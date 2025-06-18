@@ -1,7 +1,8 @@
 package com.handicrafts.api.cart;
 
-import com.handicrafts.bean.Cart;
-import com.handicrafts.bean.Item;
+
+import com.handicrafts.dto.CartDTO;
+import com.handicrafts.dto.ItemDTO;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,9 +18,9 @@ public class CartDeletingAPI extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         int productId = Integer.parseInt(req.getParameter("productId"));
-        Cart cart = (Cart) req.getSession().getAttribute("cart");
+        CartDTO cart = (CartDTO) req.getSession().getAttribute("cart");
         int status = 0;
-        List<Item> items = cart.getItems();
+        List<ItemDTO> items = cart.getItems();
         if (!items.isEmpty()) {
             status = cart.deleteItem(productId);
         }
