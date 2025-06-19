@@ -14,4 +14,6 @@ public interface ImageService {
 
     // Phương thức này có thể được triển khai theo cách khác không phụ thuộc vào CloudStorageService
     boolean deleteImageFromStorage(String imagePath);
+    int insertProductImage(ProductImageDTO image);
+
 }

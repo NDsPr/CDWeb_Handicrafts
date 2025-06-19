@@ -26,7 +26,7 @@ public class AllImageDeleteController {
 
         if (image != null) {
             // Xóa ảnh trên cloud storage
-            CloudStorageUtil.deleteImageFromCloudStorage(image.getNameInStorage());
+            CloudStorageUtil.delete(image.getNameInStorage());
 
             // Xóa ảnh trong database
             imageService.deleteImage(id);

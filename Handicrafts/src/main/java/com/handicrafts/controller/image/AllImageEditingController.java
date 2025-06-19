@@ -69,7 +69,7 @@ public class AllImageEditingController {
             // Nếu có file mới được upload
             if (file != null && !file.isEmpty() && file.getContentType() != null && file.getContentType().startsWith("image")) {
                 // Xóa ảnh cũ trên cloud storage
-                CloudStorageUtil.deleteImageFromCloudStorage(image.getNameInStorage());
+                CloudStorageUtil.delete(image.getNameInStorage());
 
                 // Upload ảnh mới
                 String nameInStorage = file.getOriginalFilename();

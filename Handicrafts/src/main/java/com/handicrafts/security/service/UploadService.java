@@ -1,25 +1,30 @@
 package com.handicrafts.security.service;
 
-import com.handicrafts.bean.ProductImageBean;
-import com.handicrafts.dao.ImageDAO;
+import com.handicrafts.dto.ProductImageDTO;
+import com.handicrafts.repository.ImageRepository;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.Part;
 
+@Service
 public class UploadService {
-    private final ImageDAO imageDAO = new ImageDAO();
 
-    // Service kiểm tra xem file gửi lên có phải file ảnh hay không
+    private final ImageRepository imageRepository;
+
+    public UploadService(ImageRepository imageRepository) {
+        this.imageRepository = imageRepository;
+    }
+
     public boolean isImageFile(Part part) {
-        return (part.getSubmittedFileName().endsWith(".jpg") || part.getSubmittedFileName().endsWith(".png"));
+        String fileName = part.getSubmittedFileName().toLowerCase();
+        return fileName.endsWith(".jpg") || fileName.endsWith(".png");
     }
 
-    // Service upload file xuống Database
-    public int insertProductImage(ProductImageBean image) {
-        return imageDAO.insertProductImage(image);
+    public int insertProductImage(ProductImageDTO image) {
+        return imageRepository.insertProductImage(image);
     }
 
-    // Service lấy lên ảnh theo id
-    public ProductImageBean findImageById(int id) {
-        return imageDAO.findImageById(id);
+    public ProductImageDTO findImageById(int id) {
+        return imageRepository.findImageById(id);
     }
 }

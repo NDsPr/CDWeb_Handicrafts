@@ -83,4 +83,9 @@ public class ImageServiceImpl implements ImageService {
         // Cập nhật thông tin ảnh trong database
         return imageRepository.updateImage(imageDTO);
     }
+    @Override
+    public int insertProductImage(ProductImageDTO image) {
+        return imageRepository.insertProductImage(image);
+    }
+
 }
