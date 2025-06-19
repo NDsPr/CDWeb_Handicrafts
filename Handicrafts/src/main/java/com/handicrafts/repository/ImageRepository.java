@@ -10,6 +10,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class ImageRepository {
@@ -134,6 +135,17 @@ public class ImageRepository {
         }
 
         return convertToDTO(result.get(0));
+    }
+
+    public List<ProductImageDTO> getThumbnailByProductId(int productId) {
+        String jpql = "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC";
+        return entityManager.createQuery(jpql, ImageEntity.class)
+                .setParameter("productId", productId)
+                .setMaxResults(1)
+                .getResultList()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
 }
