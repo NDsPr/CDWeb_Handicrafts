@@ -103,7 +103,7 @@ public class CodeVerifyService {
         if (hashedPassword == null) {
             return false;
         }
-        return EncryptPasswordUtil.checkPassword(password, hashedPassword);
+        return Encry    ptPasswordUtil.checkPassword(password, hashedPassword);
     }
 
     public boolean isActive(String email) {
