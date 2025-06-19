@@ -11,5 +11,8 @@ public interface IProductService {
     int delete(int id);
     List<ProductDTO> search(String keyword);
     List<ProductDTO> findSixProductsForSuggest(int productId, int categoryTypeId, int currentPos);
-
+    List<ProductDTO> getProductsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue);
+    int getRecordsTotal();
+    int getRecordsFiltered(String searchValue);
+    int disableProduct(int id);
 }
