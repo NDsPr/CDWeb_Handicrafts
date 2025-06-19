@@ -1,4 +1,4 @@
-package com.handicrafts.controller;
+package com.handicrafts.controller.image;
 
 import com.handicrafts.dto.ProductImageDTO;
 import com.handicrafts.service.ImageService;

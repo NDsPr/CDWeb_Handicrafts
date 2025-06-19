@@ -4,6 +4,7 @@ import com.handicrafts.dto.CustomizeDTO;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.repository.CustomizeRepository;
 import com.handicrafts.repository.UserRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.BlankInputUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +25,14 @@ public class UserInfoController {
 
     private final CustomizeRepository customizeRepository;
     private final UserRepository userRepository;
-    private final LogService<UserDTO> logService;
+    private final ILogService<UserDTO> logService;
     private final ResourceBundle logBundle;
 
     @Autowired
     public UserInfoController(
             CustomizeRepository customizeRepository,
             UserRepository userRepository,
-            LogService<UserDTO> logService) {
+            ILogService<UserDTO> logService) {
         this.customizeRepository = customizeRepository;
         this.userRepository = userRepository;
         this.logService = logService;

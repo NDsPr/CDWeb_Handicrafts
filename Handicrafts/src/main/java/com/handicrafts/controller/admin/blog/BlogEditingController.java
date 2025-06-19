@@ -4,6 +4,7 @@ import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.BlogDTO;
 import com.handicrafts.repository.BlogRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.ResourceBundle;
 public class BlogEditingController {
 
     private final BlogRepository blogRepository;
-    private final LogServiceImp<BlogDTO> logService;
+    private final ILogService<BlogDTO> logService;
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
     // Hiển thị form chỉnh sửa blog
