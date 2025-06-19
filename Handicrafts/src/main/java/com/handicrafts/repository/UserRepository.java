@@ -423,5 +423,18 @@ public class UserRepository {
             return false;
         }
     }
+    // Thêm vào UserRepository
+    public String checkVerifiedCode(String verifiedCode) {
+        try {
+            TypedQuery<String> query = entityManager.createQuery(
+                    "SELECT u.email FROM UserEntity u WHERE u.verifiedCode = :verifiedCode", String.class);
+            query.setParameter("verifiedCode", verifiedCode);
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+
 
 }

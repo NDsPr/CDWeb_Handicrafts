@@ -1,11 +1,13 @@
 package com.handicrafts.security.service;
 
 import com.handicrafts.dto.UserDTO;
+import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.UserRepository;
 import com.handicrafts.util.EncryptPasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,9 +79,10 @@ public class CodeVerifyService {
         return verifyInput.length() == 8;
     }
 
+    // Phương thức isCorrectVerifiedCode đã chỉnh sửa
     public boolean isCorrectVerifiedCode(String email, String verifiedCode) {
         String emailQuery = userRepository.checkVerifiedCode(verifiedCode);
-        return emailQuery.equals(email);
+        return email.equals(emailQuery); // Đảm bảo không gây NullPointerException
     }
 
     public void activeAccount(String email) {
@@ -103,15 +106,16 @@ public class CodeVerifyService {
         if (hashedPassword == null) {
             return false;
         }
-        return Encry    ptPasswordUtil.checkPassword(password, hashedPassword);
+        return EncryptPasswordUtil.checkPassword(password, hashedPassword);
     }
 
     public boolean isActive(String email) {
-        return userRepository.findActiveAccountByEmail(email) != -1;
+        Optional<UserEntity> activeUser = userRepository.findActiveAccountByEmail(email);
+        return activeUser.isPresent(); // Trả về true nếu tìm thấy tài khoản active
     }
 
-    public UserDTO findUserByEmail(String email) {
-        return userRepository.findUserByEmail(email);
+    public UserEntity findUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public int findIdByEmail(String email) {

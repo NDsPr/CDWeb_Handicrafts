@@ -1,12 +1,12 @@
 package com.handicrafts.security.filter;
 
-import com.handicrafts.bean.UserBean;
+import com.handicrafts.dto.UserDTO;
 import com.handicrafts.util.SessionUtil;
 
-import javax.servlet.*;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebFilter(urlPatterns = {"/cart-management", "/cart-adding", "/cart-updating", "/cart-delete",
@@ -17,10 +17,12 @@ public class CartAndPaymentSecurity implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String uri = request.getRequestURI();
+
         // Filter các url bắt đầu bằng "/cart" hoặc có chứa "cart"
         if (uri.startsWith("/cart") || uri.contains("cart")) {
-            UserBean user = (UserBean) SessionUtil.getInstance().getValue(request, "user");
+            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
             String xRequestedWith = request.getHeader("X-Requested-With");
+
             if ("XMLHttpRequest".equals(xRequestedWith)) {
                 if (user == null) {
                     // Nếu là AJAX request thì phải chuyển hướng bằng client-side => Send redirect link bằng JSON lên client
@@ -34,21 +36,22 @@ public class CartAndPaymentSecurity implements Filter {
                 }
             } else {
                 if (user == null) {
-                // Nếu không là AJAX request thì sendRedirct thông qua servers
-                response.sendRedirect(request.getContextPath() + "/signin?message=must_login");
-                return;
+                    // Nếu không là AJAX request thì sendRedirct thông qua servers
+                    response.sendRedirect(request.getContextPath() + "/signin?message=must_login");
+                    return;
                 }
             }
         }
 
         if (uri.startsWith("/checkout") || uri.contains("checkout")) {
-            UserBean user = (UserBean) SessionUtil.getInstance().getValue(request, "user");
+            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
             if (user == null) {
                 // Nếu chưa tồn tại Session, điều hướng sang trang login
                 response.sendRedirect(request.getContextPath() + "/signin?message=must_login");
                 return;
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

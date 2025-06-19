@@ -1,6 +1,7 @@
 package com.handicrafts.repository;
 
 import com.handicrafts.dto.CustomizeDTO;
+import com.handicrafts.entity.CustomizeEntity;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
@@ -241,6 +242,103 @@ public class CustomizeRepository {
         }
         return link;
     }
+    /**
+     * Phương thức save để tương thích với JpaRepository
+     * Phương thức này sẽ gọi updateCustomize nếu entity đã tồn tại, ngược lại sẽ gọi createCustomize
+     * @param entity Entity cần lưu
+     * @return Entity đã được lưu
+     */
+    public CustomizeEntity save(CustomizeEntity entity) {
+        // Chuyển đổi từ Entity sang DTO
+        CustomizeDTO dto = new CustomizeDTO();
+        dto.setId(entity.getId());
+        dto.setWelcomeTitle(entity.getWelcomeTitle());
+        dto.setWelcomeDes(entity.getWelcomeDes());
+        dto.setProductTitle(entity.getProductTitle());
+        dto.setProductDes(entity.getProductDes());
+        dto.setPrTitle1(entity.getPrTitle1());
+        dto.setPrDes1(entity.getPrDes1());
+        dto.setPrIcon1(entity.getPrIcon1());
+        dto.setPrContentTitle1(entity.getPrContentTitle1());
+        dto.setPrContentDes1(entity.getPrContentDes1());
+        dto.setPrLink1(entity.getPrLink1());
+        dto.setPrLink1InStorage(entity.getPrLink1InStorage());
+        dto.setPrTitle2(entity.getPrTitle2());
+        dto.setPrDes2(entity.getPrDes2());
+        dto.setPrContent2(entity.getPrContent2());
+        dto.setPrLink2(entity.getPrLink2());
+        dto.setPrLink2InStorage(entity.getPrLink2InStorage());
+        dto.setBackground(entity.getBackground());
+        dto.setBackgroundInStorage(entity.getBackgroundInStorage());
+        dto.setFooterLeft(entity.getFooterLeft());
+        dto.setFooterMiddle(entity.getFooterMiddle());
+        dto.setFacebookLink(entity.getFacebookLink());
+        dto.setTwitterLink(entity.getTwitterLink());
+        dto.setInstagramLink(entity.getInstagramLink());
+        dto.setLinkedinLink(entity.getLinkedinLink());
+
+        // Kiểm tra nếu entity đã tồn tại (id = 1) thì update, ngược lại thì create
+        int result;
+        if (entity.getId() != null && entity.getId() == 1) {
+            result = updateCustomize(dto);
+        } else {
+            result = createCustomize(dto);
+        }
+
+        // Nếu thao tác thành công, trả về entity đã cập nhật
+        if (result > 0) {
+            return entity;
+        }
+
+        // Nếu thao tác thất bại, throw exception
+        throw new RuntimeException("Failed to save customize entity");
+    }
+
+    /**
+     * Phương thức findById để tương thích với JpaRepository
+     * @param id ID của entity cần tìm
+     * @return Optional chứa entity nếu tìm thấy, empty nếu không tìm thấy
+     */
+    public java.util.Optional<CustomizeEntity> findById(Integer id) {
+        if (id != 1) {
+            return java.util.Optional.empty(); // Chỉ có id = 1 trong bảng này
+        }
+
+        CustomizeDTO dto = getCustomizeInfo();
+        if (dto == null) {
+            return java.util.Optional.empty();
+        }
+
+        // Chuyển đổi từ DTO sang Entity
+        CustomizeEntity entity = new CustomizeEntity();
+        entity.setId(dto.getId());
+        entity.setWelcomeTitle(dto.getWelcomeTitle());
+        entity.setWelcomeDes(dto.getWelcomeDes());
+        entity.setProductTitle(dto.getProductTitle());
+        entity.setProductDes(dto.getProductDes());
+        entity.setPrTitle1(dto.getPrTitle1());
+        entity.setPrDes1(dto.getPrDes1());
+        entity.setPrIcon1(dto.getPrIcon1());
+        entity.setPrContentTitle1(dto.getPrContentTitle1());
+        entity.setPrContentDes1(dto.getPrContentDes1());
+        entity.setPrLink1(dto.getPrLink1());
+        entity.setPrLink1InStorage(dto.getPrLink1InStorage());
+        entity.setPrTitle2(dto.getPrTitle2());
+        entity.setPrDes2(dto.getPrDes2());
+        entity.setPrContent2(dto.getPrContent2());
+        entity.setPrLink2(dto.getPrLink2());
+        entity.setPrLink2InStorage(dto.getPrLink2InStorage());
+        entity.setBackground(dto.getBackground());
+        entity.setBackgroundInStorage(dto.getBackgroundInStorage());
+        entity.setFooterLeft(dto.getFooterLeft());
+        entity.setFooterMiddle(dto.getFooterMiddle());
+        entity.setFacebookLink(dto.getFacebookLink());
+        entity.setTwitterLink(dto.getTwitterLink());
+        entity.setInstagramLink(dto.getInstagramLink());
+        entity.setLinkedinLink(dto.getLinkedinLink());
+
+        return java.util.Optional.of(entity);
+    }
 
     // Phiên bản sử dụng JdbcTemplate (khuyến nghị sử dụng)
     /*
@@ -293,4 +391,5 @@ public class CustomizeRepository {
         }
     }
     */
+
 }

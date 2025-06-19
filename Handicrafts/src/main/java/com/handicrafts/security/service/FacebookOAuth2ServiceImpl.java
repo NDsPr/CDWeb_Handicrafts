@@ -14,9 +14,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -53,18 +59,31 @@ public class FacebookOAuth2ServiceImpl implements OAuth2Service {
     public CustomOAuth2User getUserInfo(OAuth2AccessToken accessToken) throws IOException {
         JsonNode userInfo = getJsonUserInfo(accessToken);
 
-        CustomOAuth2User userInfoDto = new CustomOAuth2User();
-        userInfoDto.setName(userInfo.get("name").asText());
-        userInfoDto.setEmail(userInfo.has("email") ? userInfo.get("email").asText() : null);
-        userInfoDto.setProvider("facebook");
-        userInfoDto.setProviderId(userInfo.get("id").asText());
+        // Tạo một Map<String, Object> để chứa thông tin người dùng
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("name", userInfo.get("name").asText());
 
-        if (userInfo.has("picture") && userInfo.get("picture").has("data")) {
-            userInfoDto.setPictureUrl(userInfo.get("picture").get("data").get("url").asText());
+        if (userInfo.has("email")) {
+            attributes.put("email", userInfo.get("email").asText());
         }
 
-        return userInfoDto;
+        attributes.put("id", userInfo.get("id").asText());
+
+        if (userInfo.has("picture") && userInfo.get("picture").has("data")) {
+            attributes.put("picture", userInfo.get("picture").get("data").get("url").asText());
+        }
+
+        // Tạo một OAuth2User từ attributes
+        OAuth2User oAuth2User = new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                attributes,
+                "name"
+        );
+
+        // Trả về CustomOAuth2User với OAuth2User và clientName
+        return new CustomOAuth2User(oAuth2User, "facebook");
     }
+
 
     private JsonNode getJsonUserInfo(OAuth2AccessToken accessToken) throws IOException {
         String userInfoEndpoint = "https://graph.facebook.com/me?fields=id,name,email,birthday,picture&access_token="
