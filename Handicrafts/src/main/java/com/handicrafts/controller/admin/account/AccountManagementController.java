@@ -1,16 +1,20 @@
 package com.handicrafts.controller.admin.account;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@WebServlet("/admin/account-management")
-public class AccountManagementController extends HttpServlet {
+@Controller
+@RequestMapping("/admin/account-management")
+public class AccountManagementController {
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("/account-management.jsp").forward(request, response);
+    @Autowired
+    private Environment environment;
+
+    @GetMapping
+    public String showAccountManagement() {
+        return "account-management"; // Trả về tên view (không cần .jsp nếu bạn đã cấu hình ViewResolver)
     }
 }

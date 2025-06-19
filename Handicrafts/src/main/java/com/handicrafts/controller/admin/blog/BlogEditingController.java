@@ -5,30 +5,38 @@ import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.BlogDTO;
 import com.handicrafts.repository.BlogRepository;
 import com.handicrafts.service.ILogService;
-import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.ValidateParamUtil;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.ResourceBundle;
 
 @Controller
 @RequestMapping("/admin/blog-management")
-@RequiredArgsConstructor
 public class BlogEditingController {
 
-    private final BlogRepository blogRepository;
-    private final ILogService<BlogDTO> logService;
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    @Autowired
+    private BlogRepository blogRepository;
+
+    @Autowired
+    private ILogService<BlogDTO> logService;
+
+    @Autowired
+    private Environment environment;
 
     // Hiển thị form chỉnh sửa blog
     @GetMapping("/editing")
     public String showEditBlogForm(@RequestParam("id") int id, Model model) {
         BlogDTO blog = blogRepository.findBlogById(id);
+        if (blog == null) {
+            String errorMessage = environment.getProperty("ui-message.blog-not-found", "Blog not found");
+            model.addAttribute("msg", errorMessage);
+            return "redirect:/admin/blog-management";
+        }
         model.addAttribute("blog", blog);
         return "editing-blog"; // Tên view Thymeleaf hoặc JSP
     }
@@ -67,24 +75,33 @@ public class BlogEditingController {
         BlogDTO prevBlog = blogRepository.findBlogById(id);
 
         if (isValid) {
-            blogDTO.setId(id); // Đảm bảo có id
-            int affectedRow = blogRepository.updateBlog(blogDTO);
-            BlogDTO currentBlog = blogRepository.findBlogById(id);
+            try {
+                blogDTO.setId(id); // Đảm bảo có id
+                int affectedRow = blogRepository.updateBlog(blogDTO);
+                BlogDTO currentBlog = blogRepository.findBlogById(id);
 
-            if (affectedRow < 0) {
-                logService.log(request, "admin-update-blog", LogState.FAIL, LogLevel.ALERT, prevBlog, currentBlog);
-                msg = "error";
-            } else if (affectedRow > 0) {
-                logService.log(request, "admin-update-blog", LogState.SUCCESS, LogLevel.WARNING, prevBlog, currentBlog);
-                msg = "success";
-            } else {
-                msg = "error";
+                if (affectedRow <= 0) {
+                    // Không có hàng nào được cập nhật
+                    String failLogKey = environment.getProperty("log-content.admin-update-blog-fail", "admin-update-blog");
+                    logService.log(request, failLogKey, LogState.FAIL, LogLevel.ALERT, prevBlog, currentBlog);
+                    msg = environment.getProperty("ui-message.blog-update-error", "Error updating blog");
+                } else {
+                    // Cập nhật thành công
+                    String successLogKey = environment.getProperty("log-content.admin-update-blog-success", "admin-update-blog");
+                    logService.log(request, successLogKey, LogState.SUCCESS, LogLevel.WARNING, prevBlog, currentBlog);
+                    msg = environment.getProperty("ui-message.blog-update-success", "Blog updated successfully");
+                }
+            } catch (Exception e) {
+                // Xử lý ngoại lệ
+                String failLogKey = environment.getProperty("log-content.admin-update-blog-fail", "admin-update-blog");
+                logService.log(request, failLogKey, LogState.FAIL, LogLevel.ALERT, prevBlog, null);
+                msg = environment.getProperty("ui-message.blog-update-error", "Error updating blog");
             }
-
         } else {
-            BlogDTO currentBlog = blogRepository.findBlogById(id);
-            logService.log(request, "admin-update-blog", LogState.FAIL, LogLevel.ALERT, prevBlog, currentBlog);
-            msg = "error";
+            // Form không hợp lệ
+            String validationFailLogKey = environment.getProperty("log-content.admin-update-blog-validation-fail", "admin-update-blog-validation");
+            logService.log(request, validationFailLogKey, LogState.FAIL, LogLevel.ALERT, prevBlog, null);
+            msg = environment.getProperty("ui-message.blog-validation-error", "Please fill all required fields");
         }
 
         BlogDTO displayBlog = blogRepository.findBlogById(id);

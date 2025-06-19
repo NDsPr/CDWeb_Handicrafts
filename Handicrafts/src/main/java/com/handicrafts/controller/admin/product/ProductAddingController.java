@@ -10,6 +10,7 @@ import com.handicrafts.service.ILogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/admin/product-management")
+@RequestMapping("${product.management.base.url}")
 @RequiredArgsConstructor
 public class ProductAddingController {
 
@@ -28,12 +29,42 @@ public class ProductAddingController {
     private final ImageRepository imageRepository;
     private final ILogService<ProductDTO> logService;
 
-    @GetMapping("/adding")
+    @Value("${product.adding.view}")
+    private String addingProductView;
+
+    @Value("${product.log.action}")
+    private String productLogAction;
+
+    @Value("${message.error}")
+    private String errorMessage;
+
+    @Value("${message.success}")
+    private String successMessage;
+
+    @Value("${error.original.price}")
+    private String originalPriceError;
+
+    @Value("${error.discount.price}")
+    private String discountPriceError;
+
+    @Value("${error.discount.percent}")
+    private String discountPercentError;
+
+    @Value("${error.quantity}")
+    private String quantityError;
+
+    @Value("${error.name.exists}")
+    private String nameExistsError;
+
+    @Value("${model.attribute.message}")
+    private String messageAttribute;
+
+    @GetMapping("${product.adding.path}")
     public String showForm() {
-        return "adding-product";
+        return addingProductView;
     }
 
-    @PostMapping("/adding")
+    @PostMapping("${product.adding.path}")
     public String addProduct(HttpServletRequest req,
                              @RequestParam("name") String name,
                              @RequestParam("description") String description,
@@ -49,8 +80,42 @@ public class ProductAddingController {
                              @RequestParam("imgUrls") String imgUrls,
                              Model model) {
 
+        boolean isValid = validateProductInputs(name, description, categoryTypeId,
+                originalPrice, discountPrice, discountPercent, quantity,
+                size, status, imgUrls, model);
+
+        if (!isValid) {
+            logService.log(req, productLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
+            model.addAttribute(messageAttribute, errorMessage);
+            return addingProductView;
+        }
+
+        ProductDTO product = createProductFromInputs(name, description, categoryTypeId,
+                originalPrice, discountPrice, discountPercent, quantity,
+                size, status, otherSpec, keyword);
+
+        int id = productRepository.createProduct(product);
+
+        if (id <= 0) {
+            logService.log(req, productLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
+            model.addAttribute(messageAttribute, errorMessage);
+        } else {
+            ProductDTO currentProduct = productRepository.findProductById(id);
+            logService.log(req, productLogAction, LogState.SUCCESS, LogLevel.WARNING, null, currentProduct);
+            saveProductImages(id, imgUrls);
+            model.addAttribute(messageAttribute, successMessage);
+        }
+
+        return addingProductView;
+    }
+
+    private boolean validateProductInputs(String name, String description, String categoryTypeId,
+                                          String originalPrice, String discountPrice, String discountPercent,
+                                          String quantity, String size, String status, String imgUrls,
+                                          Model model) {
         boolean isValid = true;
-        String[] inputs = {name, description, categoryTypeId, originalPrice, discountPrice, discountPercent, quantity, size, status, imgUrls};
+        String[] inputs = {name, description, categoryTypeId, originalPrice, discountPrice,
+                discountPercent, quantity, size, status, imgUrls};
         List<String> errors = ValidateParamUtil.checkEmptyParam(inputs);
 
         for (String error : errors) {
@@ -62,36 +127,40 @@ public class ProductAddingController {
 
         if (!NumberValidateUtil.isNumeric(originalPrice) || !NumberValidateUtil.isValidPrice(originalPrice)) {
             isValid = false;
-            model.addAttribute("oPrErr", "e");
+            model.addAttribute("oPrErr", originalPriceError);
         }
 
         if (!NumberValidateUtil.isNumeric(discountPrice) || !NumberValidateUtil.isValidPrice(discountPrice)) {
             isValid = false;
-            model.addAttribute("dPrErr", "e");
+            model.addAttribute("dPrErr", discountPriceError);
         }
 
         if (!NumberValidateUtil.isNumeric(discountPercent) || !NumberValidateUtil.isValidPercent(discountPercent)) {
             isValid = false;
-            model.addAttribute("dPeErr", "e");
+            model.addAttribute("dPeErr", discountPercentError);
         }
 
         if (!NumberValidateUtil.isNumeric(quantity) || !NumberValidateUtil.isValidQuantity(quantity)) {
             isValid = false;
-            model.addAttribute("qErr", "e");
+            model.addAttribute("qErr", quantityError);
         }
 
         if (productRepository.isExistProductName(name)) {
             isValid = false;
-            model.addAttribute("nameErr", "e");
+            model.addAttribute("nameErr", nameExistsError);
         }
 
         if (!isValid) {
             model.addAttribute("errors", errors);
-            logService.log(req, "admin-create-product", LogState.FAIL, LogLevel.ALERT, null, null);
-            model.addAttribute("msg", "error");
-            return "adding-product";
         }
 
+        return isValid;
+    }
+
+    private ProductDTO createProductFromInputs(String name, String description, String categoryTypeId,
+                                               String originalPrice, String discountPrice, String discountPercent,
+                                               String quantity, String size, String status,
+                                               String otherSpec, String keyword) {
         ProductDTO product = new ProductDTO();
         product.setName(name);
         product.setDescription(description);
@@ -105,25 +174,16 @@ public class ProductAddingController {
         product.setOtherSpec(otherSpec != null ? otherSpec : "");
         product.setKeyword(keyword != null ? keyword : "");
         product.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+        return product;
+    }
 
-        int id = productRepository.createProduct(product);
-
-        if (id <= 0) {
-            logService.log(req, "admin-create-product", LogState.FAIL, LogLevel.ALERT, null, null);
-            model.addAttribute("msg", "error");
-        } else {
-            ProductDTO currentProduct = productRepository.findProductById(id);
-            logService.log(req, "admin-create-product", LogState.SUCCESS, LogLevel.WARNING, null, currentProduct);
-            for (String url : imgUrls.replaceAll("\\s+", "").split(",")) {
-                ProductImageDTO image = new ProductImageDTO();
-                image.setName(UUID.randomUUID().toString().replace("-", ""));
-                image.setProductId(id);
-                image.setLink(url);
-                imageRepository.insertProductImage(image);
-            }
-            model.addAttribute("msg", "success");
+    private void saveProductImages(int productId, String imgUrls) {
+        for (String url : imgUrls.replaceAll("\\s+", "").split(",")) {
+            ProductImageDTO image = new ProductImageDTO();
+            image.setName(UUID.randomUUID().toString().replace("-", ""));
+            image.setProductId(productId);
+            image.setLink(url);
+            imageRepository.insertProductImage(image);
         }
-
-        return "adding-product";
     }
 }

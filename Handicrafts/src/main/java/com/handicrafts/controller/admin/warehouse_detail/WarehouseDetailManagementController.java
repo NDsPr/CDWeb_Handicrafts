@@ -1,19 +1,25 @@
 package com.handicrafts.controller.admin.warehouse_detail;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+@Controller
+@RequestMapping("${warehouse.detail.management.url}")
+public class WarehouseDetailManagementController {
 
-@WebServlet(value = {"/admin/warehouse-detail-management"})
-public class WarehouseDetailManagementController extends HttpServlet {
+    @Value("${warehouse.detail.management.view}")
+    private String warehouseDetailView;
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int warehouseId = Integer.parseInt(req.getParameter("warehouseId"));
-        req.setAttribute("warehouseId", warehouseId);
-        req.getRequestDispatcher("/warehouse-detail-management.jsp").forward(req, resp);
+    @Value("${model.attribute.warehouse.id}")
+    private String warehouseIdAttribute;
+
+    @GetMapping
+    public String showWarehouseDetailManagementPage(@RequestParam("warehouseId") int warehouseId, Model model) {
+        model.addAttribute(warehouseIdAttribute, warehouseId);
+        return warehouseDetailView;
     }
 }

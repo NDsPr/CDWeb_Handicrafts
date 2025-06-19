@@ -7,31 +7,47 @@ import com.handicrafts.repository.WarehouseRepository;
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.ValidateParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.ResourceBundle;
 
 @Controller
-@RequestMapping("/admin/warehouse-management/adding")
+@RequestMapping("${warehouse.management.adding.url}")
 public class WarehouseAddingController {
 
-    @Autowired
-    private WarehouseRepository warehouseRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final ILogService<WarehouseDTO> logService;
+
+    @Value("${warehouse.adding.view}")
+    private String addingWarehouseView;
+
+    @Value("${warehouse.adding.log.action}")
+    private String warehouseAddLogAction;
+
+    @Value("${message.error}")
+    private String errorMessage;
+
+    @Value("${message.success}")
+    private String successMessage;
+
+    @Value("${model.attribute.message}")
+    private String messageAttribute;
 
     @Autowired
-    private ILogService<WarehouseDTO> logService;
-
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    public WarehouseAddingController(WarehouseRepository warehouseRepository,
+                                     ILogService<WarehouseDTO> logService) {
+        this.warehouseRepository = warehouseRepository;
+        this.logService = logService;
+    }
 
     @GetMapping
     public String showAddForm() {
-        return "adding-warehouse"; // mapping đến adding-warehouse.jsp hoặc .html
+        return addingWarehouseView;
     }
 
     @PostMapping
@@ -42,44 +58,73 @@ public class WarehouseAddingController {
                                      @RequestParam("createdBy") String createdBy,
                                      Model model,
                                      HttpServletRequest request) {
-        boolean isValid = true;
-        String[] inputsForm = {shippingFrom, shippingStart, shippingDone, description, createdBy};
-        List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
-
-        for (String error : errors) {
-            if (error != null) {
-                isValid = false;
-                break;
-            }
-        }
+        // Validate input parameters
+        ValidationResult validationResult = validateWarehouseInputs(shippingFrom, shippingStart,
+                shippingDone, description, createdBy);
 
         String msg;
-        if (isValid) {
-            Timestamp shippingStartTimestamp = Timestamp.valueOf(shippingStart);
-            Timestamp shippingDoneTimestamp = Timestamp.valueOf(shippingDone);
-
-            WarehouseDTO newWarehouse = new WarehouseDTO();
-            newWarehouse.setShippingFrom(shippingFrom);
-            newWarehouse.setShippingStart(shippingStartTimestamp);
-            newWarehouse.setShippingDone(shippingDoneTimestamp);
-            newWarehouse.setDescription(description);
-            newWarehouse.setCreatedBy(createdBy);
+        if (validationResult.isValid()) {
+            // Create and save warehouse
+            WarehouseDTO newWarehouse = createWarehouseFromInputs(shippingFrom, shippingStart,
+                    shippingDone, description, createdBy);
 
             int id = warehouseRepository.createWarehouse(newWarehouse);
             if (id <= 0) {
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-warehouse", LogState.FAIL, LogLevel.ALERT, null, null);
-                msg = "error";
+                logService.log(request, warehouseAddLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
+                msg = errorMessage;
             } else {
                 WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-warehouse", LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
-                msg = "success";
+                logService.log(request, warehouseAddLogAction, LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
+                msg = successMessage;
             }
         } else {
-            model.addAttribute("errors", errors);
-            msg = "error";
+            model.addAttribute("errors", validationResult.getErrors());
+            msg = errorMessage;
         }
 
-        model.addAttribute("msg", msg);
-        return "adding-warehouse";
+        model.addAttribute(messageAttribute, msg);
+        return addingWarehouseView;
+    }
+
+    private ValidationResult validateWarehouseInputs(String shippingFrom, String shippingStart,
+                                                     String shippingDone, String description, String createdBy) {
+        ValidationResult result = new ValidationResult();
+        String[] inputsForm = {shippingFrom, shippingStart, shippingDone, description, createdBy};
+        List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
+
+        boolean isValid = errors.stream().noneMatch(e -> e != null);
+
+        // Additional validation can be added here
+        // For example, validate date formats, check if shipping start is before shipping done, etc.
+
+        result.setValid(isValid);
+        result.setErrors(errors);
+        return result;
+    }
+
+    private WarehouseDTO createWarehouseFromInputs(String shippingFrom, String shippingStart,
+                                                   String shippingDone, String description, String createdBy) {
+        Timestamp shippingStartTimestamp = Timestamp.valueOf(shippingStart);
+        Timestamp shippingDoneTimestamp = Timestamp.valueOf(shippingDone);
+
+        WarehouseDTO newWarehouse = new WarehouseDTO();
+        newWarehouse.setShippingFrom(shippingFrom);
+        newWarehouse.setShippingStart(shippingStartTimestamp);
+        newWarehouse.setShippingDone(shippingDoneTimestamp);
+        newWarehouse.setDescription(description);
+        newWarehouse.setCreatedBy(createdBy);
+
+        return newWarehouse;
+    }
+
+    // Inner class for validation results
+    private static class ValidationResult {
+        private boolean valid;
+        private List<String> errors;
+
+        public boolean isValid() { return valid; }
+        public void setValid(boolean valid) { this.valid = valid; }
+        public List<String> getErrors() { return errors; }
+        public void setErrors(List<String> errors) { this.errors = errors; }
     }
 }

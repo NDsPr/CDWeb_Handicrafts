@@ -10,6 +10,7 @@ import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/admin/product-management")
+@RequestMapping("${product.management.base.url}")
 @RequiredArgsConstructor
 public class ProductEditingController {
 
@@ -28,109 +29,185 @@ public class ProductEditingController {
     private final ImageRepository imageRepository;
     private final LogServiceImp<ProductDTO> logService;
 
-    @GetMapping("/editing")
+    @Value("${product.editing.view}")
+    private String editingProductView;
+
+    @Value("${product.editing.log.action}")
+    private String productEditLogAction;
+
+    @Value("${message.error}")
+    private String errorMessage;
+
+    @Value("${message.success}")
+    private String successMessage;
+
+    @Value("${error.original.price}")
+    private String originalPriceError;
+
+    @Value("${error.discount.price}")
+    private String discountPriceError;
+
+    @Value("${error.discount.percent}")
+    private String discountPercentError;
+
+    @Value("${error.quantity}")
+    private String quantityError;
+
+    @Value("${model.attribute.message}")
+    private String messageAttribute;
+
+    @Value("${model.attribute.product}")
+    private String productAttribute;
+
+    @Value("${model.attribute.images}")
+    private String imagesAttribute;
+
+    @GetMapping("${product.editing.path}")
     public String showEditForm(@RequestParam("id") int id, Model model) {
         ProductDTO product = productRepository.findProductById(id);
-        model.addAttribute("imgUrls", mergeUrls(id));
-        model.addAttribute("productBean", product);
-        return "editing-product";
+        model.addAttribute(imagesAttribute, mergeUrls(id));
+        model.addAttribute(productAttribute, product);
+        return editingProductView;
     }
 
-    @PostMapping("/editing")
+    @PostMapping("${product.editing.path}")
     public String updateProduct(HttpServletRequest req, Model model) {
-        int id = Integer.parseInt(req.getParameter("id"));
-        String name = req.getParameter("name");
-        String description = req.getParameter("description");
-        String categoryTypeId = req.getParameter("categoryTypeId");
-        String originalPrice = req.getParameter("originalPrice");
-        String discountPrice = req.getParameter("discountPrice");
-        String discountPercent = req.getParameter("discountPercent");
-        String quantity = req.getParameter("quantity");
-        String size = req.getParameter("size");
-        String otherSpec = req.getParameter("otherSpec");
-        String status = req.getParameter("status");
-        String keyword = req.getParameter("keyword");
-        String imgUrls = req.getParameter("imgUrls");
+        // Lấy tham số từ request
+        ProductFormData formData = extractFormData(req);
 
-        String[] inputsForm = {name, description, categoryTypeId, originalPrice, discountPrice, discountPercent, quantity, size, status, imgUrls};
+        // Validate dữ liệu
+        ValidationResult validationResult = validateProductInputs(formData, model);
+
+        // Lấy sản phẩm trước khi cập nhật
+        ProductDTO prevProduct = productRepository.findProductById(formData.getId());
+        String msg;
+
+        if (validationResult.isValid()) {
+            // Tạo đối tượng ProductDTO từ dữ liệu form
+            ProductDTO product = createProductFromFormData(formData);
+
+            // Cập nhật sản phẩm
+            int affectedRows = productRepository.updateProduct(product);
+            ProductDTO currentProduct = productRepository.findProductById(formData.getId());
+
+            if (affectedRows <= 0) {
+                logService.log(req, productEditLogAction, LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
+                msg = errorMessage;
+            } else {
+                logService.log(req, productEditLogAction, LogState.SUCCESS, LogLevel.WARNING, prevProduct, currentProduct);
+                msg = successMessage;
+
+                // Cập nhật hình ảnh sản phẩm
+                updateProductImages(formData.getId(), formData.getImgUrls());
+            }
+        } else {
+            ProductDTO currentProduct = productRepository.findProductById(formData.getId());
+            model.addAttribute("errors", validationResult.getErrors());
+            logService.log(req, productEditLogAction, LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
+            msg = errorMessage;
+        }
+
+        model.addAttribute(imagesAttribute, mergeUrls(formData.getId()));
+        model.addAttribute(messageAttribute, msg);
+        model.addAttribute(productAttribute, productRepository.findProductById(formData.getId()));
+        return editingProductView;
+    }
+
+    private ProductFormData extractFormData(HttpServletRequest req) {
+        ProductFormData formData = new ProductFormData();
+        formData.setId(Integer.parseInt(req.getParameter("id")));
+        formData.setName(req.getParameter("name"));
+        formData.setDescription(req.getParameter("description"));
+        formData.setCategoryTypeId(req.getParameter("categoryTypeId"));
+        formData.setOriginalPrice(req.getParameter("originalPrice"));
+        formData.setDiscountPrice(req.getParameter("discountPrice"));
+        formData.setDiscountPercent(req.getParameter("discountPercent"));
+        formData.setQuantity(req.getParameter("quantity"));
+        formData.setSize(req.getParameter("size"));
+        formData.setOtherSpec(req.getParameter("otherSpec"));
+        formData.setStatus(req.getParameter("status"));
+        formData.setKeyword(req.getParameter("keyword"));
+        formData.setImgUrls(req.getParameter("imgUrls"));
+        return formData;
+    }
+
+    private ValidationResult validateProductInputs(ProductFormData formData, Model model) {
+        ValidationResult result = new ValidationResult();
+
+        String[] inputsForm = {
+                formData.getName(),
+                formData.getDescription(),
+                formData.getCategoryTypeId(),
+                formData.getOriginalPrice(),
+                formData.getDiscountPrice(),
+                formData.getDiscountPercent(),
+                formData.getQuantity(),
+                formData.getSize(),
+                formData.getStatus(),
+                formData.getImgUrls()
+        };
+
         List<String> errors = ValidateParamUtil.checkEmptyParam(inputsForm);
         boolean isValid = errors.stream().noneMatch(e -> e != null);
 
-        if (!NumberValidateUtil.isValidPrice(originalPrice)) {
+        if (!NumberValidateUtil.isValidPrice(formData.getOriginalPrice())) {
             isValid = false;
-            model.addAttribute("oPrErr", "e");
+            model.addAttribute("oPrErr", originalPriceError);
         }
 
-        if (!NumberValidateUtil.isValidPrice(discountPrice)) {
+        if (!NumberValidateUtil.isValidPrice(formData.getDiscountPrice())) {
             isValid = false;
-            model.addAttribute("dPrErr", "e");
+            model.addAttribute("dPrErr", discountPriceError);
         }
 
-        if (!NumberValidateUtil.isValidPercent(discountPercent)) {
+        if (!NumberValidateUtil.isValidPercent(formData.getDiscountPercent())) {
             isValid = false;
-            model.addAttribute("dPeErr", "e");
+            model.addAttribute("dPeErr", discountPercentError);
         }
 
-        if (!NumberValidateUtil.isValidQuantity(quantity)) {
+        if (!NumberValidateUtil.isValidQuantity(formData.getQuantity())) {
             isValid = false;
-            model.addAttribute("qErr", "e");
+            model.addAttribute("qErr", quantityError);
         }
 
-        ProductDTO prevProduct = productRepository.findProductById(id);
-        String msg;
+        result.setValid(isValid);
+        result.setErrors(errors);
+        return result;
+    }
 
-        if (isValid) {
-            ProductDTO product = new ProductDTO();
-            product.setId(id);
-            product.setName(name);
-            product.setDescription(description);
-            product.setCategoryTypeId(NumberValidateUtil.toInt(categoryTypeId));
-            product.setOriginalPrice(NumberValidateUtil.toDouble(originalPrice));
-            product.setDiscountPrice(NumberValidateUtil.toDouble(discountPrice));
-            product.setDiscountPercent(NumberValidateUtil.toDouble(discountPercent));
-            product.setQuantity(NumberValidateUtil.toInt(quantity));
-            product.setSize(size);
-            product.setOtherSpec(otherSpec != null ? otherSpec : "");
-            product.setStatus(NumberValidateUtil.toInt(status));
-            product.setKeyword(keyword != null ? keyword : "");
-            product.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+    private ProductDTO createProductFromFormData(ProductFormData formData) {
+        ProductDTO product = new ProductDTO();
+        product.setId(formData.getId());
+        product.setName(formData.getName());
+        product.setDescription(formData.getDescription());
+        product.setCategoryTypeId(NumberValidateUtil.toInt(formData.getCategoryTypeId()));
+        product.setOriginalPrice(NumberValidateUtil.toDouble(formData.getOriginalPrice()));
+        product.setDiscountPrice(NumberValidateUtil.toDouble(formData.getDiscountPrice()));
+        product.setDiscountPercent(NumberValidateUtil.toDouble(formData.getDiscountPercent()));
+        product.setQuantity(NumberValidateUtil.toInt(formData.getQuantity()));
+        product.setSize(formData.getSize());
+        product.setOtherSpec(formData.getOtherSpec() != null ? formData.getOtherSpec() : "");
+        product.setStatus(NumberValidateUtil.toInt(formData.getStatus()));
+        product.setKeyword(formData.getKeyword() != null ? formData.getKeyword() : "");
+        product.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+        return product;
+    }
 
-            int affectedRows = productRepository.updateProduct(product);
-            ProductDTO currentProduct = productRepository.findProductById(id);
+    private void updateProductImages(int productId, String imgUrls) {
+        List<ProductImageDTO> productImages = imageRepository.findImagesByProductId(productId);
+        for (String url : splitUrls(imgUrls)) {
+            ProductImageDTO img = new ProductImageDTO();
+            String uuid = UUID.randomUUID().toString().replace("-", "");
+            img.setName(uuid);
+            img.setProductId(productId);
+            img.setLink(url);
 
-            if (affectedRows <= 0) {
-                logService.log(req, "admin-update-product", LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
-                msg = "error";
+            if (productImages.isEmpty()) {
+                imageRepository.insertProductImage(img);
             } else {
-                logService.log(req, "admin-update-product", LogState.SUCCESS, LogLevel.WARNING, prevProduct, currentProduct);
-                msg = "success";
-
-                List<ProductImageDTO> productImages = imageRepository.findImagesByProductId(id);
-                for (String url : splitUrls(imgUrls)) {
-                    ProductImageDTO img = new ProductImageDTO();
-                    String uuid = UUID.randomUUID().toString().replace("-", "");
-                    img.setName(uuid);
-                    img.setProductId(id);
-                    img.setLink(url);
-
-                    if (productImages.isEmpty()) {
-                        imageRepository.insertProductImage(img);
-                    }
-                    imageRepository.updateImage(img);
-                }
+                imageRepository.updateImage(img);
             }
-
-        } else {
-            ProductDTO currentProduct = productRepository.findProductById(id);
-            model.addAttribute("errors", errors);
-            logService.log(req, "admin-update-product", LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
-            msg = "error";
         }
-
-        model.addAttribute("imgUrls", mergeUrls(id));
-        model.addAttribute("msg", msg);
-        model.addAttribute("productBean", productRepository.findProductById(id));
-        return "editing-product";
     }
 
     private String[] splitUrls(String imgUrls) {
@@ -144,5 +221,60 @@ public class ProductEditingController {
             sb.append(image.getLink()).append(",");
         }
         return sb.toString();
+    }
+
+    // Inner classes for better organization
+    private static class ProductFormData {
+        private int id;
+        private String name;
+        private String description;
+        private String categoryTypeId;
+        private String originalPrice;
+        private String discountPrice;
+        private String discountPercent;
+        private String quantity;
+        private String size;
+        private String otherSpec;
+        private String status;
+        private String keyword;
+        private String imgUrls;
+
+        // Getters and setters
+        public int getId() { return id; }
+        public void setId(int id) { this.id = id; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        public String getCategoryTypeId() { return categoryTypeId; }
+        public void setCategoryTypeId(String categoryTypeId) { this.categoryTypeId = categoryTypeId; }
+        public String getOriginalPrice() { return originalPrice; }
+        public void setOriginalPrice(String originalPrice) { this.originalPrice = originalPrice; }
+        public String getDiscountPrice() { return discountPrice; }
+        public void setDiscountPrice(String discountPrice) { this.discountPrice = discountPrice; }
+        public String getDiscountPercent() { return discountPercent; }
+        public void setDiscountPercent(String discountPercent) { this.discountPercent = discountPercent; }
+        public String getQuantity() { return quantity; }
+        public void setQuantity(String quantity) { this.quantity = quantity; }
+        public String getSize() { return size; }
+        public void setSize(String size) { this.size = size; }
+        public String getOtherSpec() { return otherSpec; }
+        public void setOtherSpec(String otherSpec) { this.otherSpec = otherSpec; }
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+        public String getKeyword() { return keyword; }
+        public void setKeyword(String keyword) { this.keyword = keyword; }
+        public String getImgUrls() { return imgUrls; }
+        public void setImgUrls(String imgUrls) { this.imgUrls = imgUrls; }
+    }
+
+    private static class ValidationResult {
+        private boolean valid;
+        private List<String> errors;
+
+        public boolean isValid() { return valid; }
+        public void setValid(boolean valid) { this.valid = valid; }
+        public List<String> getErrors() { return errors; }
+        public void setErrors(List<String> errors) { this.errors = errors; }
     }
 }

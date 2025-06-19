@@ -8,16 +8,17 @@ import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.EncryptPasswordUtil;
 import com.handicrafts.util.ValidateParamUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.ResourceBundle;
 
 @Controller
 @RequestMapping("/admin/account-management")
@@ -26,7 +27,7 @@ public class AccountAddingController {
 
     private final UserRepository userRepository;
     private final ILogService<UserDTO> logService;
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    private final Environment environment;
 
     @GetMapping("/adding")
     public String showAddForm() {
@@ -84,20 +85,21 @@ public class AccountAddingController {
                 userRepository.save(entity);
 
                 // Ghi log thành công
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-account", LogState.SUCCESS, LogLevel.INFO, null, userDTO);
-                msg = "success";
+                String successLogKey = environment.getProperty("log-content.admin-create-account-success");
+                logService.log(request, successLogKey, LogState.SUCCESS, LogLevel.INFO, null, userDTO);
+                msg = environment.getProperty("ui-message.account-add-success", "success");
             } catch (Exception e) {
                 // Ghi log lỗi
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "admin-add-account", LogState.FAIL, LogLevel.ALERT, null, null);
-                msg = "error";
+                String failLogKey = environment.getProperty("log-content.admin-create-account-fail");
+                logService.log(request, failLogKey, LogState.FAIL, LogLevel.ALERT, null, null);
+                msg = environment.getProperty("ui-message.account-add-error", "error");
             }
         } else {
             model.addAttribute("errors", errors);
-            msg = "error";
+            msg = environment.getProperty("ui-message.validation-error", "error");
         }
 
         model.addAttribute("msg", msg);
         return "adding-account";
     }
-
 }

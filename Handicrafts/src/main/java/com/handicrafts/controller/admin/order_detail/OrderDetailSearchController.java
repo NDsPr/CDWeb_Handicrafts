@@ -1,42 +1,65 @@
 package com.handicrafts.controller.admin.order_detail;
 
 import com.handicrafts.util.BlankInputUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@WebServlet(value = {"/admin/order-detail-search"})
-public class OrderDetailSearchController extends HttpServlet {
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/searching-order-management.jsp").forward(req, resp);
+@Controller
+@RequestMapping("/admin/order-detail-search")
+public class OrderDetailSearchController {
+
+    @Value("${order.detail.search.view}")
+    private String orderDetailSearchView;
+
+    @Value("${order.detail.management.url}")
+    private String orderDetailManagementUrl;
+
+    @Value("${error.attribute}")
+    private String errorAttribute;
+
+    @Value("${error.blank}")
+    private String errorBlankMessage;
+
+    @Value("${error.numeric}")
+    private String errorNumericMessage;
+
+    @GetMapping
+    public String showSearchPage() {
+        return orderDetailSearchView;
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String orderId = req.getParameter("orderId");
+    @PostMapping
+    public String processSearch(
+            @RequestParam(value = "orderId", required = false) String orderId,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
         String error = "";
         boolean isValid = true;
+
         // Kiểm tra lỗi bỏ trống orderId
         if (BlankInputUtil.isBlank(orderId)) {
-            error = "Không được để trống";
+            error = errorBlankMessage;
             isValid = false;
         } else if (!isNumeric(orderId)) {
-            error = "Phải là định dạng số!";
+            error = errorNumericMessage;
             isValid = false;
         }
 
         if (isValid) {
-            resp.sendRedirect(req.getContextPath() + "/admin/order-detail-management?orderId=" + orderId);
+            return "redirect:" + orderDetailManagementUrl + "?orderId=" + orderId;
         } else {
-            req.setAttribute("error", error);
-            req.getRequestDispatcher("/searching-order-management.jsp").forward(req, resp);
+            model.addAttribute(errorAttribute, error);
+            return orderDetailSearchView;
         }
     }
 

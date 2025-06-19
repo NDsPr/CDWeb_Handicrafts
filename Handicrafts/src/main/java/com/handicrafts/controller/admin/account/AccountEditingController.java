@@ -10,6 +10,7 @@ import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 @Controller
 @RequestMapping("/admin/account-management/editing")
@@ -30,10 +30,10 @@ public class AccountEditingController {
     @Autowired
     private ILogService<UserDTO> logService;
 
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    @Autowired
+    private Environment environment;
 
     @GetMapping
-
     public String showEditAccountForm(@RequestParam("id") Integer id, Model model) {
         UserEntity user = userRepository.findUserById(id);
         if (user != null) {
@@ -43,7 +43,6 @@ public class AccountEditingController {
         }
         return "editing-account";
     }
-
 
     @PostMapping
     public String updateAccount(@ModelAttribute("user") UserDTO userDTO,
@@ -102,17 +101,21 @@ public class AccountEditingController {
                         userDTO.getId()
                 );
 
-                logService.log(request, "admin-update-account", LogState.SUCCESS, LogLevel.INFO, null, userDTO);
-                msg = "success";
+                // Sử dụng Environment để lấy thông báo
+                String successLogKey = environment.getProperty("log-content.admin-update-account-success", "admin-update-account");
+                logService.log(request, successLogKey, LogState.SUCCESS, LogLevel.INFO, null, userDTO);
+                msg = environment.getProperty("ui-message.account-update-success", "success");
 
             } catch (Exception e) {
-                logService.log(request, "admin-update-account", LogState.FAIL, LogLevel.ALERT, null, null);
-                msg = "error";
+                // Sử dụng Environment để lấy thông báo
+                String failLogKey = environment.getProperty("log-content.admin-update-account-fail", "admin-update-account");
+                logService.log(request, failLogKey, LogState.FAIL, LogLevel.ALERT, null, null);
+                msg = environment.getProperty("ui-message.account-update-error", "error");
             }
 
         } else {
             model.addAttribute("errors", errors);
-            msg = "error";
+            msg = environment.getProperty("ui-message.validation-error", "error");
         }
 
         // Load lại user để hiển thị
@@ -126,5 +129,4 @@ public class AccountEditingController {
         model.addAttribute("msg", msg);
         return "editing-account";
     }
-
 }
