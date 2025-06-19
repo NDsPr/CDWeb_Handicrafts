@@ -13,8 +13,8 @@ import java.util.Collections;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin")
-public class HomeController {
+@RequestMapping("/admin/home")
+public class HomeControllerAdmin {
 
     @Autowired
     private UserRepository userRepository;

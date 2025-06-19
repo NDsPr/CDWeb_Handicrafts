@@ -39,6 +39,8 @@ public class CategoryEntity {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<ProductEntity> products = new ArrayList<>();
 
+
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

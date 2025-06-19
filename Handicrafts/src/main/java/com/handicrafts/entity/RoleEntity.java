@@ -22,8 +22,10 @@ public class RoleEntity {
     @Column(name = "name")
     private String name;
 
-    @ManyToMany(mappedBy = "roles")
+    // Trong RoleEntity
+    @OneToMany(mappedBy = "role")
     private List<UserEntity> users = new ArrayList<>();
+
 
     public RoleEntity(List<RoleEntity> roleEntities) {
     }

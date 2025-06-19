@@ -305,4 +305,16 @@ public class ProductEntity {
                 ", quantity=" + quantity +
                 '}';
     }
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category; // Tên thuộc tính là "category"
+
+    // Getter và setter
+    public CategoryEntity getCategory() {
+        return category;
+    }
+
+    public void setCategory(CategoryEntity category) {
+        this.category = category;
+    }
 }

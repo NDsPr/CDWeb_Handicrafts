@@ -65,6 +65,7 @@ public class UserEntity {
 
     // Mối quan hệ với Role
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "roleId", referencedColumnName = "id", insertable = false, updatable = false)
+    @JoinColumn(name = "roleId", referencedColumnName = "roleID", insertable = false, updatable = false)
     private RoleEntity role;
+
 }
