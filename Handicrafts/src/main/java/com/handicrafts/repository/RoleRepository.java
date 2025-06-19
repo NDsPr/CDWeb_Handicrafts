@@ -44,5 +44,16 @@ public class RoleRepository {
     }
 
     public List<String> findRoleNameByUserId(Integer id) {
+        try {
+            return entityManager.createQuery(
+                            "SELECT r.name FROM RoleEntity r " +
+                                    "JOIN r.users u " +
+                                    "WHERE u.id = :userId", String.class)
+                    .setParameter("userId", id)
+                    .getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of(); // Trả về danh sách rỗng nếu có lỗi
+        }
     }
 }
