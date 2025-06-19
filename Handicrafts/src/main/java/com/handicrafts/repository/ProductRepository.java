@@ -890,10 +890,33 @@ public class ProductRepository {
         return query.getSingleResult().intValue();
     }
 
-    public Integer countAvailableProducts() {
-        TypedQuery<Long> query = entityManager.createQuery(
-                "SELECT COUNT(p) FROM ProductEntity p WHERE p.status = 1", Long.class);
-        return query.getSingleResult().intValue();
+//    public Integer countAvailableProducts() {
+//        TypedQuery<Long> query = entityManager.createQuery(
+//                "SELECT COUNT(p) FROM ProductEntity p WHERE p.status = 1", Long.class);
+//        return query.getSingleResult().intValue();
+//    }
+public int countProduct() {
+    int count = 0;
+    String sql = "SELECT COUNT(*) FROM products WHERE status <> 0";
+
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+
+    try {
+        connection = OpenConnectionUtil.openConnection();
+        preparedStatement = connection.prepareStatement(sql);
+        resultSet = preparedStatement.executeQuery();
+
+        if (resultSet.next()) {
+            count = resultSet.getInt(1);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
     }
+    return count;
+}
 
 }
