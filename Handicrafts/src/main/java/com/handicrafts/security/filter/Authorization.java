@@ -1,12 +1,12 @@
 package com.handicrafts.security.filter;
 
-import com.handicrafts.bean.Cart;
-import com.handicrafts.bean.UserBean;
+import com.handicrafts.dto.CartDTO;
+import com.handicrafts.dto.UserDTO;
 import com.handicrafts.util.SessionUtil;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 // TODO: Nên làm tất cả Servlet đều forward để kiểm tra trường hợp endWiths(".jsp")
@@ -21,13 +21,13 @@ public class Authorization implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String uri = request.getRequestURI();
-        UserBean user = (UserBean) SessionUtil.getInstance().getValue(request, "user");
+        UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
 
         if (user != null) {
             // Tạo cart ngay sau khi thêm tài khoản vào Session
             if (SessionUtil.getInstance().getValue(request, "cart") == null) {
-                Cart cart = new Cart();
-                SessionUtil.getInstance().putValue(request, "cart", cart);
+                CartDTO cart = new CartDTO();
+                SessionUtil.getInstance().setValue(request, "cart", cart);
             }
         }
 
@@ -36,7 +36,7 @@ public class Authorization implements Filter {
             // Nếu có tồn tại Session thì tiếp tục
             if (user != null) {
                 // Nếu roleId là 2 (Admin) hoặc 3 (Mod) thì cho qua
-                if (user.getRoleId() == 2 || user.getRoleId() == 3) {
+                if (user.getId() == 2 || user.getId() == 3) {
                     filterChain.doFilter(servletRequest, servletResponse);
                 } else {
                     // Nếu không phải thì trả về trang home và nhắc nhở không có quyền truy cập
