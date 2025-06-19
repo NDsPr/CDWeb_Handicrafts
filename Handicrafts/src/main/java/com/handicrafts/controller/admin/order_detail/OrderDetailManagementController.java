@@ -1,27 +1,31 @@
 package com.handicrafts.controller.admin.order_detail;
 
-import com.handicrafts.bean.OrderDetailBean;
-import com.handicrafts.dao.OrderDetailDAO;
+import com.handicrafts.dto.OrderDetailDTO;
+import com.handicrafts.repository.OrderDetailRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
-@WebServlet(value = {"/admin/order-detail-management"})
-public class OrderDetailManagementController extends HttpServlet {
-    private final OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+@Controller
+@RequestMapping("/admin/order-detail-management")
+@RequiredArgsConstructor
+public class OrderDetailManagementController {
+
+    private final OrderDetailRepository orderDetailRepository;
 
     // TODO: Thêm orderId lên đầu của trang
     // TODO: Thêm nút thông tin đơn hàng trong trang Đơn hàng cho mỗi một đơn hàng
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String orderId = req.getParameter("orderId");
-        List<OrderDetailBean> orderDetailList = orderDetailDAO.findDetailByOrderId(orderId);
-        req.setAttribute("orderDetailList", orderDetailList);
-        req.getRequestDispatcher("/order-detail-management.jsp").forward(req, resp);
+
+    @GetMapping
+    public String showOrderDetail(@RequestParam("orderId") Integer orderId, Model model) {
+        List<OrderDetailDTO> orderDetailList = orderDetailRepository.findOrderDetailByOrderId(orderId);
+        model.addAttribute("orderDetailList", orderDetailList);
+        model.addAttribute("orderId", orderId); // Đưa orderId lên đầu trang (nếu cần)
+        return "order-detail-management"; // Tên view Thymeleaf
     }
 }

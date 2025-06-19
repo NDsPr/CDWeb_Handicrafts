@@ -6,6 +6,7 @@ import com.handicrafts.repository.ImageRepository;
 import com.handicrafts.repository.ProductRepository;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
+import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class ProductEditingController {
 
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
-    private final LogService<ProductDTO> logService;
+    private final LogServiceImp<ProductDTO> logService;
 
     @GetMapping("/editing")
     public String showEditForm(@RequestParam("id") int id, Model model) {

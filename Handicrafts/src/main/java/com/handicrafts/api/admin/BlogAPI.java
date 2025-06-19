@@ -6,6 +6,7 @@ import com.handicrafts.dto.BlogDTO;
 import com.handicrafts.dto.DatatableDTO;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.repository.BlogRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
@@ -23,7 +24,7 @@ import java.util.List;
 public class BlogAPI extends HttpServlet {
 
     private final BlogRepository blogRepository = new BlogRepository();
-    private final LogServiceImp<BlogDTO> logService = new LogServiceImp<>();
+    private final ILogService<BlogDTO> logService = new LogServiceImp<>();
     private BlogDTO prevBlog;
 
     @Override
