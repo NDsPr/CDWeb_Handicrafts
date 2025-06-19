@@ -1,6 +1,7 @@
 package com.handicrafts.controller.signin_signup_forget.via_page;
 
-import com.handicrafts.service.LinkVerifyService;
+
+import com.handicrafts.security.service.LinkVerifyService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

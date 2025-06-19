@@ -3,7 +3,7 @@ package com.handicrafts.entity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Formula;
 
-import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,42 +16,63 @@ public class ProductEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 250)
     private String name;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "text", nullable = false)
     private String description;
 
-    @Column(name = "original_price", nullable = false)
-    private BigDecimal originalPrice;
+    @Column(name = "categoryTypeId", nullable = false)
+    private Integer categoryTypeId;
 
-    @Column(name = "discount_price")
-    private BigDecimal discountPrice;
+    @Column(name = "originalPrice", nullable = false)
+    private Double originalPrice;
 
-    @Column(name = "discount_percent")
-    private Integer discountPercent;
+    @Column(name = "discountPrice", nullable = false)
+    private Double discountPrice;
 
-    @Formula("original_price - (original_price * discount_percent / 100)")
-    private BigDecimal calculatedDiscountPrice;
+    @Column(name = "discountPercent", nullable = false)
+    private Double discountPercent;
 
     @Column(nullable = false)
-    private Integer stock;
+    private Integer quantity;
 
-    @Column(name = "image_url", length = 255)
-    private String imageUrl;
+    @Column(name = "soldQuantity")
+    private Integer soldQuantity;
+
+    @Column(name = "avgRate")
+    private Double avgRate;
+
+    @Column(name = "numReviews")
+    private Integer numReviews;
+
+    @Column(length = 30, nullable = false)
+    private String size;
+
+    @Column(name = "otherSpec", length = 200)
+    private String otherSpec;
+
+    @Column(columnDefinition = "text", nullable = false)
+    private String keyword;
+
+    @Column(nullable = false)
+    private Integer status;
+
+    @Column(name = "createdDate")
+    private Timestamp createdDate;
+
+    @Column(name = "createdBy", length = 50)
+    private String createdBy;
+
+    @Column(name = "modifiedDate")
+    private Timestamp modifiedDate;
+
+    @Column(name = "modifiedBy", length = 50)
+    private String modifiedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private CategoryEntity category;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @Column(nullable = false)
-    private Boolean active = true;
+    @JoinColumn(name = "categoryTypeId", referencedColumnName = "id", insertable = false, updatable = false)
+    private CategoryTypeEntity categoryType;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDetailEntity> orderDetails = new HashSet<>();
@@ -61,26 +82,13 @@ public class ProductEntity {
     }
 
     // Constructor with essential fields
-    public ProductEntity(String name, BigDecimal originalPrice, Integer stock) {
-        this.name = name;
-        this.originalPrice = originalPrice;
-        this.stock = stock;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    // Full constructor
-    public ProductEntity(String name, String description, BigDecimal originalPrice,
-                         BigDecimal discountPrice, Integer discountPercent,
-                         Integer stock, String imageUrl, CategoryEntity category) {
+    public ProductEntity(String name, String description, Integer categoryTypeId, Double originalPrice, Integer quantity) {
         this.name = name;
         this.description = description;
+        this.categoryTypeId = categoryTypeId;
         this.originalPrice = originalPrice;
-        this.discountPrice = discountPrice;
-        this.discountPercent = discountPercent;
-        this.stock = stock;
-        this.imageUrl = imageUrl;
-        this.category = category;
-        this.createdAt = LocalDateTime.now();
+        this.quantity = quantity;
+        this.createdDate = new Timestamp(System.currentTimeMillis());
     }
 
     // Getters and Setters
@@ -108,11 +116,19 @@ public class ProductEntity {
         this.description = description;
     }
 
+    public Integer getCategoryTypeId() {
+        return categoryTypeId;
+    }
+
+    public void setCategoryTypeId(Integer categoryTypeId) {
+        this.categoryTypeId = categoryTypeId;
+    }
+
     public Double getOriginalPrice() {
         return originalPrice;
     }
 
-    public void setOriginalPrice(BigDecimal originalPrice) {
+    public void setOriginalPrice(Double originalPrice) {
         this.originalPrice = originalPrice;
     }
 
@@ -120,68 +136,120 @@ public class ProductEntity {
         return discountPrice;
     }
 
-    public void setDiscountPrice(BigDecimal discountPrice) {
+    public void setDiscountPrice(Double discountPrice) {
         this.discountPrice = discountPrice;
     }
 
-    public Integer getDiscountPercent() {
+    public Double getDiscountPercent() {
         return discountPercent;
     }
 
-    public void setDiscountPercent(Integer discountPercent) {
+    public void setDiscountPercent(Double discountPercent) {
         this.discountPercent = discountPercent;
     }
 
-    public BigDecimal getCalculatedDiscountPrice() {
-        return calculatedDiscountPrice;
+    public Integer getQuantity() {
+        return quantity;
     }
 
-    public Integer getStock() {
-        return stock;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
-    public void setStock(Integer stock) {
-        this.stock = stock;
+    public Integer getSoldQuantity() {
+        return soldQuantity;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public void setSoldQuantity(Integer soldQuantity) {
+        this.soldQuantity = soldQuantity;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public Double getAvgRate() {
+        return avgRate;
     }
 
-    public CategoryEntity getCategory() {
-        return category;
+    public void setAvgRate(Double avgRate) {
+        this.avgRate = avgRate;
     }
 
-    public void setCategory(CategoryEntity category) {
-        this.category = category;
+    public Integer getNumReviews() {
+        return numReviews;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public void setNumReviews(Integer numReviews) {
+        this.numReviews = numReviews;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public String getSize() {
+        return size;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public void setSize(String size) {
+        this.size = size;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public String getOtherSpec() {
+        return otherSpec;
     }
 
-    public Boolean getActive() {
-        return active;
+    public void setOtherSpec(String otherSpec) {
+        this.otherSpec = otherSpec;
     }
 
-    public void setActive(Boolean active) {
-        this.active = active;
+    public String getKeyword() {
+        return keyword;
+    }
+
+    public void setKeyword(String keyword) {
+        this.keyword = keyword;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Timestamp getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Timestamp createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public Timestamp getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Timestamp modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public String getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(String modifiedBy) {
+        this.modifiedBy = modifiedBy;
+    }
+
+    public CategoryTypeEntity getCategoryType() {
+        return categoryType;
+    }
+
+    public void setCategoryType(CategoryTypeEntity categoryType) {
+        this.categoryType = categoryType;
     }
 
     public Set<OrderDetailEntity> getOrderDetails() {
@@ -206,12 +274,12 @@ public class ProductEntity {
     // Pre-persist and pre-update callbacks
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdDate = new Timestamp(System.currentTimeMillis());
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        modifiedDate = new Timestamp(System.currentTimeMillis());
     }
 
     @Override
@@ -234,7 +302,7 @@ public class ProductEntity {
                 ", name='" + name + '\'' +
                 ", originalPrice=" + originalPrice +
                 ", discountPrice=" + discountPrice +
-                ", stock=" + stock +
+                ", quantity=" + quantity +
                 '}';
     }
 }
