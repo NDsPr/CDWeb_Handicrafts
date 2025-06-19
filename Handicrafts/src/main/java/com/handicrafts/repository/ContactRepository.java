@@ -168,4 +168,33 @@ public class ContactRepository {
         contact.setModifiedBy(rs.getString("modifiedBy"));
         return contact;
     }
+    public int updateContact(ContactDTO contactDTO) {
+        String sql = "UPDATE contacts SET email = ?, firstName = ?, lastName = ?, message = ?, status = ?, modifiedDate = ?, modifiedBy = ? WHERE id = ?";
+        int affectedRows = -1;
+
+        try (Connection connection = OpenConnectionUtil.openConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            connection.setAutoCommit(false);
+
+            SetParameterUtil.setParameter(preparedStatement,
+                    contactDTO.getEmail(),
+                    contactDTO.getFirstName(),
+                    contactDTO.getLastName(),
+                    contactDTO.getMessage(),
+                    contactDTO.getStatus(),
+                    contactDTO.getModifiedDate(),  // bạn cần truyền vào giá trị này
+                    contactDTO.getModifiedBy(),    // và modifiedBy nếu có
+                    contactDTO.getId());
+
+            affectedRows = preparedStatement.executeUpdate();
+            connection.commit();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return affectedRows;
+    }
+
 }
