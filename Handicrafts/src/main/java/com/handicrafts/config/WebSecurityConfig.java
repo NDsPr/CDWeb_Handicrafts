@@ -27,7 +27,7 @@ public class WebSecurityConfig {
     private IUserService userService;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoderConfig;
+    private PasswordEncoderConfig passwordEncoderConfig;
 
 
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

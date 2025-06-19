@@ -40,7 +40,7 @@ public class OrderDTO {
 
         // Nếu entity có thông tin user, lấy tên user
         if (entity.getUser() != null) {
-            this.userName = entity.getUser().getUsername(); // Giả sử UserEntity có trường username
+            this.userName = entity.getUser().getFirstName(); // Giả sử UserEntity có trường username
         }
 
         // Chuyển đổi status code sang tên trạng thái

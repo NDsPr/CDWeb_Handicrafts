@@ -47,6 +47,21 @@ public class OrderDetailDTO implements Serializable {
         this.reviewed = reviewed == 1;
     }
 
+    public OrderDetailDTO(Integer id, Integer orderId, Integer productId, String productName,
+                          Double originalPrice, Double discountPrice, Integer discountPercent,
+                          Integer quantity, boolean reviewed) {
+        this.id = id;
+        this.orderId = orderId;
+        this.productId = productId;
+        this.productName = productName;
+        this.originalPrice = originalPrice;
+        this.discountPrice = discountPrice;
+        this.discountPercent = discountPercent != null ? discountPercent.doubleValue() : null;
+        this.quantity = quantity;
+        this.reviewed = reviewed;
+    }
+
+
     public Integer getId() {
         return id;
     }
