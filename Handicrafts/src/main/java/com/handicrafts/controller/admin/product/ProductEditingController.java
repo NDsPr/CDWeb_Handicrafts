@@ -10,7 +10,7 @@ import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,53 +21,21 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("${product.management.base.url}")
+@RequestMapping("/admin/product/edit")
 @RequiredArgsConstructor
 public class ProductEditingController {
 
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
     private final LogServiceImp<ProductDTO> logService;
-
-    @Value("${product.editing.view}")
-    private String editingProductView;
-
-    @Value("${product.editing.log.action}")
-    private String productEditLogAction;
-
-    @Value("${message.error}")
-    private String errorMessage;
-
-    @Value("${message.success}")
-    private String successMessage;
-
-    @Value("${error.original.price}")
-    private String originalPriceError;
-
-    @Value("${error.discount.price}")
-    private String discountPriceError;
-
-    @Value("${error.discount.percent}")
-    private String discountPercentError;
-
-    @Value("${error.quantity}")
-    private String quantityError;
-
-    @Value("${model.attribute.message}")
-    private String messageAttribute;
-
-    @Value("${model.attribute.product}")
-    private String productAttribute;
-
-    @Value("${model.attribute.images}")
-    private String imagesAttribute;
+    private final Environment environment;
 
     @GetMapping("${product.editing.path}")
     public String showEditForm(@RequestParam("id") int id, Model model) {
         ProductDTO product = productRepository.findProductById(id);
-        model.addAttribute(imagesAttribute, mergeUrls(id));
-        model.addAttribute(productAttribute, product);
-        return editingProductView;
+        model.addAttribute(environment.getProperty("model.attribute.images", "images"), mergeUrls(id));
+        model.addAttribute(environment.getProperty("model.attribute.product", "product"), product);
+        return environment.getProperty("product.editing.view", "admin/product/edit");
     }
 
     @PostMapping("${product.editing.path}")
@@ -91,11 +59,13 @@ public class ProductEditingController {
             ProductDTO currentProduct = productRepository.findProductById(formData.getId());
 
             if (affectedRows <= 0) {
-                logService.log(req, productEditLogAction, LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
-                msg = errorMessage;
+                logService.log(req, environment.getProperty("product.editing.log.action", "EDIT_PRODUCT"),
+                        LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
+                msg = environment.getProperty("message.error", "Cập nhật sản phẩm thất bại");
             } else {
-                logService.log(req, productEditLogAction, LogState.SUCCESS, LogLevel.WARNING, prevProduct, currentProduct);
-                msg = successMessage;
+                logService.log(req, environment.getProperty("product.editing.log.action", "EDIT_PRODUCT"),
+                        LogState.SUCCESS, LogLevel.WARNING, prevProduct, currentProduct);
+                msg = environment.getProperty("message.success", "Cập nhật sản phẩm thành công");
 
                 // Cập nhật hình ảnh sản phẩm
                 updateProductImages(formData.getId(), formData.getImgUrls());
@@ -103,14 +73,16 @@ public class ProductEditingController {
         } else {
             ProductDTO currentProduct = productRepository.findProductById(formData.getId());
             model.addAttribute("errors", validationResult.getErrors());
-            logService.log(req, productEditLogAction, LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
-            msg = errorMessage;
+            logService.log(req, environment.getProperty("product.editing.log.action", "EDIT_PRODUCT"),
+                    LogState.FAIL, LogLevel.ALERT, prevProduct, currentProduct);
+            msg = environment.getProperty("message.error", "Cập nhật sản phẩm thất bại");
         }
 
-        model.addAttribute(imagesAttribute, mergeUrls(formData.getId()));
-        model.addAttribute(messageAttribute, msg);
-        model.addAttribute(productAttribute, productRepository.findProductById(formData.getId()));
-        return editingProductView;
+        model.addAttribute(environment.getProperty("model.attribute.images", "images"), mergeUrls(formData.getId()));
+        model.addAttribute(environment.getProperty("model.attribute.message", "message"), msg);
+        model.addAttribute(environment.getProperty("model.attribute.product", "product"),
+                productRepository.findProductById(formData.getId()));
+        return environment.getProperty("product.editing.view", "admin/product/edit");
     }
 
     private ProductFormData extractFormData(HttpServletRequest req) {
@@ -152,22 +124,22 @@ public class ProductEditingController {
 
         if (!NumberValidateUtil.isValidPrice(formData.getOriginalPrice())) {
             isValid = false;
-            model.addAttribute("oPrErr", originalPriceError);
+            model.addAttribute("oPrErr", environment.getProperty("error.original.price", "Giá gốc không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isValidPrice(formData.getDiscountPrice())) {
             isValid = false;
-            model.addAttribute("dPrErr", discountPriceError);
+            model.addAttribute("dPrErr", environment.getProperty("error.discount.price", "Giá khuyến mãi không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isValidPercent(formData.getDiscountPercent())) {
             isValid = false;
-            model.addAttribute("dPeErr", discountPercentError);
+            model.addAttribute("dPeErr", environment.getProperty("error.discount.percent", "Phần trăm giảm giá không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isValidQuantity(formData.getQuantity())) {
             isValid = false;
-            model.addAttribute("qErr", quantityError);
+            model.addAttribute("qErr", environment.getProperty("error.quantity", "Số lượng không hợp lệ"));
         }
 
         result.setValid(isValid);

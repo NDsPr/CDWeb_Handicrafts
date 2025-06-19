@@ -9,12 +9,12 @@ import com.handicrafts.repository.CustomizeRepository;
 
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.BlankInputUtil;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.ResourceBundle;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/contact")
@@ -23,12 +23,17 @@ public class ContactController {
     private final CustomizeRepository customizeRepository;
     private final ContactRepository contactRepository;
     private final ILogService<ContactDTO> logService;
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    private final Environment environment;
 
-    public ContactController(CustomizeRepository customizeRepository, ContactRepository contactRepository, ILogService<ContactDTO> logService) {
+    public ContactController(
+            CustomizeRepository customizeRepository,
+            ContactRepository contactRepository,
+            ILogService<ContactDTO> logService,
+            Environment environment) {
         this.customizeRepository = customizeRepository;
         this.contactRepository = contactRepository;
         this.logService = logService;
+        this.environment = environment;
     }
 
     @GetMapping
@@ -70,10 +75,10 @@ public class ContactController {
             ContactDTO savedContact = contactRepository.findContactById(id);
 
             if (id <= 0) {
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
+                logService.log(request, "user-contact", LogState.FAIL, LogLevel.ALERT, null, null);
                 msg = "error";
             } else {
-                logService.log((jakarta.servlet.http.HttpServletRequest) request, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, savedContact);
+                logService.log(request, "user-contact", LogState.SUCCESS, LogLevel.WARNING, null, savedContact);
                 msg = "success";
             }
         }

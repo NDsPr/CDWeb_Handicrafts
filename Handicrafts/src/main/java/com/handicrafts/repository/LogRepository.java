@@ -3,6 +3,7 @@ package com.handicrafts.repository;
 import com.handicrafts.dto.LogDTO;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -12,10 +13,17 @@ import java.util.List;
 @Repository
 public class LogRepository {
 
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public LogRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
+
     public int save(LogDTO log) {
         String sql = "INSERT INTO logs (ip, national, level, address, previousValue, currentValue, createdDate, createdBy) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             conn.setAutoCommit(false);
@@ -44,7 +52,7 @@ public class LogRepository {
 
     public LogDTO findById(int id) {
         String sql = "SELECT * FROM logs WHERE id = ?";
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             SetParameterUtil.setParameter(stmt, id);
@@ -60,7 +68,7 @@ public class LogRepository {
     public List<LogDTO> findAll() {
         List<LogDTO> logs = new ArrayList<>();
         String sql = "SELECT * FROM logs";
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -75,7 +83,7 @@ public class LogRepository {
 
     public void deleteById(int id) {
         String sql = "DELETE FROM logs WHERE id = ?";
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             SetParameterUtil.setParameter(stmt, id);

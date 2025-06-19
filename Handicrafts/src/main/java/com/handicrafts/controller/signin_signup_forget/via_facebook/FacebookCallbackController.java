@@ -5,7 +5,7 @@ import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.service.AuthenticationService;
 import com.handicrafts.service.OAuth2Service;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,15 +20,17 @@ public class FacebookCallbackController {
 
     private final OAuth2Service facebookOAuth2Service;
     private final AuthenticationService authenticationService;
+    private final Environment environment;
 
-    @Autowired
     public FacebookCallbackController(OAuth2Service facebookOAuth2Service,
-                                      AuthenticationService authenticationService) {
+                                      AuthenticationService authenticationService,
+                                      Environment environment) {
         this.facebookOAuth2Service = facebookOAuth2Service;
         this.authenticationService = authenticationService;
+        this.environment = environment;
     }
 
-    @GetMapping("/facebook-callback")
+    @GetMapping("${facebook.callback.url:/facebook-callback}")
     public String handleCallback(@RequestParam(value = "code", required = false) String code,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
@@ -36,7 +38,7 @@ public class FacebookCallbackController {
             try {
                 // Lấy access token
                 OAuth2AccessToken accessToken = facebookOAuth2Service.getAccessToken(code);
-                session.setAttribute("accessToken", accessToken);
+                session.setAttribute(environment.getProperty("session.attribute.access-token", "accessToken"), accessToken);
 
                 // Lấy thông tin người dùng
                 CustomOAuth2User userInfo = facebookOAuth2Service.getUserInfo(accessToken);
@@ -49,36 +51,48 @@ public class FacebookCallbackController {
                         case "oAuth":
                             // Đăng nhập thành công với tài khoản OAuth
                             UserEntity user = authenticationService.processOAuthLogin(userInfo);
-                            session.setAttribute("user", user);
-                            return "redirect:/home";
+                            session.setAttribute(environment.getProperty("session.attribute.user", "user"), user);
+                            return "redirect:" + environment.getProperty("redirect.home", "/home");
 
                         case "notOAuth":
                             // Email đã được đăng ký bằng phương thức thông thường
-                            redirectAttributes.addAttribute("notify", "registed-by-page");
-                            return "redirect:/signin";
+                            redirectAttributes.addAttribute(
+                                    environment.getProperty("redirect.attribute.notify", "notify"),
+                                    environment.getProperty("notify.registed-by-page", "registed-by-page")
+                            );
+                            return "redirect:" + environment.getProperty("redirect.signin", "/signin");
 
                         case "error":
                             // Có lỗi xảy ra
-                            redirectAttributes.addAttribute("notify", "error-oauth");
-                            return "redirect:/signin";
+                            redirectAttributes.addAttribute(
+                                    environment.getProperty("redirect.attribute.notify", "notify"),
+                                    environment.getProperty("notify.error-oauth", "error-oauth")
+                            );
+                            return "redirect:" + environment.getProperty("redirect.signin", "/signin");
 
                         default:
                             // Tạo tài khoản mới
                             UserEntity newUser = authenticationService.processOAuthLogin(userInfo);
-                            session.setAttribute("user", newUser);
-                            return "redirect:/home";
+                            session.setAttribute(environment.getProperty("session.attribute.user", "user"), newUser);
+                            return "redirect:" + environment.getProperty("redirect.home", "/home");
                     }
                 } else {
                     // Email không được cung cấp từ Facebook
-                    redirectAttributes.addAttribute("notify", "not-contain-email");
-                    return "redirect:/signin";
+                    redirectAttributes.addAttribute(
+                            environment.getProperty("redirect.attribute.notify", "notify"),
+                            environment.getProperty("notify.not-contain-email", "not-contain-email")
+                    );
+                    return "redirect:" + environment.getProperty("redirect.signin", "/signin");
                 }
             } catch (IOException | ExecutionException | InterruptedException e) {
-                redirectAttributes.addAttribute("notify", "error-oauth");
-                return "redirect:/signin";
+                redirectAttributes.addAttribute(
+                        environment.getProperty("redirect.attribute.notify", "notify"),
+                        environment.getProperty("notify.error-oauth", "error-oauth")
+                );
+                return "redirect:" + environment.getProperty("redirect.signin", "/signin");
             }
         }
 
-        return "redirect:/signin";
+        return "redirect:" + environment.getProperty("redirect.signin", "/signin");
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -27,6 +26,13 @@ public class HomeController {
 
     @Autowired
     private BlogRepository blogRepository;
+
+    // Thêm mapping cho đường dẫn gốc "/"
+    @GetMapping("/")
+    public String index(Model model) {
+        // Gọi lại phương thức home để tái sử dụng code
+        return home(model);
+    }
 
     @GetMapping("/home")
     public String home(Model model) {

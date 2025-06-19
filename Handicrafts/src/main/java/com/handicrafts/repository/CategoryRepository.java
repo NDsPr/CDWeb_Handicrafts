@@ -3,8 +3,8 @@ package com.handicrafts.repository;
 import com.handicrafts.dto.CategoryDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,6 +15,14 @@ import java.util.List;
 
 @Repository
 public class CategoryRepository {
+
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public CategoryRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
+
     public List<CategoryDTO> findAllCategories() {
         String sql = "SELECT id, name, profilePic FROM categories";
         List<CategoryDTO> result = new ArrayList<>();
@@ -24,7 +32,7 @@ public class CategoryRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 

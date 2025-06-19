@@ -1,6 +1,6 @@
 package com.handicrafts.controller.admin.warehouse_detail;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,18 +8,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
-@RequestMapping("${warehouse.detail.management.url}")
+@RequestMapping("/admin/warehouse_detail/management")
 public class WarehouseDetailManagementController {
 
-    @Value("${warehouse.detail.management.view}")
-    private String warehouseDetailView;
+    private final Environment environment;
 
-    @Value("${model.attribute.warehouse.id}")
-    private String warehouseIdAttribute;
+    public WarehouseDetailManagementController(Environment environment) {
+        this.environment = environment;
+    }
 
     @GetMapping
     public String showWarehouseDetailManagementPage(@RequestParam("warehouseId") int warehouseId, Model model) {
-        model.addAttribute(warehouseIdAttribute, warehouseId);
-        return warehouseDetailView;
+        model.addAttribute(
+                environment.getProperty("model.attribute.warehouse.id", "warehouseId"),
+                warehouseId
+        );
+        return environment.getProperty("warehouse.detail.management.view", "admin/warehouse/detail/management");
     }
 }

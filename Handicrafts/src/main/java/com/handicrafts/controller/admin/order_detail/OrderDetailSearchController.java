@@ -1,7 +1,8 @@
 package com.handicrafts.controller.admin.order_detail;
 
 import com.handicrafts.util.BlankInputUtil;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,24 +18,16 @@ import java.util.regex.Pattern;
 @RequestMapping("/admin/order-detail-search")
 public class OrderDetailSearchController {
 
-    @Value("${order.detail.search.view}")
-    private String orderDetailSearchView;
+    private final Environment environment;
 
-    @Value("${order.detail.management.url}")
-    private String orderDetailManagementUrl;
-
-    @Value("${error.attribute}")
-    private String errorAttribute;
-
-    @Value("${error.blank}")
-    private String errorBlankMessage;
-
-    @Value("${error.numeric}")
-    private String errorNumericMessage;
+    @Autowired
+    public OrderDetailSearchController(Environment environment) {
+        this.environment = environment;
+    }
 
     @GetMapping
     public String showSearchPage() {
-        return orderDetailSearchView;
+        return environment.getProperty("order.detail.search.view", "admin/order/search");
     }
 
     @PostMapping
@@ -48,18 +41,21 @@ public class OrderDetailSearchController {
 
         // Kiểm tra lỗi bỏ trống orderId
         if (BlankInputUtil.isBlank(orderId)) {
-            error = errorBlankMessage;
+            error = environment.getProperty("error.blank", "Vui lòng không để trống mã đơn hàng");
             isValid = false;
         } else if (!isNumeric(orderId)) {
-            error = errorNumericMessage;
+            error = environment.getProperty("error.numeric", "Mã đơn hàng phải là số");
             isValid = false;
         }
 
         if (isValid) {
-            return "redirect:" + orderDetailManagementUrl + "?orderId=" + orderId;
+            return "redirect:" + environment.getProperty("order.detail.management.url", "/admin/order-detail-management") + "?orderId=" + orderId;
         } else {
-            model.addAttribute(errorAttribute, error);
-            return orderDetailSearchView;
+            model.addAttribute(
+                    environment.getProperty("error.attribute", "error"),
+                    error
+            );
+            return environment.getProperty("order.detail.search.view", "admin/order/search");
         }
     }
 

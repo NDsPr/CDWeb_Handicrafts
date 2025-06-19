@@ -12,37 +12,46 @@ import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.SessionUtil;
 import com.handicrafts.util.TransferDataUtil;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@WebServlet(value = { "/api/admin/blog" })
-public class BlogAPI extends HttpServlet {
+@RestController
+@RequestMapping("/api/admin/blog")
+public class BlogAPI {
 
-    private final BlogRepository blogRepository = new BlogRepository();
-    private final ILogService<BlogDTO> logService = new LogServiceImp<>();
+    private final BlogRepository blogRepository;
+    private final ILogService<BlogDTO> logService;
     private BlogDTO prevBlog;
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // Phân trang
-        int draw = Integer.parseInt(req.getParameter("draw"));
-        int start = Integer.parseInt(req.getParameter("start"));
-        int length = Integer.parseInt(req.getParameter("length"));
+    @Autowired
+    public BlogAPI(BlogRepository blogRepository) {
+        this.blogRepository = blogRepository;
+        this.logService = new LogServiceImp<>();
+    }
 
-        // Tìm kiếm
-        String searchValue = req.getParameter("search[value]");
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DatatableDTO<BlogDTO>> getBlogsDatatable(
+            @RequestParam("draw") int draw,
+            @RequestParam("start") int start,
+            @RequestParam("length") int length,
+            @RequestParam(value = "search[value]", required = false) String searchValue,
+            @RequestParam(value = "order[0][column]", defaultValue = "0") String orderBy,
+            @RequestParam(value = "order[0][dir]", defaultValue = "asc") String orderDir,
+            @RequestParam(value = "columns[" + "${orderBy}" + "][data]", required = false) String columnOrder) {
 
-        // Sắp xếp
-        String orderBy = req.getParameter("order[0][column]") == null ? "0" : req.getParameter("order[0][column]");
-        String orderDir = req.getParameter("order[0][dir]") == null ? "asc" : req.getParameter("order[0][dir]");
-        String columnOrder = req.getParameter("columns[" + orderBy + "][data]");
+        // Nếu columnOrder là null (có thể xảy ra do cách Spring xử lý tham số), thì gán giá trị mặc định
+        if (columnOrder == null) {
+            columnOrder = "id"; // hoặc trường mặc định khác
+        }
 
-        // Lấy dữ liệu
         List<BlogDTO> blogs = blogRepository.getBlogsDatatable(start, length, columnOrder, orderDir, searchValue);
         int recordsTotal = blogRepository.getRecordsTotal();
         int recordsFiltered = blogRepository.getRecordsFiltered(searchValue);
@@ -50,16 +59,16 @@ public class BlogAPI extends HttpServlet {
         draw++;
 
         DatatableDTO<BlogDTO> blogDatatableDTO = new DatatableDTO<>(blogs, recordsTotal, recordsFiltered, draw);
-        String jsonData = new TransferDataUtil<DatatableDTO<BlogDTO>>().toJson(blogDatatableDTO);
 
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
+        return ResponseEntity.ok(blogDatatableDTO);
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int id = Integer.parseInt(req.getParameter("id"));
+    @DeleteMapping
+    public ResponseEntity<Map<String, String>> deleteBlog(
+            @RequestParam("id") int id,
+            HttpServletRequest request) {
+
+        Map<String, String> response = new HashMap<>();
         String status;
         String notify;
 
@@ -68,23 +77,24 @@ public class BlogAPI extends HttpServlet {
 
         if (affectedRow < 1) {
             BlogDTO currentBlog = blogRepository.findBlogById(id);
-            logService.log(req, "admin-delete-blog", LogState.FAIL, LogLevel.ALERT, prevBlog, currentBlog);
+            logService.log(request, "admin-delete-blog", LogState.FAIL, LogLevel.ALERT, prevBlog, currentBlog);
             status = "error";
             notify = "Có lỗi khi xóa blog!";
+            response.put("status", status);
+            response.put("notify", notify);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         } else {
-            logService.log(req, "admin-delete-blog", LogState.SUCCESS, LogLevel.WARNING, prevBlog, null);
+            logService.log(request, "admin-delete-blog", LogState.SUCCESS, LogLevel.WARNING, prevBlog, null);
             status = "success";
             notify = "Xóa blog thành công!";
 
             // Gửi thông báo email
-            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(req, "user");
+            UserDTO user = (UserDTO) SessionUtil.getInstance().getValue(request, "user");
             SendEmailUtil.sendDeleteNotify(user.getId(), user.getEmail(), prevBlog.getId(), "Blog");
+
+            response.put("status", status);
+            response.put("notify", notify);
+            return ResponseEntity.ok(response);
         }
-
-        String jsonData = "{\"status\": \"" + status + "\", \"notify\": \"" + notify + "\"}";
-
-        resp.setContentType("application/json");
-        resp.setCharacterEncoding("UTF-8");
-        resp.getWriter().write(jsonData);
     }
 }

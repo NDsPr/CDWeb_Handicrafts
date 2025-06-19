@@ -6,8 +6,7 @@ import com.handicrafts.dto.WarehouseDTO;
 import com.handicrafts.repository.WarehouseRepository;
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.ValidateParamUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,37 +16,24 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Controller
-@RequestMapping("${warehouse.management.adding.url}")
+@RequestMapping("/admin/warehouse/adding")
 public class WarehouseAddingController {
 
     private final WarehouseRepository warehouseRepository;
     private final ILogService<WarehouseDTO> logService;
+    private final Environment environment;
 
-    @Value("${warehouse.adding.view}")
-    private String addingWarehouseView;
-
-    @Value("${warehouse.adding.log.action}")
-    private String warehouseAddLogAction;
-
-    @Value("${message.error}")
-    private String errorMessage;
-
-    @Value("${message.success}")
-    private String successMessage;
-
-    @Value("${model.attribute.message}")
-    private String messageAttribute;
-
-    @Autowired
     public WarehouseAddingController(WarehouseRepository warehouseRepository,
-                                     ILogService<WarehouseDTO> logService) {
+                                     ILogService<WarehouseDTO> logService,
+                                     Environment environment) {
         this.warehouseRepository = warehouseRepository;
         this.logService = logService;
+        this.environment = environment;
     }
 
     @GetMapping
     public String showAddForm() {
-        return addingWarehouseView;
+        return environment.getProperty("warehouse.adding.view", "admin/warehouse/add");
     }
 
     @PostMapping
@@ -70,20 +56,22 @@ public class WarehouseAddingController {
 
             int id = warehouseRepository.createWarehouse(newWarehouse);
             if (id <= 0) {
-                logService.log(request, warehouseAddLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
-                msg = errorMessage;
+                logService.log(request, environment.getProperty("warehouse.adding.log.action", "ADD_WAREHOUSE"),
+                        LogState.FAIL, LogLevel.ALERT, null, null);
+                msg = environment.getProperty("message.error", "Thêm kho hàng thất bại");
             } else {
                 WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
-                logService.log(request, warehouseAddLogAction, LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
-                msg = successMessage;
+                logService.log(request, environment.getProperty("warehouse.adding.log.action", "ADD_WAREHOUSE"),
+                        LogState.SUCCESS, LogLevel.WARNING, null, currentWarehouse);
+                msg = environment.getProperty("message.success", "Thêm kho hàng thành công");
             }
         } else {
             model.addAttribute("errors", validationResult.getErrors());
-            msg = errorMessage;
+            msg = environment.getProperty("message.error", "Thêm kho hàng thất bại");
         }
 
-        model.addAttribute(messageAttribute, msg);
-        return addingWarehouseView;
+        model.addAttribute(environment.getProperty("model.attribute.message", "message"), msg);
+        return environment.getProperty("warehouse.adding.view", "admin/warehouse/add");
     }
 
     private ValidationResult validateWarehouseInputs(String shippingFrom, String shippingStart,

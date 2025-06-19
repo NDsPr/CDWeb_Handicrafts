@@ -13,7 +13,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -28,20 +28,22 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class FacebookOAuth2ServiceImpl implements OAuth2Service {
 
-    @Value("${oauth2.facebook.client-id}")
-    private String clientId;
+    private final Environment environment;
 
-    @Value("${oauth2.facebook.client-secret}")
-    private String clientSecret;
-
-    @Value("${oauth2.facebook.redirect-uri}")
-    private String redirectUri;
+    public FacebookOAuth2ServiceImpl(Environment environment) {
+        this.environment = environment;
+    }
 
     private OAuth20Service createOAuth20Service() {
+        String clientId = environment.getProperty("oauth2.facebook.client-id");
+        String clientSecret = environment.getProperty("oauth2.facebook.client-secret");
+        String redirectUri = environment.getProperty("oauth2.facebook.redirect-uri");
+        String defaultScope = environment.getProperty("oauth2.facebook.default-scope", "email,public_profile");
+
         return new ServiceBuilder(clientId)
                 .apiSecret(clientSecret)
                 .callback(redirectUri)
-                .defaultScope("email,public_profile")
+                .defaultScope(defaultScope)
                 .build(FacebookApi.instance());
     }
 
@@ -61,33 +63,52 @@ public class FacebookOAuth2ServiceImpl implements OAuth2Service {
 
         // Tạo một Map<String, Object> để chứa thông tin người dùng
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("name", userInfo.get("name").asText());
+        attributes.put(
+                environment.getProperty("oauth2.user.attribute.name", "name"),
+                userInfo.get("name").asText()
+        );
 
         if (userInfo.has("email")) {
-            attributes.put("email", userInfo.get("email").asText());
+            attributes.put(
+                    environment.getProperty("oauth2.user.attribute.email", "email"),
+                    userInfo.get("email").asText()
+            );
         }
 
-        attributes.put("id", userInfo.get("id").asText());
+        attributes.put(
+                environment.getProperty("oauth2.user.attribute.id", "id"),
+                userInfo.get("id").asText()
+        );
 
         if (userInfo.has("picture") && userInfo.get("picture").has("data")) {
-            attributes.put("picture", userInfo.get("picture").get("data").get("url").asText());
+            attributes.put(
+                    environment.getProperty("oauth2.user.attribute.picture", "picture"),
+                    userInfo.get("picture").get("data").get("url").asText()
+            );
         }
 
         // Tạo một OAuth2User từ attributes
         OAuth2User oAuth2User = new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                Collections.singleton(new SimpleGrantedAuthority(
+                        environment.getProperty("oauth2.user.role", "ROLE_USER")
+                )),
                 attributes,
-                "name"
+                environment.getProperty("oauth2.user.name-attribute-key", "name")
         );
 
         // Trả về CustomOAuth2User với OAuth2User và clientName
-        return new CustomOAuth2User(oAuth2User, "facebook");
+        return new CustomOAuth2User(oAuth2User,
+                environment.getProperty("oauth2.client.name.facebook", "facebook")
+        );
     }
 
-
     private JsonNode getJsonUserInfo(OAuth2AccessToken accessToken) throws IOException {
-        String userInfoEndpoint = "https://graph.facebook.com/me?fields=id,name,email,birthday,picture&access_token="
-                + accessToken.getAccessToken();
+        String userInfoEndpointTemplate = environment.getProperty(
+                "oauth2.facebook.user-info-endpoint",
+                "https://graph.facebook.com/me?fields=id,name,email,birthday,picture&access_token=%s"
+        );
+
+        String userInfoEndpoint = String.format(userInfoEndpointTemplate, accessToken.getAccessToken());
 
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(userInfoEndpoint);

@@ -28,7 +28,8 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImp implements IUserService {
     @Autowired
-    private PasswordEncoderConfig passwordEncoder; // Inject PasswordEncoder
+    private PasswordEncoder passwordEncoder; // Đúng: inject bean PasswordEncoder
+
     @Autowired
     private UserRepository userRepository;
 
@@ -350,9 +351,8 @@ public class UserServiceImp implements IUserService {
                 }
             }
 
-
             // Đặt một mật khẩu ngẫu nhiên vì người dùng sẽ đăng nhập bằng OAuth
-            newUser.setPassword(passwordEncoder.encoder(UUID.randomUUID().toString()).toString());
+            newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
             // Lưu nhà cung cấp OAuth vào trường viaOAuth
             newUser.setViaOAuth(provider);
@@ -370,6 +370,7 @@ public class UserServiceImp implements IUserService {
             userRepository.save(newUser);
         }
     }
+
     @Override
     public void changeInformation(UserDTO userDTO) {
         UserEntity entity = userRepository.findByEmail(userDTO.getEmail());

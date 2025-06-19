@@ -8,6 +8,7 @@ import com.handicrafts.service.ILogService;
 import com.handicrafts.util.BlankInputUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.util.ResourceBundle;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/user-info")
@@ -26,17 +26,18 @@ public class UserInfoController {
     private final CustomizeRepository customizeRepository;
     private final UserRepository userRepository;
     private final ILogService<UserDTO> logService;
-    private final ResourceBundle logBundle;
+    private final Environment environment;
 
     @Autowired
     public UserInfoController(
             CustomizeRepository customizeRepository,
             UserRepository userRepository,
-            ILogService<UserDTO> logService) {
+            ILogService<UserDTO> logService,
+            Environment environment) {
         this.customizeRepository = customizeRepository;
         this.userRepository = userRepository;
         this.logService = logService;
-        this.logBundle = ResourceBundle.getBundle("log-content");
+        this.environment = environment;
     }
 
     @GetMapping
@@ -121,5 +122,10 @@ public class UserInfoController {
 //        model.addAttribute("userInfo", userDTO);
         model.addAttribute("msg", msg);
         return "client-userinfo";
+    }
+
+    // Phương thức tiện ích để lấy thông điệp từ Environment
+    private String getLogMessage(String key) {
+        return environment.getProperty("log." + key, key);
     }
 }

@@ -9,8 +9,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class AdminHomeRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminHomeRepository.class);
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public AdminHomeRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
+
     public List<Integer> countUser() {
         List<Integer> count = new ArrayList<>();
         String sql = "SELECT " +
@@ -26,7 +40,7 @@ public class AdminHomeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -38,7 +52,7 @@ public class AdminHomeRepository {
                 count.add(resultSet.getInt(5));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error counting users", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -57,7 +71,7 @@ public class AdminHomeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -68,7 +82,7 @@ public class AdminHomeRepository {
                 count.add(resultSet.getInt(4));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error counting products", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -88,7 +102,7 @@ public class AdminHomeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -99,7 +113,7 @@ public class AdminHomeRepository {
                 count.add(resultSet.getInt(4));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error counting orders", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }

@@ -6,6 +6,7 @@ import com.handicrafts.repository.OrderDetailRepository;
 import com.handicrafts.repository.OrderRepository;
 import com.handicrafts.oauth2.CustomOAuth2User;
 import com.handicrafts.service.IUserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -30,49 +31,24 @@ public class OrderController {
     private IUserService userService;
 
     @GetMapping("/cart")
-    public ModelAndView showCart(Authentication authentication) {
+    public ModelAndView showCart(Authentication authentication, HttpSession session) {
         ModelAndView mav = new ModelAndView("web/cart");
-        CartDTO cartDTO = new CartDTO();
 
-        if (authentication != null && authentication.isAuthenticated()) {
-            int userId = getUserId(authentication);
-
-            List<OrderEntity> userOrders = orderRepository.findOrderByUserId(userId);
-            OrderEntity cart = userOrders.stream()
-                    .filter(order -> order.getStatus() == 1)
-                    .findFirst()
-                    .orElse(null);
-
-            if (cart != null) {
-                List<OrderDetailDTO> cartItems = orderDetailRepository.findOrderDetailByOrderId(cart.getId());
-
-                for (OrderDetailDTO detail : cartItems) {
-                    ProductDTO product = detail.getProduct();
-                    if (product == null) {
-                        product = new ProductDTO();
-                        product.setId(detail.getProductId());
-                        product.setName(detail.getProductName());
-                        product.setOriginalPrice(detail.getOriginalPrice());
-                        product.setDiscountPrice(detail.getDiscountPrice());
-                    }
-
-                    ItemDTO item = new ItemDTO();
-                    item.setProduct(product);
-                    item.setQuantity(detail.getQuantity());
-
-                    cartDTO.addItem(item);
-                }
-
-                mav.addObject("cartId", cart.getId());
-            }
+        // Lấy giỏ hàng từ session
+        CartDTO cartDTO = (CartDTO) session.getAttribute("cart");
+        if (cartDTO == null) {
+            cartDTO = new CartDTO();
+            session.setAttribute("cart", cartDTO);
         }
 
         mav.addObject("cart", cartDTO);
         return mav;
     }
 
-    @PostMapping("/checkout")
-    public ModelAndView checkout(@RequestParam(defaultValue = "COD") String paymentMethod,
+
+    // @PostMapping("/checkout")
+   @PostMapping("/process-order") // Đổi URL để tránh xung đột
+   public ModelAndView checkout(@RequestParam(defaultValue = "COD") String paymentMethod,
                                  Authentication authentication) {
         ModelAndView mav = new ModelAndView("redirect:/order-success");
 

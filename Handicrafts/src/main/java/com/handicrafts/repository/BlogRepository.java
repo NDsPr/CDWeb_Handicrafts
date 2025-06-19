@@ -1,323 +1,232 @@
 package com.handicrafts.repository;
 
-
-
 import com.handicrafts.dto.BlogDTO;
-import com.handicrafts.util.CloseResourceUtil;
-import com.handicrafts.util.OpenConnectionUtil;
-import com.handicrafts.util.SetParameterUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
+
 @Repository
 public class BlogRepository {
 
-    public BlogDTO findBlogById(int id) {
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT id, author, title, profilePic, content, categoryId, createdDate ")
-                .append("FROM blogs ")
-                .append("WHERE id = ?");
+    private final JdbcTemplate jdbcTemplate;
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+    @Autowired
+    public BlogRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-        BlogDTO blog = null;
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement, id);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                blog = new BlogDTO();
-                blog.setId(resultSet.getInt("id"));
-                blog.setAuthor(resultSet.getString("author"));
-                blog.setTitle(resultSet.getString("title"));
-                blog.setProfilePic(resultSet.getString("profilePic"));
-                blog.setContent(resultSet.getString("content"));
-                blog.setCategoryId(resultSet.getInt("categoryId"));
-                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
+    private final RowMapper<BlogDTO> blogRowMapper = (ResultSet rs, int rowNum) -> {
+        BlogDTO blog = new BlogDTO();
+        blog.setId(rs.getInt("id"));
+        blog.setAuthor(rs.getString("author"));
+        blog.setTitle(rs.getString("title"));
+        blog.setProfilePic(rs.getString("profilePic"));
+        blog.setContent(rs.getString("content"));
+        blog.setCategoryId(rs.getInt("categoryId"));
+        blog.setCreatedDate(rs.getTimestamp("createdDate"));
+        blog.setDescription(rs.getString("description"));
+        blog.setStatus(rs.getInt("status"));
+        blog.setCreatedBy(rs.getString("createdBy"));
+        blog.setModifiedDate(rs.getTimestamp("modifiedDate"));
+        blog.setModifiedBy(rs.getString("modifiedBy"));
         return blog;
+    };
+
+    public BlogDTO findBlogById(int id) {
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs WHERE id = ?";
+
+        List<BlogDTO> blogs = jdbcTemplate.query(sql, blogRowMapper, id);
+        return blogs.isEmpty() ? null : blogs.get(0);
     }
 
     public List<BlogDTO> findThreeBlogs() {
-        List<BlogDTO> result = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT id, title, author, categoryId, createdDate ")
-                .append("FROM blogs ")
-                .append("WHERE status = 1 ")
-                .append("LIMIT 3");
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs ORDER BY createdDate DESC LIMIT 3";
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                BlogDTO blog = new BlogDTO();
-                blog.setId(resultSet.getInt("id"));
-                blog.setTitle(resultSet.getString("title"));
-                blog.setAuthor(resultSet.getString("author"));
-                blog.setCategoryId(resultSet.getInt("categoryId"));
-                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
-
-                result.add(blog);
-            }
-            return result;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
+        return jdbcTemplate.query(sql, blogRowMapper);
     }
 
     public List<BlogDTO> findAllBlogs() {
-        List<BlogDTO> result = new ArrayList<>();
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT id, title, author, categoryId, createdDate ")
-                .append("FROM blogs ")
-                .append("WHERE status = 1 ");
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs ORDER BY createdDate DESC";
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            preparedStatement = connection.prepareStatement(sql.toString());
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                BlogDTO blog = new BlogDTO();
-                blog.setId(resultSet.getInt("id"));
-                blog.setTitle(resultSet.getString("title"));
-                blog.setAuthor(resultSet.getString("author"));
-                blog.setCategoryId(resultSet.getInt("categoryId"));
-                blog.setCreatedDate(resultSet.getTimestamp("createdDate"));
-
-                result.add(blog);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
-        }
-        return result;
-    }
-
-    public void createBlog(BlogDTO blog) {
-        String sql = "INSERT INTO blogs(title,author, description, content, categoryID, status,createdDate, createdBy) " +
-                "VALUES (?,?, ?, ?, ?, ?,?,?)";
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement,
-                    blog.getTitle(), blog.getAuthor(), blog.getDescription(),
-                    blog.getContent(), blog.getCategoryId(), blog.getStatus(),
-                    blog.getCreatedDate(), blog.getCreatedBy());
-            preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
+        return jdbcTemplate.query(sql, blogRowMapper);
     }
 
     public List<BlogDTO> getBlogsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        List<BlogDTO> blogs = new ArrayList<>();
-        String sql = "SELECT id, title, author, description, content, categoryId, status, profilePic, createdDate, createdBy, modifiedDate, modifiedBy FROM blogs";
-        int index = 1;
+        StringBuilder sqlBuilder = new StringBuilder(
+                "SELECT b.id, b.title, b.author, b.description, b.status, b.createdDate, b.createdBy, " +
+                        "b.modifiedDate, b.modifiedBy FROM blogs b ");
 
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " WHERE (id LIKE ? OR title LIKE ? OR author LIKE ? OR description LIKE ? OR content LIKE ? OR categoryId LIKE ? " +
-                        "OR status LIKE ? OR profilePic LIKE ? OR createdDate LIKE ? OR createdBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
-            }
-            sql += " ORDER BY " + columnOrder + " " + orderDir + " ";
-            sql += "LIMIT ?, ?";
-
-            preStat = conn.prepareStatement(sql);
-            if (searchValue != null && !searchValue.isEmpty()) {
-                for (int i = 0; i < 12; i++) {
-                    preStat.setString(index++, "%" + searchValue + "%");
-                }
-            }
-            preStat.setInt(index++, start);
-            preStat.setInt(index, length);
-
-            rs = preStat.executeQuery();
-            while (rs.next()) {
-                BlogDTO blog = new BlogDTO();
-                blog.setId(rs.getInt("id"));
-                blog.setTitle(rs.getString("title"));
-                blog.setAuthor(rs.getString("author"));
-                blog.setDescription(rs.getString("description"));
-                blog.setContent(rs.getString("content"));
-                blog.setCategoryId(rs.getInt("categoryId"));
-                blog.setStatus(rs.getInt("status"));
-                blog.setProfilePic(rs.getString("profilePic"));
-                blog.setCreatedDate(rs.getTimestamp("createdDate"));
-                blog.setCreatedBy(rs.getString("createdBy"));
-                blog.setModifiedDate(rs.getTimestamp("modifiedDate"));
-                blog.setModifiedBy(rs.getString("modifiedBy"));
-
-                blogs.add(blog);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
+        if (searchValue != null && !searchValue.isEmpty()) {
+            sqlBuilder.append("WHERE b.title LIKE ? OR b.author LIKE ? OR b.description LIKE ? ");
         }
-        return blogs;
+
+        if (columnOrder != null && !columnOrder.isEmpty()) {
+            sqlBuilder.append("ORDER BY b.").append(columnOrder).append(" ").append(orderDir);
+        } else {
+            sqlBuilder.append("ORDER BY b.id DESC");
+        }
+
+        sqlBuilder.append(" LIMIT ? OFFSET ?");
+        String sql = sqlBuilder.toString();
+
+        if (searchValue != null && !searchValue.isEmpty()) {
+            String likePattern = "%" + searchValue + "%";
+            return jdbcTemplate.query(sql,
+                    (rs, rowNum) -> {
+                        BlogDTO blog = new BlogDTO();
+                        blog.setId(rs.getInt("id"));
+                        blog.setTitle(rs.getString("title"));
+                        blog.setAuthor(rs.getString("author"));
+                        blog.setDescription(rs.getString("description"));
+                        blog.setStatus(rs.getInt("status"));
+                        blog.setCreatedDate(rs.getTimestamp("createdDate"));
+                        blog.setCreatedBy(rs.getString("createdBy"));
+                        blog.setModifiedDate(rs.getTimestamp("modifiedDate"));
+                        blog.setModifiedBy(rs.getString("modifiedBy"));
+                        return blog;
+                    },
+                    likePattern, likePattern, likePattern, length, start);
+        } else {
+            return jdbcTemplate.query(sql,
+                    (rs, rowNum) -> {
+                        BlogDTO blog = new BlogDTO();
+                        blog.setId(rs.getInt("id"));
+                        blog.setTitle(rs.getString("title"));
+                        blog.setAuthor(rs.getString("author"));
+                        blog.setDescription(rs.getString("description"));
+                        blog.setStatus(rs.getInt("status"));
+                        blog.setCreatedDate(rs.getTimestamp("createdDate"));
+                        blog.setCreatedBy(rs.getString("createdBy"));
+                        blog.setModifiedDate(rs.getTimestamp("modifiedDate"));
+                        blog.setModifiedBy(rs.getString("modifiedBy"));
+                        return blog;
+                    },
+                    length, start);
+        }
     }
 
     public int getRecordsTotal() {
-        int recordsTotal = -1;
-        String sql = "SELECT COUNT(id) FROM blogs";
-
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            preStat = conn.prepareStatement(sql);
-            rs = preStat.executeQuery();
-
-            if (rs.next()) {
-                recordsTotal = rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
-        }
-        return recordsTotal;
+        String sql = "SELECT COUNT(*) FROM blogs";
+        return jdbcTemplate.queryForObject(sql, Integer.class);
     }
 
-    public int getRecordsFiltered(String searchValue){
-        int recordsFiltered = -1;
-        String sql = "SELECT COUNT(id) FROM blogs";
-
-        Connection conn = null;
-        PreparedStatement preStat = null;
-        ResultSet rs = null;
-
-        try {
-            conn = OpenConnectionUtil.openConnection();
-            if (searchValue != null && !searchValue.isEmpty()) {
-                sql += " WHERE (id LIKE ? OR title LIKE ? OR author LIKE ? OR description LIKE ? OR content LIKE ? OR categoryId LIKE ? " +
-                        "OR status LIKE ? OR profilePic LIKE ? OR createDate LIKE ? OR createBy LIKE ? OR modifiedDate LIKE ? OR modifiedBy LIKE ?)";
-            }
-            preStat = conn.prepareStatement(sql);
-            int index = 1;
-            if (searchValue != null && !searchValue.isEmpty()) {
-                for (int i = 0; i < 12; i++) {
-                    preStat.setString(index++, "%" + searchValue + "%");
-                }
-            }
-            rs = preStat.executeQuery();
-
-            if (rs.next()) {
-                recordsFiltered = rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            CloseResourceUtil.closeResource(rs, preStat, conn);
+    public int getRecordsFiltered(String searchValue) {
+        if (searchValue != null && !searchValue.isEmpty()) {
+            String sql = "SELECT COUNT(*) FROM blogs WHERE title LIKE ? OR author LIKE ? OR description LIKE ?";
+            String likePattern = "%" + searchValue + "%";
+            return jdbcTemplate.queryForObject(sql, Integer.class, likePattern, likePattern, likePattern);
+        } else {
+            return getRecordsTotal();
         }
-        return recordsFiltered;
     }
 
     public int deleteBlog(int id) {
-        int affectRows;
         String sql = "DELETE FROM blogs WHERE id = ?";
+        return jdbcTemplate.update(sql, id);
+    }
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
+    public int createBlog(BlogDTO blog) {
+        String sql = "INSERT INTO blogs (author, title, profilePic, content, categoryId, description, status, createdBy, createdDate) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql);
-            SetParameterUtil.setParameter(preparedStatement, id);
-            affectRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-                return -1;
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                return -1;
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affectRows;
+        return jdbcTemplate.update(sql,
+                blog.getAuthor(),
+                blog.getTitle(),
+                blog.getProfilePic(),
+                blog.getContent(),
+                blog.getCategoryId(),
+                blog.getDescription(),
+                blog.getStatus(),
+                blog.getCreatedBy()
+        );
     }
 
     public int updateBlog(BlogDTO blog) {
-        int affectedRows = -1;
-        StringBuilder sql = new StringBuilder();
-        sql.append("UPDATE blogs ")
-                .append("SET title = ?, author = ?, description = ?, ")
-                .append("content = ?, profilePic = ? ")
-                .append("WHERE id = ?");
+        String sql = "UPDATE blogs SET author = ?, title = ?, profilePic = ?, content = ?, " +
+                "categoryId = ?, description = ?, status = ?, modifiedBy = ?, modifiedDate = NOW() " +
+                "WHERE id = ?";
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
+        return jdbcTemplate.update(sql,
+                blog.getAuthor(),
+                blog.getTitle(),
+                blog.getProfilePic(),
+                blog.getContent(),
+                blog.getCategoryId(),
+                blog.getDescription(),
+                blog.getStatus(),
+                blog.getModifiedBy(),
+                blog.getId()
+        );
+    }
 
-        try {
-            connection = OpenConnectionUtil.openConnection();
-            connection.setAutoCommit(false);
-            preparedStatement = connection.prepareStatement(sql.toString());
-            SetParameterUtil.setParameter(preparedStatement,
-                    blog.getTitle(), blog.getAuthor(),
-                    blog.getDescription(), blog.getContent(),
-                    blog.getProfilePic(), blog.getId());
-            affectedRows = preparedStatement.executeUpdate();
-            connection.commit();
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new RuntimeException(ex);
-            }
-        } finally {
-            CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
-        }
-        return affectedRows;
+    public List<BlogDTO> findBlogsByCategoryId(int categoryId, int start, int size) {
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs WHERE categoryId = ? ORDER BY createdDate DESC LIMIT ? OFFSET ?";
+
+        return jdbcTemplate.query(sql, blogRowMapper, categoryId, size, start);
+    }
+
+    public int countBlogsByCategoryId(int categoryId) {
+        String sql = "SELECT COUNT(*) FROM blogs WHERE categoryId = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, categoryId);
+    }
+
+    public List<BlogDTO> findRelatedBlogs(int blogId, int categoryId, int limit) {
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs WHERE categoryId = ? AND id != ? ORDER BY createdDate DESC LIMIT ?";
+
+        return jdbcTemplate.query(sql, blogRowMapper, categoryId, blogId, limit);
+    }
+
+    public List<BlogDTO> findLatestBlogs(int limit) {
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs ORDER BY createdDate DESC LIMIT ?";
+
+        return jdbcTemplate.query(sql, blogRowMapper, limit);
+    }
+
+    public List<BlogDTO> findPopularBlogs(int limit) {
+        // Giả sử có cột viewCount để đánh giá mức độ phổ biến
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs ORDER BY viewCount DESC LIMIT ?";
+
+        return jdbcTemplate.query(sql, blogRowMapper, limit);
+    }
+
+    public void incrementViewCount(int blogId) {
+        // Giả sử có cột viewCount để tăng lượt xem
+        String sql = "UPDATE blogs SET viewCount = viewCount + 1 WHERE id = ?";
+        jdbcTemplate.update(sql, blogId);
+    }
+
+    public List<BlogDTO> searchBlogs(String keyword, int start, int size) {
+        String sql = "SELECT id, author, title, profilePic, content, categoryId, createdDate, " +
+                "description, status, createdBy, modifiedDate, modifiedBy " +
+                "FROM blogs WHERE title LIKE ? OR content LIKE ? OR description LIKE ? " +
+                "ORDER BY createdDate DESC LIMIT ? OFFSET ?";
+
+        String likePattern = "%" + keyword + "%";
+        return jdbcTemplate.query(sql, blogRowMapper, likePattern, likePattern, likePattern, size, start);
+    }
+
+    public int countSearchResults(String keyword) {
+        String sql = "SELECT COUNT(*) FROM blogs WHERE title LIKE ? OR content LIKE ? OR description LIKE ?";
+        String likePattern = "%" + keyword + "%";
+        return jdbcTemplate.queryForObject(sql, Integer.class, likePattern, likePattern, likePattern);
     }
 }

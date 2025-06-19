@@ -6,8 +6,7 @@ import com.handicrafts.dto.WarehouseDTO;
 import com.handicrafts.repository.WarehouseRepository;
 import com.handicrafts.service.ILogService;
 import com.handicrafts.util.ValidateParamUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,45 +16,26 @@ import java.sql.Timestamp;
 import java.util.List;
 
 @Controller
-@RequestMapping("${warehouse.management.editing.url}")
+@RequestMapping("/admin/warehouse/edit")
 public class WarehouseEditingController {
 
     private final WarehouseRepository warehouseRepository;
     private final ILogService<WarehouseDTO> logService;
+    private final Environment environment;
 
-    @Value("${warehouse.editing.view}")
-    private String editingWarehouseView;
-
-    @Value("${warehouse.editing.log.action}")
-    private String warehouseEditLogAction;
-
-    @Value("${message.error}")
-    private String errorMessage;
-
-    @Value("${message.success}")
-    private String successMessage;
-
-    @Value("${model.attribute.message}")
-    private String messageAttribute;
-
-    @Value("${model.attribute.warehouse}")
-    private String warehouseAttribute;
-
-    @Value("${model.attribute.errors}")
-    private String errorsAttribute;
-
-    @Autowired
     public WarehouseEditingController(WarehouseRepository warehouseRepository,
-                                      ILogService<WarehouseDTO> logService) {
+                                      ILogService<WarehouseDTO> logService,
+                                      Environment environment) {
         this.warehouseRepository = warehouseRepository;
         this.logService = logService;
+        this.environment = environment;
     }
 
     @GetMapping
     public String showEditPage(@RequestParam("id") int id, Model model) {
         WarehouseDTO warehouse = warehouseRepository.findWarehouseById(id);
-        model.addAttribute(warehouseAttribute, warehouse);
-        return editingWarehouseView;
+        model.addAttribute(environment.getProperty("model.attribute.warehouse", "warehouse"), warehouse);
+        return environment.getProperty("warehouse.editing.view", "admin/warehouse/edit");
     }
 
     @PostMapping
@@ -86,28 +66,40 @@ public class WarehouseEditingController {
             WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
 
             if (affected < 0) {
-                logService.log(request, warehouseEditLogAction, LogState.FAIL,
+                logService.log(request,
+                        environment.getProperty("warehouse.editing.log.action", "EDIT_WAREHOUSE"),
+                        LogState.FAIL,
                         LogLevel.ALERT, prevWarehouse, currentWarehouse);
-                msg = errorMessage;
+                msg = environment.getProperty("message.error", "Cập nhật kho hàng thất bại");
             } else {
-                logService.log(request, warehouseEditLogAction, LogState.SUCCESS,
+                logService.log(request,
+                        environment.getProperty("warehouse.editing.log.action", "EDIT_WAREHOUSE"),
+                        LogState.SUCCESS,
                         LogLevel.WARNING, prevWarehouse, currentWarehouse);
-                msg = successMessage;
+                msg = environment.getProperty("message.success", "Cập nhật kho hàng thành công");
             }
         } else {
-            model.addAttribute(errorsAttribute, validationResult.getErrors());
+            model.addAttribute(
+                    environment.getProperty("model.attribute.errors", "errors"),
+                    validationResult.getErrors());
             WarehouseDTO currentWarehouse = warehouseRepository.findWarehouseById(id);
-            logService.log(request, warehouseEditLogAction, LogState.FAIL,
+            logService.log(request,
+                    environment.getProperty("warehouse.editing.log.action", "EDIT_WAREHOUSE"),
+                    LogState.FAIL,
                     LogLevel.ALERT, prevWarehouse, currentWarehouse);
-            msg = errorMessage;
+            msg = environment.getProperty("message.error", "Cập nhật kho hàng thất bại");
         }
 
         // Prepare model for view rendering
         WarehouseDTO displayWarehouse = warehouseRepository.findWarehouseById(id);
-        model.addAttribute(warehouseAttribute, displayWarehouse);
-        model.addAttribute(messageAttribute, msg);
+        model.addAttribute(
+                environment.getProperty("model.attribute.warehouse", "warehouse"),
+                displayWarehouse);
+        model.addAttribute(
+                environment.getProperty("model.attribute.message", "message"),
+                msg);
 
-        return editingWarehouseView;
+        return environment.getProperty("warehouse.editing.view", "admin/warehouse/edit");
     }
 
     private ValidationResult validateWarehouseInputs(String shippingFrom, String shippingStartStr,

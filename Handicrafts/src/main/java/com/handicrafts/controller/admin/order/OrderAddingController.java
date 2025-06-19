@@ -5,7 +5,7 @@ import com.handicrafts.service.IOrderService;
 import com.handicrafts.util.BlankInputUtil;
 import com.handicrafts.util.NumberValidateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,15 +23,18 @@ public class OrderAddingController {
     @Autowired
     private IOrderService orderService;
 
-    @Value("${order.view.adding}")
-    private String addingOrderView;
+    @Autowired
+    private Environment environment;
 
-    @Value("${order.redirect.success}")
-    private String successRedirect;
+    // Không cần các @Value nữa
+    // @Value("${order.view.adding}")
+    // private String addingOrderView;
+    // @Value("${order.redirect.success}")
+    // private String successRedirect;
 
     @GetMapping
     public String showForm(Model model) {
-        return addingOrderView;
+        return environment.getProperty("order.view.adding");
     }
 
     @PostMapping
@@ -66,9 +69,9 @@ public class OrderAddingController {
 
             OrderDTO createdOrder = orderService.createOrder(order);
 
-            return successRedirect;
+            return "redirect:" + environment.getProperty("order.redirect.success");
         } else {
-            return addingOrderView;
+            return environment.getProperty("order.view.adding");
         }
     }
 }

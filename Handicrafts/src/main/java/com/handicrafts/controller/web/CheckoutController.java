@@ -12,6 +12,7 @@ import com.handicrafts.service.ILogService;
 import com.handicrafts.util.ValidateParamUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +50,8 @@ public class CheckoutController {
     @Autowired
     private ILogService<FullOrderDTO> orderLogService;
 
-    private ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    @Autowired
+    private Environment environment;
 
     @GetMapping
     public String doGet(HttpServletRequest request, Model model) {
@@ -266,5 +268,4 @@ public class CheckoutController {
 
         return entity;
     }
-
 }

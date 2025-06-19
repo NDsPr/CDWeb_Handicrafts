@@ -47,7 +47,10 @@ public class OrderEditingController {
     @GetMapping
     public String getEditForm(@RequestParam("id") int id, Model model) {
         Optional<OrderEntity> order = orderRepository.findById(id);
-        model.addAttribute("displayOrder", order);
+        model.addAttribute(
+                environment.getProperty("model.attribute.display-order", "displayOrder"),
+                order
+        );
         return environment.getProperty("order.view.editing");
     }
 
@@ -95,7 +98,7 @@ public class OrderEditingController {
 //            if (affectedRows > 0) {
 //                logService.log(request, environment.getProperty("log.action.update-order"),
 //                               LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
-//                msg = "success";
+//                msg = environment.getProperty("message.success", "success");
 //                if (prevOrder.getStatus() != currentOrder.getStatus()) {
 //                    UserDTO user = userRepository.findUserByOrderId(id);
 //                    SendEmailUtil.sendOrderNotify(user.getEmail(), currentOrder.getId(), currentOrder.getStatus());
@@ -103,19 +106,25 @@ public class OrderEditingController {
 //            } else {
 //                logService.log(request, environment.getProperty("log.action.update-order"),
 //                               LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
-//                msg = "fail";
+//                msg = environment.getProperty("message.fail", "fail");
 //            }
 //        } else {
 //            OrderDTO currentOrder = orderRepository.findOrderById(id);
-//            model.addAttribute("errors", errors);
+//            model.addAttribute(
+//                environment.getProperty("model.attribute.errors", "errors"),
+//                errors
+//            );
 //            logService.log(request, environment.getProperty("log.action.update-order"),
 //                           LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
-//            msg = "error";
+//            msg = environment.getProperty("message.error", "error");
         }
 
         Optional<OrderEntity> displayOrder = orderRepository.findById(id);
-        //model.addAttribute("msg", msg);
-        model.addAttribute("displayOrder", displayOrder);
+        //model.addAttribute(environment.getProperty("model.attribute.message", "msg"), msg);
+        model.addAttribute(
+                environment.getProperty("model.attribute.display-order", "displayOrder"),
+                displayOrder
+        );
 
         return environment.getProperty("order.view.editing");
     }

@@ -1,7 +1,5 @@
 package com.handicrafts.repository;
 
-
-
 import com.handicrafts.dto.ProductDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
@@ -9,13 +7,29 @@ import com.handicrafts.util.SetParameterUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 @Repository
 public class ProductRepository {
+    private static final Logger logger = LoggerFactory.getLogger(ProductRepository.class);
+
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public ProductRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public List<ProductDTO> findAllProducts() {
         String sql = "SELECT id, name, description, categoryTypeId, originalPrice, discountPrice, " +
                 "discountPercent, quantity, soldQuantity, avgRate, numReviews, size, otherSpec, keyword, status, " +
@@ -29,7 +43,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -59,7 +73,7 @@ public class ProductRepository {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding all products", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -79,7 +93,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, id);
             resultSet = preparedStatement.executeQuery();
@@ -107,7 +121,7 @@ public class ProductRepository {
                 product.setModifiedBy(resultSet.getString("modifiedBy"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding product by ID: {}", id, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -125,7 +139,7 @@ public class ProductRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
 
@@ -146,16 +160,19 @@ public class ProductRepository {
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error updating product with ID: {}", productDTO.getId(), e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
             CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
         }
         return affectedRows;
-
     }
 
     public int createProduct(ProductDTO productDTO) {
@@ -169,7 +186,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -195,9 +212,13 @@ public class ProductRepository {
             }
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error creating product", e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
@@ -206,27 +227,29 @@ public class ProductRepository {
         return id;
     }
 
-
     public int deleteProduct(int id) {
-        int affectedRows;
+        int affectedRows = -1;
         String sql = "DELETE FROM products WHERE id = ?";
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, id);
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error deleting product with ID: {}", id, e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
                 return -1;
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                logger.error("Error rolling back transaction", ex);
                 return -1;
             }
         } finally {
@@ -250,7 +273,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, categoryId);
             resultSet = preparedStatement.executeQuery();
@@ -269,7 +292,7 @@ public class ProductRepository {
                 products.add(productDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding three products by category ID: {}", categoryId, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -288,7 +311,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, categoryTypeId);
             resultSet = preparedStatement.executeQuery();
@@ -307,13 +330,12 @@ public class ProductRepository {
                 products.add(productDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding four products by type ID: {}", categoryTypeId, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
         return products;
     }
-
 
     public List<ProductDTO> findByTypeIdAndLimit(int categoryTypeId, double[] range, String sort, int start, int offset) {
         List<ProductDTO> products = new ArrayList<>();
@@ -324,7 +346,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             // Set điều kiện để setParameter (sort đã xử lý riêng trong modifiedQuery)
             if (range == null) {
@@ -347,7 +369,8 @@ public class ProductRepository {
                 products.add(productDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding products by type ID with limit. TypeID: {}, Range: {}, Sort: {}, Start: {}, Offset: {}",
+                    categoryTypeId, range, sort, start, offset, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -362,7 +385,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             // Set điều kiện để setParameter (sort đã xử lý riêng trong modifiedQuery)
             if (range == null) {
@@ -385,14 +408,13 @@ public class ProductRepository {
                 products.add(productDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding products by key with limit. Key: {}, Range: {}, Sort: {}, Start: {}, Offset: {}",
+                    key, range, sort, start, offset, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
         return products;
     }
-
-
 
     public int getTotalItemsByCategoryType(int categoryTypeId) {
         String sql = "SELECT COUNT(id) AS tongsanpham FROM products WHERE categoryTypeId = ?";
@@ -402,7 +424,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, categoryTypeId);
             resultSet = preparedStatement.executeQuery();
@@ -411,7 +433,7 @@ public class ProductRepository {
                 return resultSet.getInt("tongsanpham");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting total items by category type ID: {}", categoryTypeId, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -421,7 +443,7 @@ public class ProductRepository {
     private String modifiedQueryByTypeId(double[] range, String sort) {
         StringBuilder sb = new StringBuilder();
         sb.append("SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent, quantity, soldQuantity, avgRate, numReviews ")
-           .append("FROM products WHERE categoryTypeId = ? AND status = 1 ");
+                .append("FROM products WHERE categoryTypeId = ? AND status = 1 ");
 
         if (range != null) {
             sb.append(" AND (discountPrice BETWEEN ? AND ?) ");
@@ -468,7 +490,7 @@ public class ProductRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
 
@@ -476,9 +498,13 @@ public class ProductRepository {
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error updating quantity for product ID: {}", id, e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
@@ -495,7 +521,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             String keyQuery = "%" + key + "%";
             SetParameterUtil.setParameter(preparedStatement, keyQuery);
@@ -506,7 +532,7 @@ public class ProductRepository {
                 suggestKeys.add(productName);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting suggest titles for key: {}", key, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -521,7 +547,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -529,7 +555,7 @@ public class ProductRepository {
                 return resultSet.getInt("tongsanpham");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting total items", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -549,7 +575,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, name);
             resultSet = preparedStatement.executeQuery();
@@ -577,7 +603,7 @@ public class ProductRepository {
                 product.setModifiedBy(resultSet.getString("modifiedBy"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding product by name: {}", name, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -593,7 +619,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, name);
             resultSet = preparedStatement.executeQuery();
@@ -602,6 +628,7 @@ public class ProductRepository {
                 return true;
             }
         } catch (SQLException e) {
+            logger.error("Error checking if product name exists: {}", name, e);
             throw new RuntimeException(e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
@@ -625,7 +652,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, productId, categoryTypeId, offset);
             resultSet = preparedStatement.executeQuery();
@@ -655,7 +682,8 @@ public class ProductRepository {
                 productList.add(productDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding six products for suggest. ProductID: {}, CategoryTypeID: {}, Offset: {}",
+                    productId, categoryTypeId, offset, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -670,16 +698,20 @@ public class ProductRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, newRateTotal, numReviews, productId);
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error updating rate total for product ID: {}", productId, e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
             throw new RuntimeException(e);
@@ -702,7 +734,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
 
             if (searchValue != null && !searchValue.isEmpty()) {
                 sql += " AND (id LIKE ? OR name LIKE ? OR description LIKE ? OR categoryTypeId LIKE ? OR originalPrice LIKE ? " +
@@ -716,8 +748,9 @@ public class ProductRepository {
             preparedStatement = connection.prepareStatement(sql);
 
             if (searchValue != null && !searchValue.isEmpty()) {
+                String searchPattern = "%" + searchValue + "%";
                 for (int i = 0; i < 19; i++) {
-                    preparedStatement.setString(index++, "%" + searchValue + "%");
+                    preparedStatement.setString(index++, searchPattern);
                 }
             }
 
@@ -750,9 +783,9 @@ public class ProductRepository {
 
                 productList.add(product);
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting products datatable. Start: {}, Length: {}, Order: {}, Direction: {}, Search: {}",
+                    start, length, columnOrder, orderDir, searchValue, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -769,16 +802,15 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
                 recordsTotal = resultSet.getInt("recordsTotal");
             }
-
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting total records count", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -796,7 +828,7 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             if (searchValue != null && !searchValue.isEmpty()) {
                 sql += " AND (id LIKE ? OR name LIKE ? OR description LIKE ? OR categoryTypeId LIKE ? OR originalPrice LIKE ? " +
                         "OR discountPrice LIKE ? OR discountPercent LIKE ? OR quantity LIKE ? OR soldQuantity LIKE ? OR avgRate LIKE ? " +
@@ -806,25 +838,10 @@ public class ProductRepository {
 
             preparedStatement = connection.prepareStatement(sql);
             if (searchValue != null && !searchValue.isEmpty()) {
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index++, "%" + searchValue + "%");
-                preparedStatement.setString(index, "%" + searchValue + "%");
+                String searchPattern = "%" + searchValue + "%";
+                for (int i = 0; i < 19; i++) {
+                    preparedStatement.setString(index++, searchPattern);
+                }
             }
             resultSet = preparedStatement.executeQuery();
 
@@ -832,7 +849,7 @@ public class ProductRepository {
                 recordsFiltered = resultSet.getInt("recordsFiltered");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting filtered records count with search value: {}", searchValue, e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -844,12 +861,21 @@ public class ProductRepository {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
+            connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, quantity, id);
             preparedStatement.executeUpdate();
+            connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error updating quantity for product ID: {}", id, e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
+            }
         } finally {
             CloseResourceUtil.closeNotUseRS(preparedStatement, connection);
         }
@@ -861,16 +887,20 @@ public class ProductRepository {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, id);
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error disabling product with ID: {}", id, e);
             try {
-                connection.rollback();
+                if (connection != null) {
+                    connection.rollback();
+                }
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
             throw new RuntimeException(e);
@@ -879,10 +909,6 @@ public class ProductRepository {
         }
         return affectedRows;
     }
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    // Các phương thức khác giữ nguyên
 
     public Integer countTotalProducts() {
         TypedQuery<Long> query = entityManager.createQuery(
@@ -890,33 +916,27 @@ public class ProductRepository {
         return query.getSingleResult().intValue();
     }
 
-//    public Integer countAvailableProducts() {
-//        TypedQuery<Long> query = entityManager.createQuery(
-//                "SELECT COUNT(p) FROM ProductEntity p WHERE p.status = 1", Long.class);
-//        return query.getSingleResult().intValue();
-//    }
-public int countProduct() {
-    int count = 0;
-    String sql = "SELECT COUNT(*) FROM products WHERE status <> 0";
+    public int countProduct() {
+        int count = 0;
+        String sql = "SELECT COUNT(*) FROM products WHERE status <> 0";
 
-    Connection connection = null;
-    PreparedStatement preparedStatement = null;
-    ResultSet resultSet = null;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
 
-    try {
-        connection = OpenConnectionUtil.openConnection();
-        preparedStatement = connection.prepareStatement(sql);
-        resultSet = preparedStatement.executeQuery();
+        try {
+            connection = openConnectionUtil.openConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            resultSet = preparedStatement.executeQuery();
 
-        if (resultSet.next()) {
-            count = resultSet.getInt(1);
+            if (resultSet.next()) {
+                count = resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            logger.error("Error counting products", e);
+        } finally {
+            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    } finally {
-        CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
+        return count;
     }
-    return count;
-}
-
 }

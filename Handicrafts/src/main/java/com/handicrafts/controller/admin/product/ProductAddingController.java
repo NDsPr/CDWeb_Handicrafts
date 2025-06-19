@@ -10,7 +10,7 @@ import com.handicrafts.service.ILogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,47 +21,18 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("${product.management.base.url}")
+@RequestMapping("/admin/product/adding")
 @RequiredArgsConstructor
 public class ProductAddingController {
 
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
     private final ILogService<ProductDTO> logService;
-
-    @Value("${product.adding.view}")
-    private String addingProductView;
-
-    @Value("${product.log.action}")
-    private String productLogAction;
-
-    @Value("${message.error}")
-    private String errorMessage;
-
-    @Value("${message.success}")
-    private String successMessage;
-
-    @Value("${error.original.price}")
-    private String originalPriceError;
-
-    @Value("${error.discount.price}")
-    private String discountPriceError;
-
-    @Value("${error.discount.percent}")
-    private String discountPercentError;
-
-    @Value("${error.quantity}")
-    private String quantityError;
-
-    @Value("${error.name.exists}")
-    private String nameExistsError;
-
-    @Value("${model.attribute.message}")
-    private String messageAttribute;
+    private final Environment environment;
 
     @GetMapping("${product.adding.path}")
     public String showForm() {
-        return addingProductView;
+        return environment.getProperty("product.adding.view", "admin/product/add");
     }
 
     @PostMapping("${product.adding.path}")
@@ -85,9 +56,11 @@ public class ProductAddingController {
                 size, status, imgUrls, model);
 
         if (!isValid) {
-            logService.log(req, productLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
-            model.addAttribute(messageAttribute, errorMessage);
-            return addingProductView;
+            logService.log(req, environment.getProperty("product.log.action", "ADD_PRODUCT"),
+                    LogState.FAIL, LogLevel.ALERT, null, null);
+            model.addAttribute(environment.getProperty("model.attribute.message", "message"),
+                    environment.getProperty("message.error", "Thêm sản phẩm thất bại"));
+            return environment.getProperty("product.adding.view", "admin/product/add");
         }
 
         ProductDTO product = createProductFromInputs(name, description, categoryTypeId,
@@ -97,16 +70,20 @@ public class ProductAddingController {
         int id = productRepository.createProduct(product);
 
         if (id <= 0) {
-            logService.log(req, productLogAction, LogState.FAIL, LogLevel.ALERT, null, null);
-            model.addAttribute(messageAttribute, errorMessage);
+            logService.log(req, environment.getProperty("product.log.action", "ADD_PRODUCT"),
+                    LogState.FAIL, LogLevel.ALERT, null, null);
+            model.addAttribute(environment.getProperty("model.attribute.message", "message"),
+                    environment.getProperty("message.error", "Thêm sản phẩm thất bại"));
         } else {
             ProductDTO currentProduct = productRepository.findProductById(id);
-            logService.log(req, productLogAction, LogState.SUCCESS, LogLevel.WARNING, null, currentProduct);
+            logService.log(req, environment.getProperty("product.log.action", "ADD_PRODUCT"),
+                    LogState.SUCCESS, LogLevel.WARNING, null, currentProduct);
             saveProductImages(id, imgUrls);
-            model.addAttribute(messageAttribute, successMessage);
+            model.addAttribute(environment.getProperty("model.attribute.message", "message"),
+                    environment.getProperty("message.success", "Thêm sản phẩm thành công"));
         }
 
-        return addingProductView;
+        return environment.getProperty("product.adding.view", "admin/product/add");
     }
 
     private boolean validateProductInputs(String name, String description, String categoryTypeId,
@@ -127,27 +104,27 @@ public class ProductAddingController {
 
         if (!NumberValidateUtil.isNumeric(originalPrice) || !NumberValidateUtil.isValidPrice(originalPrice)) {
             isValid = false;
-            model.addAttribute("oPrErr", originalPriceError);
+            model.addAttribute("oPrErr", environment.getProperty("error.original.price", "Giá gốc không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isNumeric(discountPrice) || !NumberValidateUtil.isValidPrice(discountPrice)) {
             isValid = false;
-            model.addAttribute("dPrErr", discountPriceError);
+            model.addAttribute("dPrErr", environment.getProperty("error.discount.price", "Giá khuyến mãi không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isNumeric(discountPercent) || !NumberValidateUtil.isValidPercent(discountPercent)) {
             isValid = false;
-            model.addAttribute("dPeErr", discountPercentError);
+            model.addAttribute("dPeErr", environment.getProperty("error.discount.percent", "Phần trăm giảm giá không hợp lệ"));
         }
 
         if (!NumberValidateUtil.isNumeric(quantity) || !NumberValidateUtil.isValidQuantity(quantity)) {
             isValid = false;
-            model.addAttribute("qErr", quantityError);
+            model.addAttribute("qErr", environment.getProperty("error.quantity", "Số lượng không hợp lệ"));
         }
 
         if (productRepository.isExistProductName(name)) {
             isValid = false;
-            model.addAttribute("nameErr", nameExistsError);
+            model.addAttribute("nameErr", environment.getProperty("error.name.exists", "Tên sản phẩm đã tồn tại"));
         }
 
         if (!isValid) {

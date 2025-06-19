@@ -5,6 +5,8 @@ import com.handicrafts.entity.CustomizeEntity;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,16 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.Optional;
 
 @Repository
 public class CustomizeRepository {
+    private static final Logger logger = LoggerFactory.getLogger(CustomizeRepository.class);
 
     // Sử dụng JdbcTemplate của Spring thay vì quản lý connection thủ công
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    // Tiêm OpenConnectionUtil
+    private final OpenConnectionUtil openConnectionUtil;
 
     @Autowired
-    public CustomizeRepository(DataSource dataSource) {
+    public CustomizeRepository(DataSource dataSource, OpenConnectionUtil openConnectionUtil) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.openConnectionUtil = openConnectionUtil;
     }
 
     // Nếu vẫn muốn giữ cách quản lý connection thủ công, giữ nguyên code dưới đây
@@ -41,7 +49,7 @@ public class CustomizeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -74,7 +82,7 @@ public class CustomizeRepository {
                 customizeBean.setLinkedinLink(resultSet.getString("linkedinLink"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error retrieving customize info", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -96,7 +104,7 @@ public class CustomizeRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
 
@@ -111,13 +119,14 @@ public class CustomizeRepository {
             affectRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error updating customize", e);
             try {
                 if (connection != null) {
                     connection.rollback();
                 }
                 return -1;
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                logger.error("Error rolling back transaction", ex);
                 return -1;
             }
         } finally {
@@ -138,7 +147,7 @@ public class CustomizeRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -153,13 +162,14 @@ public class CustomizeRepository {
             affectRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error creating customize", e);
             try {
                 if (connection != null) {
                     connection.rollback();
                 }
                 return -1;
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                logger.error("Error rolling back transaction", ex);
                 return -1;
             }
         } finally {
@@ -178,7 +188,7 @@ public class CustomizeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -186,7 +196,7 @@ public class CustomizeRepository {
                 link = resultSet.getString("prLink1");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding old image 1 link", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -203,7 +213,7 @@ public class CustomizeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -211,7 +221,7 @@ public class CustomizeRepository {
                 link = resultSet.getString("prLink2");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding old image 2 link", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -228,7 +238,7 @@ public class CustomizeRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             resultSet = preparedStatement.executeQuery();
 
@@ -236,7 +246,7 @@ public class CustomizeRepository {
                 link = resultSet.getString("background");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding old background link", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -299,14 +309,14 @@ public class CustomizeRepository {
      * @param id ID của entity cần tìm
      * @return Optional chứa entity nếu tìm thấy, empty nếu không tìm thấy
      */
-    public java.util.Optional<CustomizeEntity> findById(Integer id) {
+    public Optional<CustomizeEntity> findById(Integer id) {
         if (id != 1) {
-            return java.util.Optional.empty(); // Chỉ có id = 1 trong bảng này
+            return Optional.empty(); // Chỉ có id = 1 trong bảng này
         }
 
         CustomizeDTO dto = getCustomizeInfo();
         if (dto == null) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
 
         // Chuyển đổi từ DTO sang Entity
@@ -337,11 +347,10 @@ public class CustomizeRepository {
         entity.setInstagramLink(dto.getInstagramLink());
         entity.setLinkedinLink(dto.getLinkedinLink());
 
-        return java.util.Optional.of(entity);
+        return Optional.of(entity);
     }
 
     // Phiên bản sử dụng JdbcTemplate (khuyến nghị sử dụng)
-    /*
     public CustomizeDTO getCustomizeInfoWithJdbcTemplate() {
         String sql = "SELECT id, welcomeTitle, welcomeDes, productTitle, productDes, " +
                 "prTitle1, prDes1, prContentTitle1, prContentDes1, prIcon1, prLink1, prLink1InStorage, " +
@@ -353,7 +362,7 @@ public class CustomizeRepository {
         try {
             return jdbcTemplate.queryForObject(sql, new CustomizeDTORowMapper());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error retrieving customize info with JdbcTemplate", e);
             return null;
         }
     }
@@ -390,6 +399,4 @@ public class CustomizeRepository {
             return dto;
         }
     }
-    */
-
 }

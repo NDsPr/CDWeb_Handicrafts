@@ -3,6 +3,9 @@ package com.handicrafts.repository;
 import com.handicrafts.dto.ContactDTO;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
@@ -11,12 +14,20 @@ import java.util.List;
 
 @Repository
 public class ContactRepository {
+    private static final Logger logger = LoggerFactory.getLogger(ContactRepository.class);
+
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public ContactRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
 
     public int createContact(ContactDTO contactDTO) {
         int id = -1;
         String sql = "INSERT INTO contacts (email, firstName, lastName, message, status) VALUES (?, ?, ?, ?, 1)";
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
+        try (Connection connection = openConnectionUtil.openConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
 
             connection.setAutoCommit(false);
@@ -33,7 +44,7 @@ public class ContactRepository {
             }
             connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error creating contact", e);
         }
         return id;
     }
@@ -42,18 +53,17 @@ public class ContactRepository {
         ContactDTO contact = null;
         String sql = "SELECT * FROM contacts WHERE id = ?";
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
+        try (Connection connection = openConnectionUtil.openConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             SetParameterUtil.setParameter(preparedStatement, id);
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                contact = extractContactFromResultSet(resultSet);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    contact = extractContactFromResultSet(resultSet);
+                }
             }
-            resultSet.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding contact by ID: {}", id, e);
         }
         return contact;
     }
@@ -68,7 +78,7 @@ public class ContactRepository {
         sql.append(" ORDER BY ").append(columnOrder).append(" ").append(orderDir);
         sql.append(" LIMIT ?, ?");
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
+        try (Connection connection = openConnectionUtil.openConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql.toString())) {
 
             int index = 1;
@@ -81,13 +91,14 @@ public class ContactRepository {
             preparedStatement.setInt(index++, start);
             preparedStatement.setInt(index, length);
 
-            ResultSet rs = preparedStatement.executeQuery();
-            while (rs.next()) {
-                contacts.add(extractContactFromResultSet(rs));
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    contacts.add(extractContactFromResultSet(rs));
+                }
             }
-            rs.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting contacts datatable. Start: {}, Length: {}, Order: {}, Direction: {}, Search: {}",
+                    start, length, columnOrder, orderDir, searchValue, e);
         }
         return contacts;
     }
@@ -95,14 +106,14 @@ public class ContactRepository {
     public int getRecordsTotal() {
         int count = 0;
         String sql = "SELECT COUNT(*) FROM contacts";
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 count = rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting total records count", e);
         }
         return count;
     }
@@ -115,7 +126,7 @@ public class ContactRepository {
             sql.append(" WHERE email LIKE ? OR firstName LIKE ? OR lastName LIKE ? OR message LIKE ?");
         }
 
-        try (Connection conn = OpenConnectionUtil.openConnection();
+        try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             if (searchValue != null && !searchValue.trim().isEmpty()) {
@@ -125,13 +136,13 @@ public class ContactRepository {
                 }
             }
 
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                count = rs.getInt(1);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    count = rs.getInt(1);
+                }
             }
-            rs.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting filtered records count with search value: {}", searchValue, e);
         }
         return count;
     }
@@ -140,7 +151,7 @@ public class ContactRepository {
         String sql = "DELETE FROM contacts WHERE id = ?";
         int affectedRows = -1;
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
+        try (Connection connection = openConnectionUtil.openConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             connection.setAutoCommit(false);
@@ -148,7 +159,7 @@ public class ContactRepository {
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error deleting contact with ID: {}", id, e);
         }
         return affectedRows;
     }
@@ -168,11 +179,12 @@ public class ContactRepository {
         contact.setModifiedBy(rs.getString("modifiedBy"));
         return contact;
     }
+
     public int updateContact(ContactDTO contactDTO) {
         String sql = "UPDATE contacts SET email = ?, firstName = ?, lastName = ?, message = ?, status = ?, modifiedDate = ?, modifiedBy = ? WHERE id = ?";
         int affectedRows = -1;
 
-        try (Connection connection = OpenConnectionUtil.openConnection();
+        try (Connection connection = openConnectionUtil.openConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             connection.setAutoCommit(false);
@@ -183,18 +195,17 @@ public class ContactRepository {
                     contactDTO.getLastName(),
                     contactDTO.getMessage(),
                     contactDTO.getStatus(),
-                    contactDTO.getModifiedDate(),  // bạn cần truyền vào giá trị này
-                    contactDTO.getModifiedBy(),    // và modifiedBy nếu có
+                    contactDTO.getModifiedDate(),
+                    contactDTO.getModifiedBy(),
                     contactDTO.getId());
 
             affectedRows = preparedStatement.executeUpdate();
             connection.commit();
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error updating contact with ID: {}", contactDTO.getId(), e);
         }
 
         return affectedRows;
     }
-
 }

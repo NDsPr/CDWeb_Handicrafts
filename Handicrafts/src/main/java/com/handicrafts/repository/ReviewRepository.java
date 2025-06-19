@@ -4,8 +4,10 @@ import com.handicrafts.dto.ReviewDTO;
 import com.handicrafts.util.CloseResourceUtil;
 import com.handicrafts.util.OpenConnectionUtil;
 import com.handicrafts.util.SetParameterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,17 +15,25 @@ import java.util.List;
 
 @Repository
 public class ReviewRepository {
+    private static final Logger logger = LoggerFactory.getLogger(ReviewRepository.class);
+
+    private final OpenConnectionUtil openConnectionUtil;
+
+    @Autowired
+    public ReviewRepository(OpenConnectionUtil openConnectionUtil) {
+        this.openConnectionUtil = openConnectionUtil;
+    }
 
     public List<ReviewDTO> findAllReviews() {
         String sql = "SELECT id, productId, productName, userId, username, " +
-                "orderId, content, rating, status, " +  // thiếu dấu phẩy trong code gốc trước "createdDate"
+                "orderId, content, rating, status, " +
                 "createdDate, createdBy, modifiedDate, modifiedBy " +
                 "FROM reviews";
 
         List<ReviewDTO> reviewList = new ArrayList<>();
 
         try (
-                Connection connection = OpenConnectionUtil.openConnection();
+                Connection connection = openConnectionUtil.openConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql);
                 ResultSet resultSet = preparedStatement.executeQuery()
         ) {
@@ -46,7 +56,7 @@ public class ReviewRepository {
                 reviewList.add(reviewDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding all reviews", e);
         }
         return reviewList;
     }
@@ -63,7 +73,7 @@ public class ReviewRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             SetParameterUtil.setParameter(preparedStatement, reviewDTO.getProductId(), reviewDTO.getProductName(), reviewDTO.getUserId(),
@@ -79,9 +89,11 @@ public class ReviewRepository {
             }
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error creating review", e);
             try {
                 if (connection != null) connection.rollback();
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
@@ -110,7 +122,7 @@ public class ReviewRepository {
         ResultSet resultSet = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             if (rating > 0 && rating < 6) {
                 SetParameterUtil.setParameter(preparedStatement, productId, rating, offset);
@@ -136,7 +148,7 @@ public class ReviewRepository {
                 reviews.add(reviewDTO);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error finding reviews by product ID with pagination", e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
@@ -150,16 +162,18 @@ public class ReviewRepository {
         PreparedStatement preparedStatement = null;
 
         try {
-            connection = OpenConnectionUtil.openConnection();
+            connection = openConnectionUtil.openConnection();
             connection.setAutoCommit(false);
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, id);
             preparedStatement.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            logger.error("Error disabling review with ID: {}", id, e);
             try {
                 if (connection != null) connection.rollback();
             } catch (SQLException ex) {
+                logger.error("Error rolling back transaction", ex);
                 throw new RuntimeException(ex);
             }
         } finally {
@@ -172,7 +186,7 @@ public class ReviewRepository {
         String sql = "SELECT SUM(rating) FROM reviews WHERE productId = ?";
 
         try (
-                Connection connection = OpenConnectionUtil.openConnection();
+                Connection connection = openConnectionUtil.openConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             SetParameterUtil.setParameter(preparedStatement, productId);
@@ -182,7 +196,7 @@ public class ReviewRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting rate total for product ID: {}", productId, e);
         }
         return rateTotal;
     }
@@ -192,7 +206,7 @@ public class ReviewRepository {
         String sql = "SELECT COUNT(productId) FROM reviews WHERE productId = ?";
 
         try (
-                Connection connection = OpenConnectionUtil.openConnection();
+                Connection connection = openConnectionUtil.openConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(sql)
         ) {
             SetParameterUtil.setParameter(preparedStatement, productId);
@@ -202,7 +216,7 @@ public class ReviewRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Error getting related review count for product ID: {}", productId, e);
         }
         return relatedReview;
     }
