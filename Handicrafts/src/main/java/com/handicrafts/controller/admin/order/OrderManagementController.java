@@ -1,10 +1,9 @@
 package com.handicrafts.controller.admin.order;
 
-import com.handicrafts.dto.OrderDTO;
 import com.handicrafts.entity.OrderEntity;
 import com.handicrafts.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,16 +18,16 @@ public class OrderManagementController {
     @Autowired
     private OrderRepository orderRepository;
 
-    @Value("${order.view.management}")
-    private String orderManagementView;
-
-    @Value("${order.list.attribute}")
-    private String orderListAttribute;
+    @Autowired
+    private Environment environment;
 
     @GetMapping
     public String showOrderManagementPage(Model model) {
         List<OrderEntity> listOrders = orderRepository.findAll();
-        model.addAttribute(orderListAttribute, listOrders);
-        return orderManagementView;
+        model.addAttribute(
+                environment.getProperty("order.list.attribute", "listOrders"),
+                listOrders
+        );
+        return environment.getProperty("order.view.management", "admin/order/management");
     }
 }

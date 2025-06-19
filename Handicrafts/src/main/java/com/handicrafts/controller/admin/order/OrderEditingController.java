@@ -12,7 +12,7 @@ import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.SendEmailUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +27,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
-import java.util.ResourceBundle;
 
 @Controller
 @RequestMapping("/admin/order-management/editing")
@@ -42,22 +41,14 @@ public class OrderEditingController {
     @Autowired
     private ILogService<OrderDTO> logService;
 
-    @Value("${order.view.editing}")
-    private String editingOrderView;
-
-    @Value("${log.action.update-order}")
-    private String updateOrderAction;
-
-    @Value("${date.format.pattern}")
-    private String dateFormatPattern;
-
-    private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
+    @Autowired
+    private Environment environment;
 
     @GetMapping
     public String getEditForm(@RequestParam("id") int id, Model model) {
         Optional<OrderEntity> order = orderRepository.findById(id);
         model.addAttribute("displayOrder", order);
-        return editingOrderView;
+        return environment.getProperty("order.view.editing");
     }
 
     @PostMapping
@@ -84,7 +75,8 @@ public class OrderEditingController {
         if (isValid) {
             Timestamp shipDate;
             try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat(dateFormatPattern);
+                SimpleDateFormat dateFormat = new SimpleDateFormat(
+                        environment.getProperty("date.format.pattern", "yyyy-MM-dd"));
                 shipDate = new Timestamp(dateFormat.parse(shipToDate).getTime());
             } catch (ParseException e) {
                 throw new RuntimeException(e);
@@ -101,20 +93,23 @@ public class OrderEditingController {
             Optional<OrderEntity> currentOrder = orderRepository.findById(id);
 
 //            if (affectedRows > 0) {
-//                logService.log(request, updateOrderAction, LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
+//                logService.log(request, environment.getProperty("log.action.update-order"),
+//                               LogState.SUCCESS, LogLevel.WARNING, prevOrder, currentOrder);
 //                msg = "success";
 //                if (prevOrder.getStatus() != currentOrder.getStatus()) {
 //                    UserDTO user = userRepository.findUserByOrderId(id);
 //                    SendEmailUtil.sendOrderNotify(user.getEmail(), currentOrder.getId(), currentOrder.getStatus());
 //                }
 //            } else {
-//                logService.log(request, updateOrderAction, LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
+//                logService.log(request, environment.getProperty("log.action.update-order"),
+//                               LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
 //                msg = "fail";
 //            }
 //        } else {
 //            OrderDTO currentOrder = orderRepository.findOrderById(id);
 //            model.addAttribute("errors", errors);
-//            logService.log(request, updateOrderAction, LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
+//            logService.log(request, environment.getProperty("log.action.update-order"),
+//                           LogState.FAIL, LogLevel.ALERT, prevOrder, currentOrder);
 //            msg = "error";
         }
 
@@ -122,6 +117,6 @@ public class OrderEditingController {
         //model.addAttribute("msg", msg);
         model.addAttribute("displayOrder", displayOrder);
 
-        return editingOrderView;
+        return environment.getProperty("order.view.editing");
     }
 }
