@@ -107,8 +107,7 @@ public class FacebookLoginController {
             String facebookId = userInfo.get("id").asText();
             String email = userInfo.has("email") ? userInfo.get("email").asText() : facebookId + "@facebook.com";
             String fullname = userInfo.get("name").asText();
-
-            // Bước 3: Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
+// Bước 3: Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
             UserEntity existingUser = userRepository.findByEmail(email);
             UserEntity user;
 
@@ -142,13 +141,18 @@ public class FacebookLoginController {
                 user.setStatus(1); // Giả sử 1 là trạng thái active
                 user.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
-                // Thêm role USER cho người dùng mới
-                RoleEntity userRole = roleRepository.findByName("ROLE_USER")
-                        .orElseThrow(() -> new RuntimeException("Role USER not found"));
+                // Thêm role USER cho người dùng mới - sử dụng Optional
+                Optional<RoleEntity> userRoleOptional = roleRepository.findByName("ROLE_USER");
+                if (userRoleOptional.isEmpty()) {
+                    throw new RuntimeException("Role USER not found");
+                }
+                RoleEntity userRole = userRoleOptional.get();
                 user.setRoleId(userRole.getRoleID());
 
                 userRepository.save(user);
             }
+
+
 
             // Bước 4: Tạo JWT token
             String token = jwtService.generateToken(user);

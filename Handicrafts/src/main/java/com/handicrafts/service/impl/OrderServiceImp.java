@@ -93,7 +93,7 @@ public class OrderServiceImp implements IOrderService {
         cart.setModifiedDate(Timestamp.valueOf(LocalDateTime.now()));
         cart.setModifiedBy(modifiedBy);
 
-        return orderRepository.updateOrder(cart) > 0;
+        return orderRepository.updateOrder(cart.toEntity()) > 0;
     }
 
     @Override

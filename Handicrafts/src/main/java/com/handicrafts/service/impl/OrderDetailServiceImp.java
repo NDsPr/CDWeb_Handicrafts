@@ -68,8 +68,10 @@ public class OrderDetailServiceImp implements IOrderDetailService {
     }
 
 
+
+
     @Override
-    public void deleteById(OrderDetailId id) {
+    public void deleteById(Integer id) {
         repository.deleteById(id);
     }
 

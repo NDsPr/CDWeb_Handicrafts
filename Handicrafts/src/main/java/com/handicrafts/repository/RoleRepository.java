@@ -1,5 +1,6 @@
 package com.handicrafts.repository;
 
+import com.handicrafts.dto.RoleDTO;
 import com.handicrafts.entity.RoleEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

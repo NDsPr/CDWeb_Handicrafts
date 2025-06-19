@@ -157,15 +157,22 @@ public class CategoryEntity {
     }
 
     // Helper methods for bidirectional relationship management
+    // Helper methods for bidirectional relationship management
     public void addProduct(ProductEntity product) {
         products.add(product);
-        product.setCategory(this);
+        // Chỉ cập nhật ID, không cập nhật đối tượng liên kết
+        if (this.getId() != null) {
+            product.setCategoryTypeId(this.getId());
+        }
     }
+
 
     public void removeProduct(ProductEntity product) {
         products.remove(product);
-        product.setCategory(null);
+        product.setCategoryType(null);
+        product.setCategoryTypeId(null);
     }
+
 
     public void addSubcategory(CategoryEntity subcategory) {
         subcategories.add(subcategory);
