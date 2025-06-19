@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import com.handicrafts.oauth2.CustomOAuth2User;
@@ -71,11 +72,13 @@ public class WebSecurityConfig {
         return http.build();
     }
 
+
     //thiết lập userDetailService với encoder
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoderConfig);
+        authProvider.setPasswordEncoder((PasswordEncoder) passwordEncoderConfig);
         return authProvider;
     }
+
 }

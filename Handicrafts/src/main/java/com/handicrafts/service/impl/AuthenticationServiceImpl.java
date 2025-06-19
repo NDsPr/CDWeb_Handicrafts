@@ -21,13 +21,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     @Override
     public UserEntity processOAuthLogin(CustomOAuth2User userInfo) {
-        UserDTO existingUser = userRepository.findUserByEmail(userInfo.getEmail());
+        UserEntity existingUser = userRepository.findByEmail(userInfo.getEmail());
 
         if (existingUser == null) {
             // Tạo user mới từ thông tin OAuth
             UserEntity newUser = new UserEntity();
             newUser.setEmail(userInfo.getEmail());
-            newUser.setStatus(true); // Mặc định active
+            newUser.setStatus(1); // Mặc định active
 
             return userRepository.save(newUser);
         }
@@ -39,13 +39,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     @Override
     public String checkOAuthAccount(String email) {
-        UserDTO user = userRepository.findUserByEmail(email);
+        UserEntity user = userRepository.findByEmail(email);
 
         if (user == null) {
             return "error";
         }
 
-        if (user.getProvider() != null && !user.getProvider().isEmpty()) {
+        if (user.getAddressProvince() != null && !user.getAddressProvince().isEmpty()) {
             return "oAuth";
         } else {
             return "notOAuth";
@@ -53,14 +53,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     // Thêm phương thức chuyển đổi từ DTO sang Entity
-    private UserEntity convertToEntity(UserDTO userDTO) {
+    private UserEntity convertToEntity(UserEntity userDTO) {
         UserEntity entity = new UserEntity();
         entity.setId(userDTO.getId());
         entity.setEmail(userDTO.getEmail());
 
         // Sao chép các thuộc tính khác nếu có
-        if (userDTO.getProvider() != null) {
-            entity.setProvider(userDTO.getProvider());
+        if (userDTO.getAddressProvince() != null) {
+            entity.setAddressProvince(userDTO.getAddressProvince());
         }
         // Thêm các thuộc tính khác tùy theo cấu trúc của UserEntity và UserDTO
 

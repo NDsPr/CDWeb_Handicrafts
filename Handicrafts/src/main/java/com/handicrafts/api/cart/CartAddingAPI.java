@@ -13,9 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,19 @@ public class CartAddingAPI {
         Map<String, Object> response = new HashMap<>();
 
         ProductDTO product = productDAO.findProductById(id);
-        List<ProductImageDTO> images = Collections.singletonList(imageDAO.findOneByProductId(id));
+
+        // Sửa lại phần lấy hình ảnh
+        List<ProductImageDTO> images = imageDAO.findImagesByProductId(id);
+        String imageLink = "";
+        if (images != null && !images.isEmpty()) {
+            imageLink = images.get(0).getLink();
+        }
+
+        if (product == null) {
+            response.put("status", "error");
+            response.put("notify", "Sản phẩm không tồn tại!");
+            return ResponseEntity.ok(response);
+        }
 
         if (product.getQuantity() <= 0) {
             response.put("status", "error");
@@ -50,14 +61,33 @@ public class CartAddingAPI {
         }
 
         HttpSession session = request.getSession();
-        CartDTO cart = (CartDTO) SessionUtil.getInstance().getValue((HttpServletRequest) session, "CART");
+        CartDTO cart = (CartDTO) SessionUtil.getInstance().getValue(request, "CART");
 
         if (cart == null) {
             cart = new CartDTO();
         }
 
-        cart.addItem(new ItemDTO(product, quantity, images.get(0).getLink()));
-        SessionUtil.getInstance().putValue((HttpServletRequest) session, "CART", cart);
+        // Tạo ItemDTO mới
+// Vì constructor không thực hiện gì, nên tốt hơn là dùng constructor mặc định
+        ItemDTO item = new ItemDTO();
+
+// Thiết lập các giá trị thủ công
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        item.setTotal(product.getOriginalPrice() * quantity);
+
+// Kiểm tra và thiết lập giá có giảm giá
+// Với kiểu double, cần kiểm tra giá trị khác 0 hoặc dùng một giá trị đặc biệt để biểu thị không giảm giá
+        if (product.getDiscountPrice() > 0) {
+            item.setTotalWithDiscount(product.getDiscountPrice() * quantity);
+        } else {
+            item.setTotalWithDiscount(item.getTotal());
+        }
+
+        cart.addItem(item);
+        SessionUtil.getInstance().setValue(request, "CART", cart);
+
+
 
         response.put("status", "success");
         response.put("notify", "Thêm vào giỏ hàng thành công!");

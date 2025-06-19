@@ -76,7 +76,7 @@ public class WarehouseAPI {
             List<Integer> productIds = new ArrayList<>();
 
             for (WarehouseDetailDTO detail : warehouseDetails) {
-                ProductDTO product = productRepository.findById(detail.getProductId());
+                ProductDTO product = productRepository.findProductById(detail.getProductId());
                 if (detail.getQuantity() > product.getQuantity()) {
                     count++;
                 } else {
