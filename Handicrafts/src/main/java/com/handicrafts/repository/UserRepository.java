@@ -45,14 +45,15 @@ public class UserRepository {
         }
     }
 
-    public Optional<UserEntity> findByEmail(String email) {
+    public UserEntity findByEmail(String email) {
         try {
-            TypedQuery<UserEntity> query = entityManager.createQuery(
-                    "SELECT u FROM UserEntity u WHERE u.email = :email", UserEntity.class);
-            query.setParameter("email", email);
-            return Optional.ofNullable(query.getSingleResult());
+            return entityManager.createQuery(
+                            "SELECT u FROM UserEntity u WHERE u.email = :email",
+                            UserEntity.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
         } catch (NoResultException e) {
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -68,15 +69,8 @@ public class UserRepository {
         }
     }
 
-    public Optional<UserEntity> findUserById(Integer id) {
-        try {
-            TypedQuery<UserEntity> query = entityManager.createQuery(
-                    "SELECT u FROM UserEntity u WHERE u.id = :id", UserEntity.class);
-            query.setParameter("id", id);
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+    public UserEntity findUserById(Integer id) {
+        return entityManager.find(UserEntity.class, id);
     }
 
     public Optional<UserEntity> findActiveAccountByEmail(String email) {

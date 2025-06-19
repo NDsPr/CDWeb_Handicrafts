@@ -5,13 +5,14 @@ import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.RoleRepository;
 import com.handicrafts.repository.UserRepository;
 import com.handicrafts.service.IUserService;
+import com.handicrafts.util.EncryptPasswordUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,9 +32,6 @@ public class UserServiceImp implements IUserService {
 
     @Autowired
     private RoleRepository roleRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -67,7 +66,8 @@ public class UserServiceImp implements IUserService {
         }
 
         UserEntity userEntity = convertToEntity(userDTO);
-        userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        // Sử dụng EncryptPasswordUtil thay vì passwordEncoder
+        userEntity.setPassword(EncryptPasswordUtil.encryptPassword(userDTO.getPassword()));
         userEntity.setStatus(1); // Mặc định là active
         userEntity.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
@@ -91,9 +91,6 @@ public class UserServiceImp implements IUserService {
             }
 
             // Cập nhật địa chỉ nếu có
-//            if (userDTO.get() != null) userEntity.setAddressLine(userDTO.getAddressLine());
-//            if (userDTO.getAddressWard() != null) userEntity.setAddressWard(userDTO.getAddressWard());
-//            if (userDTO.getAddressDistrict() != null) userEntity.setAddressDistrict(userDTO.getAddressDistrict());
             if (userDTO.getProvider() != null) userEntity.setAddressProvince(userDTO.getProvider());
 
             userEntity.setModifiedDate(new Timestamp(System.currentTimeMillis()));
@@ -161,8 +158,10 @@ public class UserServiceImp implements IUserService {
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
 
-            if (passwordEncoder.matches(oldPassword, user.getPassword())) {
-                user.setPassword(passwordEncoder.encode(newPassword));
+            // Sử dụng EncryptPasswordUtil để kiểm tra mật khẩu
+            if (EncryptPasswordUtil.checkPassword(oldPassword, user.getPassword())) {
+                // Mã hóa mật khẩu mới
+                user.setPassword(EncryptPasswordUtil.encryptPassword(newPassword));
                 user.setModifiedDate(new Timestamp(System.currentTimeMillis()));
                 userRepository.save(user);
             } else {
@@ -179,8 +178,8 @@ public class UserServiceImp implements IUserService {
         UserEntity user = userRepository.findByEmail(email);
 
         if (user != null) {
-            // Tạo mã hash để reset password
-            String resetToken = generateResetToken();
+            // Tạo mã xác thực để reset password
+            String resetToken = generateVerifiedCode();
             Timestamp expiredTime = new Timestamp(System.currentTimeMillis() + 24 * 60 * 60 * 1000); // 24 giờ
 
             user.setChangePwHash(resetToken);
@@ -194,8 +193,18 @@ public class UserServiceImp implements IUserService {
         }
     }
 
-    private String generateResetToken() {
-        return java.util.UUID.randomUUID().toString();
+    // Sử dụng phương thức tạo mã xác thực từ CodeVerifyService
+    private String generateVerifiedCode() {
+        int codeLength = 8;
+        String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        Random random = new Random();
+        StringBuilder verifiedCode = new StringBuilder();
+
+        for (int i = 0; i < codeLength; i++) {
+            char randomCharacter = characters.charAt(random.nextInt(characters.length()));
+            verifiedCode.append(randomCharacter);
+        }
+        return verifiedCode.toString();
     }
 
     @Override
@@ -242,9 +251,6 @@ public class UserServiceImp implements IUserService {
         dto.setRoles(roles);
 
         // Thêm các trường địa chỉ
-//        dto.setAddressLine(user.getAddressLine());
-//        dto.setAddressWard(user.getAddressWard());
-//        dto.setAddressDistrict(user.getAddressDistrict());
         dto.setProvider(user.getAddressProvince());
 
         return dto;
@@ -267,7 +273,8 @@ public class UserServiceImp implements IUserService {
 
         // Set các trường khác
         if (dto.getPassword() != null) {
-            entity.setPassword(dto.getPassword()); // Lưu ý: Password sẽ được mã hóa ở service
+            // Mật khẩu sẽ được mã hóa ở service
+            entity.setPassword(dto.getPassword());
         }
 
         entity.setStatus(dto.getStatus() ? 1 : 0);
@@ -282,9 +289,6 @@ public class UserServiceImp implements IUserService {
         }
 
         // Thêm các trường địa chỉ
-//        entity.setAddressLine(dto.getAddressLine());
-//        entity.setAddressWard(dto.getAddressWard());
-//        entity.setAddressDistrict(dto.getAddressDistrict());
         entity.setAddressProvince(dto.getProvider());
 
         return entity;
@@ -301,4 +305,31 @@ public class UserServiceImp implements IUserService {
         // Vì entity không có username, nên có thể dùng email thay thế
         return findByEmail(username);
     }
+
+    @Override
+    public UserDTO getUserInfo() {
+        // Sửa lại để lấy người dùng đầu tiên hoặc người dùng hiện tại
+        UserEntity entity = userRepository.findFirstByOrderById();
+        // Hoặc nếu muốn lấy người dùng hiện tại đang đăng nhập:
+        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // UserEntity entity = userRepository.findByEmail(auth.getName());
+
+        if (entity == null) {
+            return new UserDTO();
+        }
+
+        UserDTO dto = new UserDTO();
+        BeanUtils.copyProperties(entity, dto);
+        return dto;
+    }
+
+    // Thêm phương thức kiểm tra đăng nhập hợp lệ dựa trên CodeVerifyService
+    public boolean isValidLogin(String email, String password) {
+        UserEntity user = userRepository.findByEmail(email);
+        if (user == null) {
+            return false;
+        }
+        return EncryptPasswordUtil.checkPassword(password, user.getPassword());
+    }
+
 }

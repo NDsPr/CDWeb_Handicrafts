@@ -5,6 +5,7 @@ import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.UserRepository;
+import com.handicrafts.service.ILogService;
 import com.handicrafts.util.NumberValidateUtil;
 import com.handicrafts.util.ValidateParamUtil;
 import org.springframework.beans.BeanUtils;
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -26,20 +28,22 @@ public class AccountEditingController {
     private UserRepository userRepository;
 
     @Autowired
-    private LogService<UserDTO> logService;
+    private ILogService<UserDTO> logService;
 
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
     @GetMapping
+
     public String showEditAccountForm(@RequestParam("id") Integer id, Model model) {
-        Optional<UserEntity> userOpt = userRepository.findUserById(id);
-        if (userOpt.isPresent()) {
+        UserEntity user = userRepository.findUserById(id);
+        if (user != null) {
             UserDTO userDTO = new UserDTO();
-            BeanUtils.copyProperties(userOpt.get(), userDTO);
+            BeanUtils.copyProperties(user, userDTO);
             model.addAttribute("user", userDTO);
         }
         return "editing-account";
     }
+
 
     @PostMapping
     public String updateAccount(@ModelAttribute("user") UserDTO userDTO,
@@ -66,9 +70,9 @@ public class AccountEditingController {
         }
 
         String msg;
-        Optional<UserEntity> prevUserOpt = userRepository.findUserById(userDTO.getId());
+        UserEntity prevUser = userRepository.findUserById(userDTO.getId());
 
-        if (isValid && prevUserOpt.isPresent()) {
+        if (isValid && prevUser != null) {
             try {
                 // Cập nhật phần tên (nếu fullName tồn tại)
                 String firstName = "";
@@ -92,7 +96,6 @@ public class AccountEditingController {
 
                 // Cập nhật role và status (giả sử roles là list và bạn lấy phần tử đầu tiên làm roleId)
                 Integer roleId = NumberValidateUtil.parseIntSafe(userDTO.getRoles().get(0), 0);
-                ; // hoặc hardcode nếu cần
                 userRepository.updateAccountForAdmin(
                         roleId,
                         Boolean.TRUE.equals(userDTO.getStatus()) ? 1 : 0,
@@ -113,14 +116,15 @@ public class AccountEditingController {
         }
 
         // Load lại user để hiển thị
-        Optional<UserEntity> displayUserOpt = userRepository.findUserById(userDTO.getId());
-        if (displayUserOpt.isPresent()) {
+        UserEntity displayUser = userRepository.findUserById(userDTO.getId());
+        if (displayUser != null) {
             UserDTO displayUserDTO = new UserDTO();
-            BeanUtils.copyProperties(displayUserOpt.get(), displayUserDTO);
+            BeanUtils.copyProperties(displayUser, displayUserDTO);
             model.addAttribute("user", displayUserDTO);
         }
 
         model.addAttribute("msg", msg);
         return "editing-account";
     }
+
 }
