@@ -109,17 +109,17 @@ public class FacebookLoginController {
             String fullname = userInfo.get("name").asText();
 
             // Bước 3: Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
-            Optional<UserEntity> existingUser = userRepository.findByEmail(email);
+            UserEntity existingUser = userRepository.findByEmail(email);
             UserEntity user;
 
-            if (existingUser.isPresent()) {
+            if (existingUser != null) {
                 // Người dùng đã tồn tại, cập nhật thông tin nếu cần
-                user = existingUser.get();
+                user = existingUser;
 
                 // Nếu tài khoản chưa được đánh dấu là từ provider Facebook
-                if (user.getAddressProvince() == null || !user.getAddressProvince().equals("facebook")) {
-                    user.setAddressProvince("facebook");
-                    user.setModifiedDate((Timestamp) new Date());
+                if (user.getViaOAuth() == null || !user.getViaOAuth().equals("facebook")) {
+                    user.setViaOAuth("facebook");
+                    user.setModifiedDate(new Timestamp(System.currentTimeMillis()));
                     userRepository.save(user);
                 }
             } else {
@@ -127,14 +127,25 @@ public class FacebookLoginController {
                 user = new UserEntity();
                 user.setEmail(email);
 
+                // Phân tách fullname thành firstName và lastName
+                String[] nameParts = fullname.split(" ", 2);
+                if (nameParts.length > 1) {
+                    user.setFirstName(nameParts[0]);
+                    user.setLastName(nameParts[1]);
+                } else {
+                    user.setFirstName(fullname);
+                    user.setLastName("");
+                }
+
                 user.setPassword(""); // Không cần mật khẩu cho đăng nhập OAuth
-                user.setAddressProvince("facebook"); // Đánh dấu là từ Facebook
-                user.setCreatedDate((Timestamp) new Date());
+                user.setViaOAuth("facebook"); // Đánh dấu là từ Facebook
+                user.setStatus(1); // Giả sử 1 là trạng thái active
+                user.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
                 // Thêm role USER cho người dùng mới
                 RoleEntity userRole = roleRepository.findByName("ROLE_USER")
                         .orElseThrow(() -> new RuntimeException("Role USER not found"));
-                user.setRole(new RoleEntity(Collections.singletonList(userRole)));
+                user.setRoleId(userRole.getRoleID());
 
                 userRepository.save(user);
             }
