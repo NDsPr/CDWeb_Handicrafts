@@ -51,21 +51,22 @@ public class ProductServiceImpl implements IProductService {
     }
     @Override
     public List<ProductDTO> getProductsDatatable(int start, int length, String columnOrder, String orderDir, String searchValue) {
-        return productRepository.findProductsForDatatable(start, length, columnOrder, orderDir, searchValue);
+        return productRepository.getProductsDatatable(start, length, columnOrder, orderDir, searchValue);
     }
 
     @Override
     public int getRecordsTotal() {
-        return productRepository.countAllProducts();
+        return productRepository.getRecordsTotal();
     }
 
     @Override
     public int getRecordsFiltered(String searchValue) {
-        return productRepository.countFilteredProducts(searchValue);
+        return productRepository.getRecordsFiltered(searchValue);
     }
 
     @Override
     public int disableProduct(int id) {
-        return productRepository.disableProductById(id);
+        return productRepository.disableProduct(id);
     }
+
 }
