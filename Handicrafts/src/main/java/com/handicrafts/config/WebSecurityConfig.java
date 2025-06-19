@@ -20,7 +20,7 @@ import java.io.IOException;
 @Configuration
 public class WebSecurityConfig {
     @Autowired
-    private UserDetailServiceImp userDetailsService;
+    private IUserService userDetailsService;
     @Autowired
     private CustomOAuth2UserServiceImp oAuth2UserService;
     @Autowired

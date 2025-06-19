@@ -52,5 +52,13 @@ public interface IUserService extends UserDetailsService {
     UserDTO findByEmail(String email);
     UserDTO findByUsername(String username);
     UserDTO getUserInfo();
-
+    /**
+     * Xử lý đăng nhập OAuth2 sau khi xác thực thành công
+     * Kiểm tra xem tài khoản đã tồn tại trong database chưa, nếu chưa thì tạo mới
+     *
+     * @param email Email của người dùng từ OAuth2
+     * @param name Tên của người dùng từ OAuth2
+     * @param provider Nhà cung cấp OAuth2 (Google, Facebook, ...)
+     */
+    void processOAuthPostLogin(String email, String name, String provider);
 }

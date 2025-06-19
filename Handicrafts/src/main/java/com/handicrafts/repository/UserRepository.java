@@ -83,15 +83,14 @@ public class UserRepository {
             return Optional.empty();
         }
     }
-
-    public Optional<UserEntity> findByVerifiedCode(String verifiedCode) {
+    public UserEntity findByVerifiedCode(String verifiedCode) {
         try {
             TypedQuery<UserEntity> query = entityManager.createQuery(
                     "SELECT u FROM UserEntity u WHERE u.verifiedCode = :verifiedCode", UserEntity.class);
             query.setParameter("verifiedCode", verifiedCode);
-            return Optional.ofNullable(query.getSingleResult());
+            return query.getSingleResult();
         } catch (NoResultException e) {
-            return Optional.empty();
+            return null;
         }
     }
 
@@ -391,6 +390,37 @@ public class UserRepository {
                     .getSingleResult();
         } catch (NoResultException e) {
             return null;
+        }
+    }
+    /**
+     * Kiểm tra xem username đã tồn tại trong hệ thống hay chưa
+     * @param username Username cần kiểm tra (trong hệ thống này username chính là email)
+     * @return true nếu username đã tồn tại, false nếu chưa
+     */
+    public boolean existsByUsername(String username) {
+        try {
+            TypedQuery<Long> query = entityManager.createQuery(
+                    "SELECT COUNT(u) FROM UserEntity u WHERE u.email = :username", Long.class);
+            query.setParameter("username", username);
+            return query.getSingleResult() > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Kiểm tra xem email đã tồn tại trong hệ thống hay chưa
+     * @param email Email cần kiểm tra
+     * @return true nếu email đã tồn tại, false nếu chưa
+     */
+    public boolean existsByEmail(String email) {
+        try {
+            TypedQuery<Long> query = entityManager.createQuery(
+                    "SELECT COUNT(u) FROM UserEntity u WHERE u.email = :email", Long.class);
+            query.setParameter("email", email);
+            return query.getSingleResult() > 0;
+        } catch (Exception e) {
+            return false;
         }
     }
 

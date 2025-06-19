@@ -1,5 +1,6 @@
 package com.handicrafts.service.impl;
 
+import com.handicrafts.config.PasswordEncoderConfig;
 import com.handicrafts.dto.UserDTO;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.RoleRepository;
@@ -8,25 +9,26 @@ import com.handicrafts.service.IUserService;
 import com.handicrafts.util.EncryptPasswordUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImp implements IUserService {
-
+    @Autowired
+    private PasswordEncoderConfig passwordEncoder; // Inject PasswordEncoder
     @Autowired
     private UserRepository userRepository;
 
@@ -209,9 +211,10 @@ public class UserServiceImp implements IUserService {
 
     @Override
     public boolean existsByUsername(String username) {
-        // Vì entity không có username, nên có thể dùng email thay thế
+        // Trong hệ thống này, username chính là email của người dùng
         return userRepository.existsByEmail(username);
     }
+
 
     @Override
     public boolean existsByEmail(String email) {
@@ -308,11 +311,8 @@ public class UserServiceImp implements IUserService {
 
     @Override
     public UserDTO getUserInfo() {
-        // Sửa lại để lấy người dùng đầu tiên hoặc người dùng hiện tại
-        UserEntity entity = userRepository.findFirstByOrderById();
-        // Hoặc nếu muốn lấy người dùng hiện tại đang đăng nhập:
-        // Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        // UserEntity entity = userRepository.findByEmail(auth.getName());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserEntity entity = userRepository.findByEmail(auth.getName());
 
         if (entity == null) {
             return new UserDTO();
@@ -331,5 +331,45 @@ public class UserServiceImp implements IUserService {
         }
         return EncryptPasswordUtil.checkPassword(password, user.getPassword());
     }
+    @Override
+    public void processOAuthPostLogin(String email, String name, String provider) {
+        // Kiểm tra xem email đã tồn tại trong database chưa
+        boolean userExists = userRepository.existsByEmail(email);
+
+        if (!userExists) {
+            // Nếu chưa tồn tại, tạo mới tài khoản
+            UserEntity newUser = new UserEntity();
+            newUser.setEmail(email);
+
+            // Phân tách tên thành firstName và lastName (nếu có thể)
+            String[] nameParts = name.split(" ", 2);
+            if (nameParts.length > 0) {
+                newUser.setFirstName(nameParts[0]);
+                if (nameParts.length > 1) {
+                    newUser.setLastName(nameParts[1]);
+                }
+            }
+
+
+            // Đặt một mật khẩu ngẫu nhiên vì người dùng sẽ đăng nhập bằng OAuth
+            newUser.setPassword(passwordEncoder.encoder(UUID.randomUUID().toString()).toString());
+
+            // Lưu nhà cung cấp OAuth vào trường viaOAuth
+            newUser.setViaOAuth(provider);
+
+            // Đặt các giá trị mặc định
+            newUser.setStatus(1); // Giả sử 1 là trạng thái kích hoạt
+            newUser.setRoleId(2); // Giả sử 2 là roleId cho ROLE_USER
+
+            // Đặt thời gian tạo
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            newUser.setCreatedDate(currentTime);
+            newUser.setModifiedDate(currentTime);
+
+            // Lưu người dùng mới vào database
+            userRepository.save(newUser);
+        }
+    }
+
 
 }
