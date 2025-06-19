@@ -4,13 +4,14 @@ import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.BlogDTO;
 import com.handicrafts.repository.BlogRepository;
+import com.handicrafts.service.impl.LogServiceImp;
 import com.handicrafts.util.ValidateParamUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -20,7 +21,7 @@ import java.util.ResourceBundle;
 public class BlogEditingController {
 
     private final BlogRepository blogRepository;
-    private final LogService<BlogDTO> logService;
+    private final LogServiceImp<BlogDTO> logService;
     private final ResourceBundle logBundle = ResourceBundle.getBundle("log-content");
 
     // Hiển thị form chỉnh sửa blog
