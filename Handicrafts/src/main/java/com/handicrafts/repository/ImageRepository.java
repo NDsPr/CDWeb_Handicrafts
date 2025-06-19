@@ -121,4 +121,19 @@ public class ImageRepository {
 
         return dtos;
     }
+    public ProductImageDTO findOneByProductId(int productId) {
+        Query query = entityManager.createQuery(
+                "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC"
+        );
+        query.setParameter("productId", productId);
+        query.setMaxResults(1);
+
+        List<ImageEntity> result = query.getResultList();
+        if (result.isEmpty()) {
+            return null;
+        }
+
+        return convertToDTO(result.get(0));
+    }
+
 }
