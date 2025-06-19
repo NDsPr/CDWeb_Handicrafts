@@ -4,6 +4,7 @@ import com.handicrafts.dto.*;
 import com.handicrafts.constant.LogLevel;
 import com.handicrafts.constant.LogState;
 import com.handicrafts.dto.FullOrderDTO;
+import com.handicrafts.entity.OrderDetailEntity;
 import com.handicrafts.entity.OrderEntity;
 import com.handicrafts.entity.UserEntity;
 import com.handicrafts.repository.*;
@@ -43,7 +44,7 @@ public class CheckoutController {
     private ProductRepository productRepository;
 
     @Autowired
-    private ILogService<UserDTO> userLogService;
+    private ILogService<UserEntity> userLogService;
 
     @Autowired
     private ILogService<FullOrderDTO> orderLogService;
@@ -72,6 +73,7 @@ public class CheckoutController {
         model.addAttribute("customizeInfo", customizeInfo);
         return "checkout";
     }
+
     @PostMapping
     public String doPost(HttpServletRequest request, Model model, RedirectAttributes redirectAttributes) throws Exception {
         request.setCharacterEncoding("UTF-8");
@@ -99,6 +101,12 @@ public class CheckoutController {
         HttpSession session = request.getSession();
         UserDTO user = (UserDTO) session.getAttribute("user");
         CartDTO cart = (CartDTO) session.getAttribute("cart");
+
+        // Kiểm tra user và cart có tồn tại không
+        if (user == null || cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            return "redirect:/cart-management";
+        }
+
         UserEntity prevUser = userRepository.findById(user.getId()).orElse(null);
 
         if (isValid) {
@@ -134,9 +142,9 @@ public class CheckoutController {
 
             UserEntity currentUser = userRepository.findById(user.getId()).orElse(null);
             if (affectedRows <= 0) {
-                userLogService.log(request, "user-update-in-checkout", LogState.FAIL, LogLevel.ALERT, prevUser, currentUser);
+                userLogService.log(request, "user-update-in-checkout", LogState.FAIL.toString(), LogLevel.ALERT, prevUser, currentUser);
             } else {
-                userLogService.log(request, "user-update-in-checkout", LogState.SUCCESS, LogLevel.INFO, prevUser, currentUser);
+                userLogService.log(request, "user-update-in-checkout", LogState.SUCCESS.toString(), LogLevel.INFO, prevUser, currentUser);
                 // Cập nhật lại thông tin user trong session
                 session.setAttribute("user", currentUser);
             }
@@ -176,8 +184,9 @@ public class CheckoutController {
                     // Đánh dấu là chưa review cho sản phẩm này
                     orderDetailDTO.setReviewed(0);
 
-                    orderDetails.add(orderDetailDTO);
-                    orderDetailRepository.save(orderDetailDTO);
+                    OrderDetailEntity orderDetailEntity = convertToEntity(orderDetailDTO);
+                    orderDetailRepository.save(orderDetailEntity);
+
 
                     int quantityProductAfterOrder = item.getProduct().getQuantity() - item.getQuantity();
                     // Set lại số lượng product
@@ -185,7 +194,7 @@ public class CheckoutController {
                 }
                 // Ghi log thành công
                 FullOrderDTO fullOrder = new FullOrderDTO(orderRepository.findById(savedOrder.getId()).orElse(null), orderDetails);
-                orderLogService.log(request, "order-in-checkout", LogState.SUCCESS, LogLevel.INFO, null, fullOrder);
+                orderLogService.log(request, "order-in-checkout", LogState.SUCCESS.toString(), LogLevel.INFO, null, fullOrder);
                 session.removeAttribute("cart");
 
                 return "redirect:/thankyou";
@@ -193,7 +202,7 @@ public class CheckoutController {
         } else {
             model.addAttribute("errors", errors);
             // Ghi log thất bại
-            orderLogService.log(request, "order-in-checkout", LogState.FAIL, LogLevel.ALERT, null, null);
+            orderLogService.log(request, "order-in-checkout", LogState.FAIL.toString(), LogLevel.ALERT, null, null);
             CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
             model.addAttribute("customizeInfo", customizeInfo);
             return "checkout";
@@ -228,18 +237,34 @@ public class CheckoutController {
     }
 
     private Timestamp calcShipToDate() {
-        Date currentDate = new Date();
-
-        // Tạo một đối tượng Calendar và thiết lập thời gian hiện tại
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(currentDate);
+        calendar.setTime(new Date());
 
-        // Thêm 7 ngày
-        calendar.add(Calendar.DAY_OF_MONTH, 7);
+        // Thêm 3 ngày cho thời gian giao hàng
+        calendar.add(Calendar.DAY_OF_MONTH, 3);
 
-        // Lấy thời gian sau khi thêm 7 ngày
-        Date sevenDaysLater = calendar.getTime();
-        return new Timestamp(sevenDaysLater.getTime());
+        return new Timestamp(calendar.getTimeInMillis());
+    }
+    /**
+     * Chuyển đổi từ OrderDetailDTO sang OrderDetailEntity
+     */
+    private OrderDetailEntity convertToEntity(OrderDetailDTO dto) {
+        OrderDetailEntity entity = new OrderDetailEntity();
+
+        // Sao chép các thuộc tính từ DTO sang Entity
+        entity.setId(dto.getId());
+        entity.setOrderId(dto.getOrderId());
+        entity.setProductId(dto.getProductId());
+        entity.setQuantity(dto.getQuantity());
+
+        // Chuyển đổi trạng thái reviewed từ boolean sang Integer
+        if (dto.getReviewed()) {
+            entity.setReviewed(1);
+        } else {
+            entity.setReviewed(0);
+        }
+
+        return entity;
     }
 
 }

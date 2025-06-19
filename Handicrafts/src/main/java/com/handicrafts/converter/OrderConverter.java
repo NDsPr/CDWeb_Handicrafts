@@ -27,7 +27,7 @@ public class OrderConverter {
 
         OrderDTO dto = new OrderDTO();
         dto.setId(entity.getId());
-        dto.setId(entity.getUser() != null ? entity.getUser().getUserID() : null);
+        dto.setId(entity.getUser() != null ? entity.getUser().getId() : null);
         dto.setStatus(entity.getStatus());
         dto.setTotal(entity.getTotal());
         dto.setCreatedDate(entity.getCreatedDate());
@@ -35,7 +35,7 @@ public class OrderConverter {
 
         // Thêm các thông tin khác nếu cần
         if (entity.getUser() != null) {
-            dto.setUserName(entity.getUser().getUsername());
+            dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
         }
 
         return dto;
@@ -58,7 +58,7 @@ public class OrderConverter {
 
         // Thiết lập thông tin người dùng
         if (dto.getId() != null) {
-            Optional<UserEntity> userOptional = userRepository.findUserById(dto.getId());
+            Optional<UserEntity> userOptional = userRepository.findById(dto.getId());
             userOptional.ifPresent(entity::setUser);
         }
 
@@ -90,10 +90,15 @@ public class OrderConverter {
         }
 
         // Chỉ cập nhật các trường cần thiết, giữ nguyên ID và các trường không thay đổi
-        if (dto.getId() != null && (entity.getUser() == null || !dto.getId().equals(entity.getUser().getId()))) {
-            UserDTO userOptional = userRepository.findUserById(dto.getUserId());
-            userOptional.ifPresent(entity::setUser);
+        if (dto.getUserId() != null && (entity.getUser() == null || !dto.getUserId().equals(entity.getUser().getId()))) {
+            UserEntity user = userRepository.findUserById(dto.getUserId());
+            if (user != null) {
+                entity.setUser(user);
+            }
         }
+
+        // Các cập nhật khác cho OrderEntity từ OrderDTO
+
          if (dto.getStatus() != null) entity.setStatus(dto.getStatus());
         if (dto.getTotal() != null) entity.setTotal(dto.getTotal());
 

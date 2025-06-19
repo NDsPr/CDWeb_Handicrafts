@@ -61,4 +61,8 @@ public interface IUserService extends UserDetailsService {
      * @param provider Nhà cung cấp OAuth2 (Google, Facebook, ...)
      */
     void processOAuthPostLogin(String email, String name, String provider);
+    // Thêm các phương thức mới
+    void changeInformation(UserDTO userDTO);
+    boolean checkPass(String email, String oldPassword);
+    void changePassword(String newPassword, String email);
 }

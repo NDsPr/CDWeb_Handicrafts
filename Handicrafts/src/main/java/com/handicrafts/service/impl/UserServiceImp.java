@@ -370,6 +370,78 @@ public class UserServiceImp implements IUserService {
             userRepository.save(newUser);
         }
     }
+    @Override
+    public void changeInformation(UserDTO userDTO) {
+        UserEntity entity = userRepository.findByEmail(userDTO.getEmail());
+        if (entity == null) {
+            throw new RuntimeException("Không tìm thấy người dùng");
+        }
+
+        // Cập nhật thông tin từ fullName
+        if (userDTO.getFullName() != null) {
+            String[] nameParts = userDTO.getFullName().split(" ", 2);
+            if (nameParts.length > 0) {
+                entity.setFirstName(nameParts[0]);
+            }
+            if (nameParts.length > 1) {
+                entity.setLastName(nameParts[1]);
+            }
+        }
+
+        // Cập nhật trạng thái nếu có
+        if (userDTO.getStatus() != null) {
+            entity.setStatus(userDTO.getStatus() ? 1 : 0);
+        }
+
+        // Cập nhật các thông tin địa chỉ nếu có
+//        if (userDTO.getAddressLine() != null) entity.setAddressLine(userDTO.getAddressLine());
+//        if (userDTO.getAddressWard() != null) entity.setAddressWard(userDTO.getAddressWard());
+//        if (userDTO.getAddressDistrict() != null) entity.setAddressDistrict(userDTO.getAddressDistrict());
+//        if (userDTO.getAddressProvince() != null) entity.setAddressProvince(userDTO.getAddressProvince());
+
+        // Cập nhật provider nếu có (tương ứng với viaOAuth trong entity)
+        if (userDTO.getProvider() != null) {
+            entity.setViaOAuth(userDTO.getProvider());
+        }
+
+        // Cập nhật thời gian chỉnh sửa
+        entity.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+
+        // Lưu thay đổi
+        userRepository.save(entity);
+    }
+
+
+
+    @Override
+    public boolean checkPass(String email, String oldPassword) {
+        UserEntity entity = userRepository.findByEmail(email);
+        if (entity == null) {
+            throw new RuntimeException("Không tìm thấy người dùng");
+        }
+
+        // Kiểm tra mật khẩu cũ có khớp không
+        return EncryptPasswordUtil.checkPassword(oldPassword, entity.getPassword());
+    }
+
+    @Override
+    public void changePassword(String newPassword, String email) {
+        UserEntity entity = userRepository.findByEmail(email);
+        if (entity == null) {
+            throw new RuntimeException("Không tìm thấy người dùng");
+        }
+
+        // Mã hóa mật khẩu mới
+        String encodedPassword = EncryptPasswordUtil.encryptPassword(newPassword);
+        entity.setPassword(encodedPassword);
+
+        // Cập nhật thời gian chỉnh sửa
+        entity.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+
+        // Lưu thay đổi
+        userRepository.save(entity);
+    }
+
 
 
 }
