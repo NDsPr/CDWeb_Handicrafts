@@ -36,9 +36,9 @@ public class HomeControllerAdmin {
         model.addAttribute("countOrder", countOrder);
 
         // Thêm HttpServletRequest vào model
-        model.addAttribute("httpServletRequest", request);
+        model.addAttribute("currentPage", "home");
 
         // Đổi tên file từ admin-home thành adding-home
-        return "admin/adding-home";
+        return "admin/admin-home";
     }
 }

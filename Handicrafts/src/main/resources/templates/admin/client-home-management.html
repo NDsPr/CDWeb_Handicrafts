@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>DDD. Admin - Quản lý giao diện client</title>
+    <!-- Include common header -->
+    <th:block th:include="~{common/admin/using-resource-header}"></th:block>
+    <style>
+        .error {
+            color: red;
+            font-size: 0.9em;
+        }
+        .gray-bg {
+            background-color: #f8f9fa;
+        }
+        .adding.button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .adding.button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body class="sb-nav-fixed">
+<!-- Start top header -->
+<th:block th:include="~{common/admin/top-header}"></th:block>
+<!-- End top header -->
+
+<div id="layoutSidenav">
+    <!-- Start left navigation -->
+    <th:block th:include="~{common/admin/left-navigation :: navigation}"></th:block>
+    <!-- End left navigation -->
+
+    <div id="layoutSidenav_content" class="gray-bg">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">Quản lý giao diện người dùng</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item active">DDD. Administrator</li>
+                </ol>
+
+                <!-- Display Error if any -->
+                <div th:if="${notEqualError != null}" class="alert alert-danger">
+                    Số lượng icon, tiêu đề nội dung và nội dung phải bằng nhau!
+                </div>
+
+                <!-- Display success message -->
+                <div th:if="${updateSuccess}" class="alert alert-success">
+                    Cập nhật thành công!
+                </div>
+
+                <form id="client-home-management" action="#" th:action="@{/admin/client-home-management}" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+                    <div class="row">
+                        <hr>
+                        <h5>Hiển thị riêng trên trang chủ</h5>
+                        <hr>
+
+                        <!-- Title input for welcome -->
+                        <div class="col-12 mb-3">
+                            <label for="welcomeTitle">Tiêu đề giới thiệu</label>
+                            <input type="text" class="form-control" id="welcomeTitle" name="welcomeTitle" th:value="${customizeDTO != null ? customizeDTO.welcomeTitle : ''}" required>
+                            <div th:if="${blankErrors != null && blankErrors[0] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Description for welcome -->
+                        <div class="col-12 mb-3">
+                            <label for="welcomeDes">Mô tả giới thiệu</label>
+                            <textarea class="form-control" name="welcomeDes" id="welcomeDes" placeholder="Mô tả" required th:text="${customizeDTO != null ? customizeDTO.welcomeDes : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[1] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Product Title -->
+                        <div class="col-12 mb-3">
+                            <label for="productTitle">Tiêu đề khu vực sản phẩm</label>
+                            <input type="text" class="form-control" id="productTitle" name="productTitle" th:value="${customizeDTO != null ? customizeDTO.productTitle : ''}" required>
+                            <div th:if="${blankErrors != null && blankErrors[2] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Product Description -->
+                        <div class="col-12 mb-3">
+                            <label for="productDes">Mô tả khu vực sản phẩm</label>
+                            <textarea class="form-control" name="productDes" id="productDes" placeholder="Mô tả" required th:text="${customizeDTO != null ? customizeDTO.productDes : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[3] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Phần nội dung 1 -->
+                        <div class="col-12 mb-3">
+                            <label for="prTitle1">Tiêu đề phần nội dung 1</label>
+                            <input type="text" class="form-control" id="prTitle1" name="prTitle1" th:value="${customizeDTO != null ? customizeDTO.prTitle1 : ''}" required>
+                            <div th:if="${blankErrors != null && blankErrors[4] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prDes1">Mô tả phần nội dung 1</label>
+                            <textarea class="form-control" name="prDes1" id="prDes1" placeholder="Mô tả" required th:text="${customizeDTO != null ? customizeDTO.prDes1 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[5] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prIcon1">Icon (ngăn cách bằng dấu phẩy)</label>
+                            <textarea class="form-control" name="prIcon1" id="prIcon1" placeholder="Icon" required th:text="${customizeDTO != null ? customizeDTO.prIcon1 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[6] != null}" class="error">Không được để trống!</div>
+                            <div th:if="${notEqualError != null}" class="error">Số lượng icon, tiêu đề nội dung và mô tả nội dung phải bằng nhau!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prContentTitle1">Tiêu đề nội dung (ngăn cách bằng dấu ~)</label>
+                            <textarea class="form-control" name="prContentTitle1" id="prContentTitle1" placeholder="Tiêu đề nội dung" required th:text="${customizeDTO != null ? customizeDTO.prContentTitle1 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[7] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prContentDes1">Mô tả nội dung (ngăn cách bằng dấu ~)</label>
+                            <textarea class="form-control" name="prContentDes1" id="prContentDes1" placeholder="Mô tả nội dung" required th:text="${customizeDTO != null ? customizeDTO.prContentDes1 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[8] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="prLink1">Thay đổi ảnh 1</label>
+                            <input type="file" class="form-control" name="prLink1" id="prLink1">
+                            <div th:if="${imageErrors != null && imageErrors[0] != null}" class="error">Vui lòng chọn file hình ảnh!</div>
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="updatingImg1">Ảnh bạn muốn đổi 1</label>
+                            <img id="updatingImg1" src="" alt="" class="img-fluid">
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="nowImg1">Ảnh hiện tại 1</label>
+                            <img id="nowImg1" th:src="${customizeDTO != null ? customizeDTO.prLink1 : ''}" alt="" class="img-fluid">
+                        </div>
+
+                        <!-- Phần nội dung 2 -->
+                        <div class="col-12 mb-3">
+                            <label for="prTitle2">Tiêu đề phần nội dung 2</label>
+                            <input type="text" class="form-control" id="prTitle2" name="prTitle2" th:value="${customizeDTO != null ? customizeDTO.prTitle2 : ''}" required>
+                            <div th:if="${blankErrors != null && blankErrors[9] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prDes2">Mô tả phần nội dung 2</label>
+                            <textarea class="form-control" name="prDes2" id="prDes2" placeholder="Mô tả" required th:text="${customizeDTO != null ? customizeDTO.prDes2 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[10] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="prContent2">Nội dung phần 2</label>
+                            <textarea class="form-control" name="prContent2" id="prContent2" placeholder="Nội dung" required th:text="${customizeDTO != null ? customizeDTO.prContent2 : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[11] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="prLink2">Thay đổi ảnh 2</label>
+                            <input type="file" class="form-control" name="prLink2" id="prLink2">
+                            <div th:if="${imageErrors != null && imageErrors[1] != null}" class="error">Vui lòng chọn file hình ảnh!</div>
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label>Ảnh bạn muốn đổi 2</label>
+                            <img id="updatingImg2" src="" alt="" class="img-fluid">
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label>Ảnh hiện tại 2</label>
+                            <img th:src="${customizeDTO != null ? customizeDTO.prLink2 : ''}" alt="" class="img-fluid">
+                        </div>
+
+                        <!-- Footer Section -->
+                        <hr>
+                        <h5>Hiển thị chung cho các trang client</h5>
+                        <hr>
+
+                        <div class="col-4 mb-3">
+                            <label for="background">Thay đổi background</label>
+                            <input type="file" class="form-control" name="background" id="background">
+                            <div th:if="${imageErrors != null && imageErrors[2] != null}" class="error">Vui lòng chọn file hình ảnh!</div>
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="updatingBg">Ảnh bạn muốn đổi</label>
+                            <img id="updatingBg" src="" alt="" class="img-fluid">
+                        </div>
+
+                        <div class="col-4 mb-3">
+                            <label for="nowBg">Ảnh hiện tại</label>
+                            <img id="nowBg" th:src="${customizeDTO != null ? customizeDTO.background : ''}" alt="" class="img-fluid">
+                        </div>
+
+                        <!-- Footer Left description -->
+                        <div class="col-12 mb-3">
+                            <label for="footerLeft">Miêu tả dưới logo footer</label>
+                            <textarea class="form-control" name="footerLeft" id="footerLeft" placeholder="Miêu tả bên trái cuối trang (Dưới logo)" required th:text="${customizeDTO != null ? customizeDTO.footerLeft : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[12] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="footerMiddle">Miêu tả giữa (Về chúng tôi)</label>
+                            <textarea class="form-control" name="footerMiddle" id="footerMiddle" placeholder="Miêu tả giữa của cuối trang (Về chúng tôi)" required th:text="${customizeDTO != null ? customizeDTO.footerMiddle : ''}"></textarea>
+                            <div th:if="${blankErrors != null && blankErrors[13] != null}" class="error">Không được để trống!</div>
+                        </div>
+
+                        <!-- Social Media Links -->
+                        <div class="col-6 mb-3">
+                            <label for="facebookLink">Đường dẫn Facebook của trang</label>
+                            <input type="text" class="form-control" id="facebookLink" name="facebookLink" placeholder="Đường dẫn Facebook" th:value="${customizeDTO != null ? customizeDTO.facebookLink : ''}">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="twitterLink">Đường dẫn Twitter của trang</label>
+                            <input type="text" class="form-control" id="twitterLink" name="twitterLink" placeholder="Đường dẫn Twitter" th:value="${customizeDTO != null ? customizeDTO.twitterLink : ''}">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="instagramLink">Đường dẫn Instagram của trang</label>
+                            <input type="text" class="form-control" id="instagramLink" name="instagramLink" placeholder="Đường dẫn Instagram" th:value="${customizeDTO != null ? customizeDTO.instagramLink : ''}">
+                        </div>
+
+                        <div class="col-6 mb-3">
+                            <label for="linkedinLink">Đường dẫn Linkedin của trang</label>
+                            <input type="text" class="form-control" id="linkedinLink" name="linkedinLink" placeholder="Đường dẫn Linkedin" th:value="${customizeDTO != null ? customizeDTO.linkedinLink : ''}">
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="prLink1InStorage" th:value="${customizeDTO != null ? customizeDTO.prLink1InStorage : ''}">
+                    <input type="hidden" name="prLink2InStorage" th:value="${customizeDTO != null ? customizeDTO.prLink2InStorage : ''}">
+                    <input type="hidden" name="backgroundInStorage" th:value="${customizeDTO != null ? customizeDTO.backgroundInStorage : ''}">
+
+                    <input type="submit" value="Cập nhật thay đổi" class="adding button">
+                    <input type="reset" value="Đặt lại biểu mẫu" class="adding button">
+                    <a th:href="@{/admin/home}" class="btn btn-secondary">Quay về trang chủ</a>
+                </form>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Include footer -->
+<th:block th:include="~{common/admin/using-resource-footer}"></th:block>
+
+<!-- Script to preview image before upload -->
+<script>
+    Preview image before upload
+    function readURL(input, imgId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                document.getElementById(imgId).src = e.target.result;
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Add event listeners
+    document.getElementById('prLink1').addEventListener('change', function() {
+        readURL(this, 'updatingImg1');
+    });
+
+    document.getElementById('prLink2').addEventListener('change', function() {
+        readURL(this, 'updatingImg2');
+    });
+
+    document.getElementById('background').addEventListener('change', function() {
+        readURL(this, 'updatingBg');
+    });
+</script>
+</body>
+</html>

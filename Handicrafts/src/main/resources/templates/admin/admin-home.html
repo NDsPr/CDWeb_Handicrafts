@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <title>DDD. - Homepage</title>
     <th:block th:include="~{/common/admin/using-resource-header.html}"></th:block>
 </head>
@@ -24,11 +25,11 @@
                                 Tài khoản
                             </div>
                             <div class="card-body">
-                                <h6>Tổng số tài khoản: <span th:text="${countUser[0]}"></span></h6>
-                                <h6>Số tài khoản còn hoạt động: <span th:text="${countUser[1]}"></span></h6>
-                                <h6>Số tài khoản bị vô hiệu hóa: <span th:text="${countUser[2]}"></span></h6>
-                                <h6>Số tài khoản người dùng: <span th:text="${countUser[3]}"></span></h6>
-                                <h6>Số tài khoản quản trị viên: <span th:text="${countUser[4]}"></span></h6>
+                                <h6>Tổng số tài khoản: <span th:text="${countUser != null && countUser.size() > 0 ? countUser[0] : 0}"></span></h6>
+                                <h6>Số tài khoản còn hoạt động: <span th:text="${countUser != null && countUser.size() > 1 ? countUser[1] : 0}"></span></h6>
+                                <h6>Số tài khoản bị vô hiệu hóa: <span th:text="${countUser != null && countUser.size() > 2 ? countUser[2] : 0}"></span></h6>
+                                <h6>Số tài khoản người dùng: <span th:text="${countUser != null && countUser.size() > 3 ? countUser[3] : 0}"></span></h6>
+                                <h6>Số tài khoản quản trị viên: <span th:text="${countUser != null && countUser.size() > 4 ? countUser[4] : 0}"></span></h6>
                                 <a th:href="@{/admin/account-management}" class="to-manage-link">Quản lý tài khoản</a>
                             </div>
                         </div>
@@ -41,10 +42,10 @@
                                 Sản phẩm
                             </div>
                             <div class="card-body">
-                                <h6>Tổng số loại sản phẩm: <span th:text="${countProduct[0]}"></span></h6>
-                                <h6>Số sản phẩm khả dụng: <span th:text="${countProduct[1]}"></span></h6>
-                                <h6>Số sản phẩm hết hàng: <span th:text="${countProduct[2]}"></span></h6>
-                                <h6 class="missing-1-row">Số sản phẩm vô hiệu hóa: <span th:text="${countProduct[3]}"></span></h6>
+                                <h6>Tổng số loại sản phẩm: <span th:text="${countProduct != null && countProduct.size() > 0 ? countProduct[0] : 0}"></span></h6>
+                                <h6>Số sản phẩm khả dụng: <span th:text="${countProduct != null && countProduct.size() > 1 ? countProduct[1] : 0}"></span></h6>
+                                <h6>Số sản phẩm hết hàng: <span th:text="${countProduct != null && countProduct.size() > 2 ? countProduct[2] : 0}"></span></h6>
+                                <h6 class="missing-1-row">Số sản phẩm vô hiệu hóa: <span th:text="${countProduct != null && countProduct.size() > 3 ? countProduct[3] : 0}"></span></h6>
                                 <a th:href="@{/admin/product-management}" class="to-manage-link">Quản lý sản phẩm</a>
                             </div>
                         </div>
@@ -57,10 +58,10 @@
                                 Đơn hàng
                             </div>
                             <div class="card-body">
-                                <h6>Tổng số đơn hàng: <span th:text="${countOrder[0]}"></span></h6>
-                                <h6>Số đơn hàng đang vận chuyển: <span th:text="${countOrder[1]}"></span></h6>
-                                <h6>Số đơn hàng thành công: <span th:text="${countOrder[2]}"></span></h6>
-                                <h6 class="missing-1-row">Số đơn hàng hủy: <span th:text="${countOrder[3]}"></span></h6>
+                                <h6>Tổng số đơn hàng: <span th:text="${countOrder != null && countOrder.size() > 0 ? countOrder[0] : 0}"></span></h6>
+                                <h6>Số đơn hàng đang vận chuyển: <span th:text="${countOrder != null && countOrder.size() > 1 ? countOrder[1] : 0}"></span></h6>
+                                <h6>Số đơn hàng thành công: <span th:text="${countOrder != null && countOrder.size() > 2 ? countOrder[2] : 0}"></span></h6>
+                                <h6 class="missing-1-row">Số đơn hàng hủy: <span th:text="${countOrder != null && countOrder.size() > 3 ? countOrder[3] : 0}"></span></h6>
                                 <a th:href="@{/admin/order-management}" class="to-manage-link">Quản lý đơn hàng</a>
                             </div>
                         </div>
