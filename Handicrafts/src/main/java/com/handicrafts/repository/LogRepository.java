@@ -21,8 +21,9 @@ public class LogRepository {
     }
 
     public int save(LogDTO log) {
-        String sql = "INSERT INTO logs (ip, national, level, address, previousValue, currentValue, createdDate, createdBy) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Bỏ createdBy khỏi câu SQL
+        String sql = "INSERT INTO logs (ip, national, level, address, previousValue, currentValue, createdDate) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = openConnectionUtil.openConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -34,8 +35,9 @@ public class LogRepository {
                     log.getAddress(),
                     log.getPreviousValue(),
                     log.getCurrentValue(),
-                    log.getCreatedDate(),
-                    log.getCreatedBy());
+                    log.getCreatedDate()
+                    // Bỏ log.getCreatedBy()
+            );
 
             int rows = stmt.executeUpdate();
             conn.commit();
@@ -48,6 +50,22 @@ public class LogRepository {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    // Sửa cả phương thức mapToDTO
+    private LogDTO mapToDTO(ResultSet rs) throws SQLException {
+        LogDTO dto = new LogDTO();
+        dto.setId(rs.getInt("id"));
+        dto.setIp(rs.getString("ip"));
+        dto.setNational(rs.getString("national"));
+        dto.setLevel(rs.getInt("level"));
+        dto.setAddress(rs.getString("address"));
+        dto.setPreviousValue(rs.getString("previousValue"));
+        dto.setCurrentValue(rs.getString("currentValue"));
+        dto.setCreatedDate(rs.getTimestamp("createdDate"));
+        // Bỏ dòng dưới đây hoặc xử lý đặc biệt
+        // dto.setCreatedBy(rs.getString("createdBy"));
+        return dto;
     }
 
     public LogDTO findById(int id) {
@@ -93,17 +111,5 @@ public class LogRepository {
         }
     }
 
-    private LogDTO mapToDTO(ResultSet rs) throws SQLException {
-        LogDTO dto = new LogDTO();
-        dto.setId(rs.getInt("id"));
-        dto.setIp(rs.getString("ip"));
-        dto.setNational(rs.getString("national"));
-        dto.setLevel(rs.getInt("level"));
-        dto.setAddress(rs.getString("address"));
-        dto.setPreviousValue(rs.getString("previousValue"));
-        dto.setCurrentValue(rs.getString("currentValue"));
-        dto.setCreatedDate(rs.getTimestamp("createdDate"));
-        dto.setCreatedBy(rs.getString("createdBy"));
-        return dto;
-    }
+
 }

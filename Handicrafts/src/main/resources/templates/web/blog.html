@@ -31,12 +31,11 @@
                 <div class="col-12 col-sm-6 col-md-4 mb-5">
                     <div class="post-entry">
                         <a th:href="@{/blog-detail(id=${blog.id})}" class="post-thumbnail">
-                            <img src="../images/blog/post-1.jpg" alt="Image" class="img-fluid">
+                            <img src="/client/images/blog/post-1.jpg" alt="Image" class="img-fluid">
                         </a>
                         <div class="post-content-entry">
                             <h3>
-                                <a th:href="@{/blog-detail(id=${blog.id})}">${blog.title}</a>
-                            </h3>
+                                <a th:href="@{/blog-detail(id=${blog.id})}" th:text="${blog.title}"></a>                            </h3>
                             <div class="meta">
                                 <span>Tác giả: <a href="#">[[${blog.author}]]</a></span>
                                 <span> on <a href="#">[[${#dates.format(blog.createdDate, 'dd/MM/yyyy')}]]</a></span>

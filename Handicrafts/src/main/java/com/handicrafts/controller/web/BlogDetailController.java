@@ -26,8 +26,21 @@ public class BlogDetailController {
         model.addAttribute("customizeInfo", customizeRepository.getCustomizeInfo());
 
         // Lấy chi tiết blog từ repository
-        model.addAttribute("blogDetail", blogRepository.findBlogById(blogId));
+        var blogDetail = blogRepository.findBlogById(blogId);
 
+        // Kiểm tra xem blogDetail có null không
+        if (blogDetail == null) {
+            // Log để debug
+            System.out.println("Không tìm thấy blog với ID: " + blogId);
+
+            // Chuyển hướng về trang blog với thông báo lỗi
+            return "redirect:/blog?error=blog-not-found";
+        }
+
+        // Log để xác nhận dữ liệu
+        System.out.println("Blog Detail: " + blogDetail.getTitle() + ", ID: " + blogDetail.getId());
+
+        model.addAttribute("blogDetail", blogDetail);
         return "web/blog-detail";
     }
 }

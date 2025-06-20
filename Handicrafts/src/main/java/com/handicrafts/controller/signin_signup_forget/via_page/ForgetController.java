@@ -35,7 +35,7 @@ public class ForgetController {
                 String verifiedCode = uuid.toString();
                 linkVerifyService.saveNewCodeByEmail(email, verifiedCode);
                 String verifiedLink = "http://" + req.getServerName() + ":" + req.getLocalPort() + req.getContextPath() + "/link-verification?email=" + email + "&verifyCode=" + verifiedCode + "&action=verify";
-                SendEmailUtil.sendVerificationLink(email, verifiedLink);
+                SendEmailUtil.sendVerificationCode(email, verifiedLink);
                 return "redirect:/web/link-verify.html?email=" + email;
             }
         }
@@ -64,7 +64,7 @@ public class ForgetController {
                         linkVerifyService.saveNewCodeByEmail(email, verifiedCode);
                         linkVerifyService.saveKeyByEmail(email, key);
                         String verifiedLink = "http://" + req.getServerName() + ":" + req.getLocalPort() + req.getContextPath() + "/link-verification?email=" + email + "&verifyCode=" + verifiedCode + "&key=" + key + "&action=verify";
-                        SendEmailUtil.sendVerificationLink(email, verifiedLink);
+                        SendEmailUtil.sendVerificationCode(email, verifiedLink);
                         return "redirect:/web/link-verify.html?email=" + email;
                     } else {
                         String verifyCode = codeVerifyService.generateVerifiedCode();

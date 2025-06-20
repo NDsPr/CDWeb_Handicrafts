@@ -22,6 +22,6 @@ public class AllImageManagementController {
     public String showAllImages(Model model) {
         List<ProductImageDTO> images = imageService.findAllImages();
         model.addAttribute("images", images);
-        return "all-image-management";
+        return "admin/all-image-management";
     }
 }

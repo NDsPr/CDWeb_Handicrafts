@@ -2,12 +2,12 @@
 <html>
 <head>
     <title>DDD. - Homepage</title>
-    <th:block th:include="/common/admin/using-resource-header.html"></th:block>
+    <th:block th:include="~{/common/admin/using-resource-header.html}"></th:block>
 </head>
 <body class="sb-nav-fixed">
-<th:block th:include="/common/admin/top-header.html"></th:block>
+<th:block th:include="~{/common/admin/top-header.html}"></th:block>
 <div id="layoutSidenav">
-    <th:block th:include="/common/admin/left-navigation.html"></th:block>
+    <th:block th:include="~{/common/admin/left-navigation.html}"></th:block>
     <div id="layoutSidenav_content" class="gray-bg">
         <main>
             <div class="container-fluid px-4">
@@ -83,6 +83,6 @@
     </div>
 </div>
 
-<th:block th:include="/common/admin/using-resource-footer.html"></th:block>
+<th:block th:include="~{/common/admin/using-resource-footer.html}"></th:block>
 </body>
 </html>

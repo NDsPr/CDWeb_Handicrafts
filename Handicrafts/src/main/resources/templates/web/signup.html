@@ -25,29 +25,29 @@
                 <p>ĐĂNG KÝ TÀI KHOẢN</p>
             </div>
 
-            <form th:action="@{/register}" method="post" accept-charset="UTF-8">
+            <form th:action="@{/register}" method="post" accept-charset="UTF-8" id="registerForm">
                 <div class="form-group">
                     <i class="fa-solid fa-envelope"></i>
-                    <input type="text" id="email" name="email" class="form-input" oninput="checking()" placeholder="Địa chỉ email">
+                    <input type="text" id="email" name="email" class="form-input" placeholder="Địa chỉ email">
                 </div>
 
-                <div id="emailError" class="error-message" th:if="${emailError != null}" th:text="${emailError}"></div>
+                <div id="emailError" class="error-message" th:text="${emailError}"></div>
 
                 <div class="form-group">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" id="password" name="password" class="form-input" oninput="checking()" placeholder="Mật khẩu">
+                    <input type="password" id="password" name="password" class="form-input" placeholder="Mật khẩu">
                     <i id="toggle_password" class="fa-light fa-eye eye" onclick="togglePassword('password')"></i>
                 </div>
 
-                <div id="passwordError" class="error-message" th:if="${passwordError != null}" th:text="${passwordError}"></div>
+                <div id="passwordError" class="error-message" th:text="${passwordError}"></div>
 
                 <div class="form-group">
                     <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="retypePassword" name="retypePassword" class="form-input" placeholder="Nhập lại mật khẩu" oninput="checking()">
+                    <input type="password" id="retypePassword" name="retypePassword" class="form-input" placeholder="Nhập lại mật khẩu">
                     <i id="toggle_retypePassword" class="fa-light fa-eye eye" onclick="togglePassword('retypePassword')"></i>
                 </div>
 
-                <div id="retypePasswordError" class="error-message" th:if="${passwordError != null}" th:text="${passwordError}"></div>
+                <div id="retypePasswordError" class="error-message"></div>
 
                 <input type="hidden" name="type" value="sendRegister">
                 <div class="form-group">
@@ -76,6 +76,155 @@
         </div>
     </div>
 </div>
-<script th:src="@{/login-signup-forget/signup/js/signup.js}"></script>
+
+<script>
+    // Hàm để xác thực một trường đầu vào
+    function validateField(field) {
+        if (!field) return false;
+
+        const fieldId = field.id;
+        const fieldValue = field.value.trim();
+        let errorElement = document.getElementById(fieldId + 'Error');
+        let isValid = true;
+
+        if (!errorElement) return true; // Không tìm thấy phần tử hiển thị lỗi
+
+        // Xác thực email
+        if (fieldId === 'email') {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!fieldValue) {
+                errorElement.textContent = "Email không được để trống!";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else if (!emailRegex.test(fieldValue)) {
+                errorElement.textContent = "Email không hợp lệ!";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else {
+                errorElement.textContent = "";
+                errorElement.style.display = 'none';
+            }
+        }
+
+        // Xác thực mật khẩu
+        if (fieldId === 'password') {
+            if (!fieldValue) {
+                errorElement.textContent = "Mật khẩu không được để trống!";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else if (fieldValue.includes(' ')) {
+                errorElement.textContent = "Mật khẩu không được chứa khoảng trắng";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else if (fieldValue.length < 6) {
+                errorElement.textContent = "Mật khẩu phải có 6 ký tự trở lên";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else {
+                errorElement.textContent = "";
+                errorElement.style.display = 'none';
+            }
+        }
+
+        // Xác thực nhập lại mật khẩu
+        if (fieldId === 'retypePassword') {
+            const passwordValue = document.getElementById('password').value.trim();
+            if (!fieldValue) {
+                errorElement.textContent = "Nhập lại mật khẩu không được để trống!";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else if (fieldValue !== passwordValue) {
+                errorElement.textContent = "Mật khẩu và Nhập lại mật khẩu không khớp";
+                errorElement.style.display = 'block';
+                isValid = false;
+            } else {
+                errorElement.textContent = "";
+                errorElement.style.display = 'none';
+            }
+        }
+
+        return isValid;
+    }
+
+    // Hàm xác thực khi người dùng nhập liệu
+    function checking(input) {
+        validateField(input);
+    }
+
+    // Hàm hiển thị/ẩn mật khẩu
+    function togglePassword(fieldId) {
+        const passwordField = document.getElementById(fieldId);
+        const toggleIcon = document.getElementById('toggle_' + fieldId);
+
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            toggleIcon.classList.remove("fa-eye");
+            toggleIcon.classList.add("fa-eye-slash");
+        } else {
+            passwordField.type = "password";
+            toggleIcon.classList.remove("fa-eye-slash");
+            toggleIcon.classList.add("fa-eye");
+        }
+    }
+
+    // Hàm xác thực tất cả các trường khi gửi form
+    function validateForm() {
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const retypePassword = document.getElementById('retypePassword');
+
+        // Xác thực từng trường
+        const isEmailValid = validateField(email);
+        const isPasswordValid = validateField(password);
+        const isRetypePasswordValid = validateField(retypePassword);
+
+        // Chỉ cho phép gửi form nếu tất cả các trường đều hợp lệ
+        return isEmailValid && isPasswordValid && isRetypePasswordValid;
+    }
+
+    // Khởi tạo khi trang được tải
+    document.addEventListener('DOMContentLoaded', function() {
+        // Lấy form đăng ký
+        const form = document.getElementById('registerForm');
+
+        // Thêm sự kiện xác thực khi nhập liệu cho từng trường
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const retypePassword = document.getElementById('retypePassword');
+
+        email.addEventListener('input', function() {
+            validateField(this);
+        });
+
+        password.addEventListener('input', function() {
+            validateField(this);
+            // Nếu nhập lại mật khẩu đã có giá trị, kiểm tra lại
+            if (retypePassword.value.trim() !== '') {
+                validateField(retypePassword);
+            }
+        });
+
+        retypePassword.addEventListener('input', function() {
+            validateField(this);
+        });
+
+        // Thêm sự kiện xác thực khi gửi form
+        form.addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault(); // Ngăn gửi form nếu có lỗi
+            }
+        });
+
+        // Ẩn các thông báo lỗi ban đầu nếu rỗng
+        const errorElements = document.querySelectorAll('.error-message');
+        errorElements.forEach(element => {
+            if (!element.textContent.trim()) {
+                element.style.display = 'none';
+            } else {
+                element.style.display = 'block';
+            }
+        });
+    });
+</script>
 </body>
 </html>

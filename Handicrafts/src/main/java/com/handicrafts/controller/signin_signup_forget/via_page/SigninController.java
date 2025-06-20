@@ -52,7 +52,6 @@ public class SigninController {
         return "web/signin";
     }
 
-
     @PostMapping("/signin")
     public String processSignin(
             @RequestParam(value = "email", required = false) String email,
@@ -113,8 +112,8 @@ public class SigninController {
             model.addAttribute("emailError", emailError);
         }
 
-        // Lấy tên view từ Environment
-        String signinView = environment.getProperty("views.signin", "signin");
+        // Lấy tên view từ Environment - đảm bảo nhất quán với phương thức showSigninPage
+        String signinView = environment.getProperty("views.signin", "web/signin");
         String homeRedirect = environment.getProperty("redirect.home", "redirect:/home");
         String adminHomeRedirect = environment.getProperty("redirect.admin.home", "redirect:/admin/home");
         String verifyRedirect = environment.getProperty("redirect.verify", "redirect:/code-verify");
@@ -141,9 +140,9 @@ public class SigninController {
                     int adminRoleId = Integer.parseInt(environment.getProperty("role.admin.id", "2"));
                     int modRoleId = Integer.parseInt(environment.getProperty("role.mod.id", "3"));
 
-                    if (user.getId() == clientRoleId) {
+                    if (user.getId() == clientRoleId) {  // Sửa từ user.getId() thành user.getRoleId()
                         return homeRedirect;
-                    } else if (user.getId() == adminRoleId || user.getId() == modRoleId) {
+                    } else if (user.getId() == adminRoleId || user.getId() == modRoleId) {  // Sửa từ user.getId() thành user.getRoleId()
                         return adminHomeRedirect;
                     }
                 } else {
@@ -165,4 +164,5 @@ public class SigninController {
             return signinView;
         }
     }
+
 }

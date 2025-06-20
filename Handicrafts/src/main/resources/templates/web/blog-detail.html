@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <th:block th:include="/common/client/using-resource-header.html"></th:block>
-    <title>DDD. - [[${blogdetails.title}]]</title>
+    <title>DDD. - [[${blogDetails.title}]]</title>
 </head>
 
 <body>
@@ -29,19 +29,19 @@
         <div class="row justify-content-center">
             <div class="col-8">
                 <div class="author-n-date">
-                    <h5>[[${blogdetails.author}]]</h5>
+                    <h5>[[${blogDetails.author}]]</h5>
                 </div>
 
                 <div class="title">
-                    <h2>[[${blogdetails.title}]]</h2>
+                    <h2>[[${blogDetails.title}]]</h2>
                 </div>
 
                 <div class="blog-img">
-                    <img th:src="@{${blogdetails.profilePic}}" alt="Blog Image">
+                    <img th:src="@{${blogDetails.profilePic}}" alt="Blog Image">
                 </div>
 
                 <div class="news-content">
-                    <p>[[${blogdetails.content}]]</p>
+                    <p>[[${blogDetails.content}]]</p>
                 </div>
 
                 <div class="row justify-content-center">

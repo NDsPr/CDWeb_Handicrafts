@@ -87,11 +87,14 @@ public class ShopController {
                     logger.debug("Processing category ID: {}", categoryId);
 
                     // Sản phẩm theo category
-                    List<ProductDTO> products = Collections.emptyList(); // Khởi tạo với empty list
+                    List<ProductDTO> products = Collections.emptyList();
                     try {
                         List<ProductDTO> fetchedProducts = productRepository.findThreeProductByCategoryId(categoryId);
                         if (fetchedProducts != null && !fetchedProducts.isEmpty()) {
                             products = fetchedProducts;
+                            logger.info("Found {} products for category ID: {}", products.size(), categoryId);
+                        } else {
+                            logger.warn("No products found for category ID: {}", categoryId);
                         }
                     } catch (Exception e) {
                         logger.error("Error fetching products for category {}: {}", categoryId, e.getMessage());
@@ -99,13 +102,16 @@ public class ShopController {
 
                     productMap.put(categoryId, products);
 
-                    // Ảnh theo product
+                    // Ảnh theo product - Cải thiện phần này
                     for (ProductDTO product : products) {
                         if (product != null) {
                             try {
                                 ProductImageDTO image = imageRepository.findOneByProductId(product.getId());
                                 if (image != null) {
+                                    logger.info("Found image for product ID {}: {}", product.getId(), image.getLink());
                                     imageMap.put(product.getId(), image);
+                                } else {
+                                    logger.warn("No image found for product ID: {}", product.getId());
                                 }
                             } catch (Exception e) {
                                 logger.error("Error fetching image for product {}: {}", product.getId(), e.getMessage());
@@ -114,7 +120,7 @@ public class ShopController {
                     }
 
                     // Loại sản phẩm theo category
-                    List<CategoryTypeDTO> categoryTypes = Collections.emptyList(); // Khởi tạo với empty list
+                    List<CategoryTypeDTO> categoryTypes = Collections.emptyList();
                     try {
                         List<CategoryTypeDTO> fetchedCategoryTypes = categoryTypeRepository.findCategoryTypeByCategoryId(categoryId);
                         if (fetchedCategoryTypes != null && !fetchedCategoryTypes.isEmpty()) {
@@ -131,6 +137,17 @@ public class ShopController {
                 }
             }
 
+            // Debug thông tin về imageMap
+            logger.info("ImageMap size: {}", imageMap.size());
+            for (Map.Entry<Integer, ProductImageDTO> entry : imageMap.entrySet()) {
+                if (entry.getValue() != null) {
+                    logger.info("ImageMap entry - Product ID: {}, Image link: {}",
+                            entry.getKey(), entry.getValue().getLink());
+                } else {
+                    logger.warn("ImageMap entry - Product ID: {} has null image", entry.getKey());
+                }
+            }
+
             // Thêm dữ liệu vào model
             model.addAttribute("customizeInfo", customizeInfo);
             model.addAttribute("categories", categories);
@@ -138,6 +155,9 @@ public class ShopController {
             model.addAttribute("productMap", productMap);
             model.addAttribute("imageMap", imageMap);
             model.addAttribute("categoriesForProduct", categories);
+
+            // Thêm thông tin debug vào model
+            model.addAttribute("imageMapSize", imageMap.size());
 
             logger.info("Shop page model prepared successfully");
             return "web/shop";
@@ -166,4 +186,38 @@ public class ShopController {
         }
         return modelAndView;
     }
+    // Trong ShopController
+    private Map<Integer, ProductImageDTO> prepareImageMap(List<ProductDTO> allProducts) {
+        Map<Integer, ProductImageDTO> imageMap = new HashMap<>();
+
+        for (ProductDTO product : allProducts) {
+            try {
+                ProductImageDTO image = imageRepository.findOneByProductId(product.getId());
+                if (image != null) {
+                    logger.info("Found image for product ID {}: {}", product.getId(), image.getLink());
+                    imageMap.put(product.getId(), image);
+                } else {
+                    logger.warn("No image found for product ID: {}", product.getId());
+                    // Tạo hình ảnh mặc định
+                    ProductImageDTO defaultImage = new ProductImageDTO();
+                    defaultImage.setId(-1);
+                    defaultImage.setProductId(product.getId());
+                    defaultImage.setLink("/client/images/no-image.png");
+                    imageMap.put(product.getId(), defaultImage);
+                }
+            } catch (Exception e) {
+                logger.error("Error fetching image for product {}: {}", product.getId(), e.getMessage());
+                // Thêm hình ảnh mặc định trong trường hợp lỗi
+                ProductImageDTO defaultImage = new ProductImageDTO();
+                defaultImage.setId(-1);
+                defaultImage.setProductId(product.getId());
+                defaultImage.setLink("/client/images/no-image.png");
+                imageMap.put(product.getId(), defaultImage);
+            }
+        }
+
+        logger.info("ImageMap size: {}", imageMap.size());
+        return imageMap;
+    }
+
 }

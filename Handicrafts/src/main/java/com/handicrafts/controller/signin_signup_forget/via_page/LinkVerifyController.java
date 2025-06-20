@@ -3,11 +3,11 @@ package com.handicrafts.controller.signin_signup_forget.via_page;
 
 import com.handicrafts.security.service.LinkVerifyService;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 // TODO: Làm thêm phần hết hạn cho verify code
@@ -26,7 +26,7 @@ public class LinkVerifyController extends HttpServlet {
                 String verifyCode = req.getParameter("verifyCode");
                 String key = req.getParameter("key");
                 if (linkVerifyService.isCorrectVerifiedCode(email, verifyCode) && linkVerifyService.isCorrectKey(email, key)) {
-                    resp.sendRedirect("change-password.jsp?email=" + email + "&key=" + key);
+                    resp.sendRedirect("change-password.html?email=" + email + "&key=" + key);
                 }
                 else {
                     resp.sendRedirect("web/error-verify.html");

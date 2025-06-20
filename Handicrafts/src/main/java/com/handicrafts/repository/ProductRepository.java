@@ -260,7 +260,13 @@ public class ProductRepository {
 
     public List<ProductDTO> findThreeProductByCategoryId(int categoryId) {
         List<ProductDTO> products = new ArrayList<>();
-        String sql = "SELECT products.id, products.name, products.originalPrice, products.discountPrice, products.discountPercent FROM products WHERE products.categoryId = ? LIMIT 3";
+        // Loại bỏ avgRate và numReviews khỏi truy vấn SQL
+        String sql = "SELECT p.id, p.name, p.categoryTypeId, p.originalPrice, p.discountPrice, p.discountPercent " +
+                "FROM products p " +
+                "JOIN category_types ct ON p.categoryTypeId = ct.id " +
+                "WHERE ct.categoryId = ? AND p.status = 1 " +
+                "ORDER BY p.modifiedDate DESC " +
+                "LIMIT 3";
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -280,11 +286,16 @@ public class ProductRepository {
                 productDTO.setOriginalPrice(resultSet.getDouble("originalPrice"));
                 productDTO.setDiscountPrice(resultSet.getDouble("discountPrice"));
                 productDTO.setDiscountPercent(resultSet.getDouble("discountPercent"));
-//                productDTO.setAvgRate(resultSet.getDouble("avgRate"));
-                productDTO.setNumReviews(resultSet.getInt("numReviews"));
+
+                // Đặt giá trị mặc định
+                productDTO.setAvgRate(0.0);
+                productDTO.setNumReviews(0);
 
                 products.add(productDTO);
             }
+
+            logger.info("Found {} products for category ID: {}", products.size(), categoryId);
+
         } catch (SQLException e) {
             logger.error("Error finding three products by category ID: {}", categoryId, e);
         } finally {
@@ -293,9 +304,12 @@ public class ProductRepository {
         return products;
     }
 
+
+
     public List<ProductDTO> findFourProductByTypeId(int categoryTypeId) {
         List<ProductDTO> products = new ArrayList<>();
-        String sql = "SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent, avgRate, numReviews " +
+        // Loại bỏ avgRate và numReviews khỏi truy vấn SQL nếu không có cột này
+        String sql = "SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent " +
                 "FROM products WHERE categoryTypeId = ? AND status = 1 " +
                 "ORDER BY modifiedDate DESC " +
                 "LIMIT 4";
@@ -305,9 +319,13 @@ public class ProductRepository {
         ResultSet resultSet = null;
 
         try {
+            logger.info("Attempting to find four products for categoryTypeId: {}", categoryTypeId);
+
             connection = openConnectionUtil.openConnection();
             preparedStatement = connection.prepareStatement(sql);
             SetParameterUtil.setParameter(preparedStatement, categoryTypeId);
+
+            logger.info("Executing query for categoryTypeId: {}", categoryTypeId);
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -318,18 +336,25 @@ public class ProductRepository {
                 productDTO.setOriginalPrice(resultSet.getDouble("originalPrice"));
                 productDTO.setDiscountPrice(resultSet.getDouble("discountPrice"));
                 productDTO.setDiscountPercent(resultSet.getDouble("discountPercent"));
-                productDTO.setAvgRate(resultSet.getDouble("avgRate"));
-                productDTO.setNumReviews(resultSet.getInt("numReviews"));
+
+                // Đặt giá trị mặc định cho avgRate và numReviews
+                productDTO.setAvgRate(0.0);
+                productDTO.setNumReviews(0);
 
                 products.add(productDTO);
             }
+
+            logger.info("Successfully found {} products for categoryTypeId: {}", products.size(), categoryTypeId);
+
         } catch (SQLException e) {
-            logger.error("Error finding four products by type ID: {}", categoryTypeId, e);
+            logger.error("Error finding four products by type ID: {}. Error message: {}",
+                    categoryTypeId, e.getMessage(), e);
         } finally {
             CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
         return products;
     }
+
 
     public List<ProductDTO> findByTypeIdAndLimit(int categoryTypeId, double[] range, String sort, int start, int offset) {
         List<ProductDTO> products = new ArrayList<>();
@@ -933,4 +958,83 @@ public class ProductRepository {
         }
         return count;
     }
+    public List<ProductDTO> findProductsByCategoryTypeId(int categoryTypeId) {
+        List<ProductDTO> products = new ArrayList<>();
+        // Loại bỏ avgRate khỏi truy vấn SQL
+        String sql = "SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent " +
+                "FROM products WHERE categoryTypeId = ? AND status = 1 " +
+                "ORDER BY modifiedDate DESC";
+
+        try (Connection connection = openConnectionUtil.openConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, categoryTypeId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                ProductDTO product = new ProductDTO();
+                product.setId(resultSet.getInt("id"));
+                product.setName(resultSet.getString("name"));
+                // Thiết lập các thuộc tính khác
+
+                // Đặt giá trị mặc định cho avgRate
+                product.setAvgRate(0.0);
+                product.setNumReviews(0);
+
+                products.add(product);
+            }
+        } catch (SQLException e) {
+            logger.error("Error finding products by category type ID: " + categoryTypeId, e);
+        }
+
+        return products;
+    }
+
+
+    public boolean testDatabaseConnection() {
+        Connection connection = null;
+        try {
+            connection = openConnectionUtil.openConnection();
+            if (connection != null && !connection.isClosed()) {
+                logger.info("Database connection test successful");
+                return true;
+            } else {
+                logger.error("Database connection test failed - connection is null or closed");
+                return false;
+            }
+        } catch (SQLException e) {
+            logger.error("Database connection test failed with error: {}", e.getMessage(), e);
+            return false;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.error("Error closing test connection", e);
+                }
+            }
+        }
+    }
+    public void checkProductsTableStructure() {
+        Connection connection = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = openConnectionUtil.openConnection();
+            DatabaseMetaData metaData = connection.getMetaData();
+            resultSet = metaData.getColumns(null, null, "products", null);
+
+            logger.info("Products table structure:");
+            while (resultSet.next()) {
+                String columnName = resultSet.getString("COLUMN_NAME");
+                String dataType = resultSet.getString("TYPE_NAME");
+                logger.info("Column: {}, Type: {}", columnName, dataType);
+            }
+        } catch (SQLException e) {
+            logger.error("Error checking products table structure: {}", e.getMessage(), e);
+        } finally {
+            CloseResourceUtil.closeResource(resultSet, null, connection);
+        }
+    }
+
 }

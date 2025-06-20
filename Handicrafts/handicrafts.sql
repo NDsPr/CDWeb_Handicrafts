@@ -66,9 +66,9 @@ CREATE TABLE `categories`  (
 -- ----------------------------
 -- Records of categories
 -- ----------------------------
-INSERT INTO `categories` VALUES (1, 'Gỗ', NULL, NULL, '2024-04-02 20:56:52', NULL, '2024-04-02 20:56:52', NULL);
-INSERT INTO `categories` VALUES (2, 'Đan lát', NULL, NULL, '2024-04-02 20:56:53', NULL, '2024-04-02 20:56:53', NULL);
-INSERT INTO `categories` VALUES (3, 'Gốm sứ', NULL, NULL, '2024-04-02 20:56:53', NULL, '2024-04-02 20:56:53', NULL);
+INSERT INTO `categories` VALUES (1, 'Gỗ', NULL, 'https://noithatdogoviet.com/upload/images/z1976095516572_27c9a878b566bedc003c63198d2e50e4-1.jpg', '2024-04-02 20:56:52', NULL, '2024-04-02 20:56:52', NULL);
+INSERT INTO `categories` VALUES (2, 'Đan lát', NULL, 'https://images.baodantoc.vn/uploads/2020/Th%C3%A1ng_11/Ng%C3%A0y_27/Tong%20hop/lang-nghe-dan-dat-1585649589.jpg', '2024-04-02 20:56:53', NULL, '2024-04-02 20:56:53', NULL);
+INSERT INTO `categories` VALUES (3, 'Gốm sứ', NULL, 'https://m.media-amazon.com/images/I/71bQnimWnpL._AC_SL1500_.jpg', '2024-04-02 20:56:53', NULL, '2024-04-02 20:56:53', NULL);
 
 -- ----------------------------
 -- Table structure for category_types
@@ -460,7 +460,8 @@ VALUES
 ('Nhà thú cưng mây tre đan', 'Nhà cho thú cưng được đan từ mây tre tự nhiên, thiết kế thoáng mát, có đệm mềm bên trong, phù hợp cho chó mèo nhỏ.', 10, 890000, 790000, 11.24, 15, '60 x 45 x 40 (cm)', 'Mây tre đan, đệm cotton có thể tháo rời', 1, 'nhà thú cưng, mây tre đan, chó mèo, thoáng mát', NOW(), NULL, NOW(), NULL);
 
 -- Thêm 5 sản phẩm cho categoryId 3 (Sản phẩm gốm sứ) - Sử dụng các categoryTypeId từ 13-20
-INSERT INTO `products` (`name`, `description`, `categoryTypeId`, `originalPrice`, `discountPrice`, `discountPercent`, `quantity`, `size`, `otherSpec`, `status`, `keyword`, `createdDate`, `createdBy`, `modifiedDate`, `modifiedBy`) VALUES
+INSERT INTO `products` (`name`, `description`, `categoryTypeId`, `originalPrice`, `discountPrice`, `discountPercent`, `quantity`, `size`, `otherSpec`, `status`, `keyword`, `createdDate`, `createdBy`, `modifiedDate`, `modifiedBy`)
+VALUES
 ('Bộ ấm trà gốm sứ Bát Tràng vẽ sen', 'Bộ ấm trà gồm 1 ấm và 6 chén được làm từ gốm sứ Bát Tràng cao cấp, vẽ hoa sen tinh tế, men sứ bóng mịn.', 13, 1290000, 1090000, 15.50, 20, 'Ấm: 15 x 10 x 12 (cm), Chén: 7 x 7 x 5 (cm)', 'Gốm sứ Bát Tràng, men sứ cao cấp', 1, 'ấm trà, gốm sứ, bát tràng, hoa sen', NOW(), NULL, NOW(), NULL),
 ('Lọ hoa gốm sứ men hỏa biến', 'Lọ hoa được làm từ gốm sứ cao cấp với kỹ thuật men hỏa biến độc đáo, tạo nên màu sắc và vân gốm tự nhiên không trùng lặp.', 14, 1890000, 1690000, 10.58, 15, '30 x 15 x 15 (cm)', 'Gốm sứ men hỏa biến', 1, 'lọ hoa, gốm sứ, men hỏa biến, trang trí', NOW(), NULL, NOW(), NULL),
 ('Bình phong thủy gốm sứ vẽ tay', 'Bình phong thủy được làm từ gốm sứ cao cấp, vẽ tay họa tiết rồng phượng truyền thống, men sứ bóng mịn, mang ý nghĩa phong thủy tốt lành.', 15, 2490000, 2190000, 12.05, 10, '40 x 20 x 20 (cm)', 'Gốm sứ cao cấp, vẽ tay', 1, 'bình phong thủy, gốm sứ, vẽ tay, rồng phượng', NOW(), NULL, NOW(), NULL),

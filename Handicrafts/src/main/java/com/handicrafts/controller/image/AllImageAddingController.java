@@ -29,7 +29,7 @@ public class AllImageAddingController {
 
     @GetMapping("/all-image-adding")
     public String showAddImageForm() {
-        return "all-image-adding";
+        return "admin/all-image-adding";
     }
 
     @PostMapping("/all-image-adding")
@@ -92,7 +92,7 @@ public class AllImageAddingController {
             model.addAttribute("success", success);
         }
 
-        return "all-image-adding";
+        return "addmin/all-image-adding";
     }
 
     // Lọc ra các file là ảnh

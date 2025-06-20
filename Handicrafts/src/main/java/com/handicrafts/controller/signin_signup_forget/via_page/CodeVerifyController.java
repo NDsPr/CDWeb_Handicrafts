@@ -2,83 +2,128 @@ package com.handicrafts.controller.signin_signup_forget.via_page;
 
 import com.handicrafts.security.service.CodeVerifyService;
 import com.handicrafts.util.SendEmailUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+@Controller
+@RequestMapping("/code-verification")
+public class CodeVerifyController {
 
-@WebServlet(value = {"/code-verification"})
-public class CodeVerifyController extends HttpServlet {
-    private final CodeVerifyService codeVerifyService = new CodeVerifyService();
+    private static final Logger logger = LoggerFactory.getLogger(CodeVerifyController.class);
 
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String type = req.getParameter("type");
-        String email = req.getParameter("email");
-        String sendBy = req.getParameter("sendBy");
-        int id = Integer.parseInt(req.getParameter("id"));
-        if (type != null) {
-            if (type.equals("resendCode")) {
+    @Autowired
+    private CodeVerifyService codeVerifyService;
+
+    @Autowired
+    private SendEmailUtil sendEmailUtil;
+
+    @GetMapping
+    public String showVerificationPage(
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "id", required = false) Integer id,
+            @RequestParam(value = "confirm", required = false) String confirm,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        logger.info("Xử lý GET /code-verification với type={}, email={}", type, email);
+
+        if (email == null) {
+            logger.warn("Email không được cung cấp, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        model.addAttribute("email", email);
+
+        if (type != null && type.equals("resendCode")) {
+            try {
                 // Tạo verifiedCode mới
                 String verifiedCode = codeVerifyService.generateVerifiedCode();
+                logger.info("Đã tạo mã xác thực mới: {} cho email: {}", verifiedCode, email);
+
                 // Gửi vào email cho người dùng
                 SendEmailUtil.sendVerificationCode(email, verifiedCode);
+                logger.info("Đã gửi mã xác thực mới đến email: {}", email);
+
                 // Set vào database
                 codeVerifyService.setNewCodeByEmail(email, verifiedCode);
+                logger.info("Đã lưu mã xác thực mới vào database cho email: {}", email);
+
                 // Thông báo cho người dùng đẫ gửi code mới thông qua 1 String
-                String confirm = "confirm";
-                // Chuyển hướng người dùng
-                resp.sendRedirect(req.getContextPath() + "/web/code-verify.html?id=" + id + "&email=" + email + "&confirm=" + confirm);
+                model.addAttribute("confirm", "confirm");
+
+                return "web/code-verify";
+            } catch (Exception e) {
+                logger.error("Lỗi khi gửi lại mã xác thực: {}", e.getMessage(), e);
+                model.addAttribute("error", "Không thể gửi lại mã xác thực. Vui lòng thử lại sau.");
+                return "web/code-verify";
             }
         }
+
+        return "web/code-verify";
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String type = req.getParameter("type");
-        String email = req.getParameter("email");
-        String sendBy = req.getParameter("sendBy");
-        String codeError;
+    @PostMapping
+    public String verifyCode(
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "verifyInput", required = false) String verifyInput,
+            Model model) {
 
-        if (type != null) {
-            if (type.equals("verified")) {
-                String verifyInput = req.getParameter("verifyInput");
-                // Kiểm tra các trường hợp nhập VerifieCode
-                // Kiểm tra xem verify input có bị để trống không
-                if (!codeVerifyService.isBlankVerification(verifyInput)) {
-                    // Nếu không trống, kiểm tra xem có đủ 8 ký tự hay không
-                    if (codeVerifyService.isCorrectLength(verifyInput)) {
-                        // Nếu đủ, kiểm tra xem có khớp verify code không
-                        if (codeVerifyService.isCorrectVerifiedCode(email, verifyInput)) {
-                            // Nếu khớp, chuyển hướng về trang home và không thực hiện các bước phía dưới nữa (return;)
+        logger.info("Xử lý POST /code-verification với type={}, email={}", type, email);
+
+        if (email == null) {
+            logger.warn("Email không được cung cấp, chuyển hướng đến trang đăng nhập");
+            return "redirect:/login";
+        }
+
+        model.addAttribute("email", email);
+
+        if (type != null && type.equals("verified")) {
+            String codeError = null;
+
+            // Kiểm tra các trường hợp nhập VerifieCode
+            if (!codeVerifyService.isBlankVerification(verifyInput)) {
+                // Nếu không trống, kiểm tra xem có đủ 8 ký tự hay không
+                if (codeVerifyService.isCorrectLength(verifyInput)) {
+                    // Nếu đủ, kiểm tra xem có khớp verify code không
+                    if (codeVerifyService.isCorrectVerifiedCode(email, verifyInput)) {
+                        // Nếu khớp, kích hoạt tài khoản và chuyển hướng
+                        try {
                             codeVerifyService.activeAccount(email);
                             codeVerifyService.setEmptyCode(email);
-                            resp.sendRedirect(req.getContextPath() + "/web/verify-success.html");
-                            return;
+                            logger.info("Xác thực thành công cho email: {}", email);
+                            return "web/verify-success"; // Thay đổi ở đây
+                        } catch (Exception e) {
+                            logger.error("Lỗi khi kích hoạt tài khoản: {}", e.getMessage(), e);
+                            codeError = "Lỗi khi kích hoạt tài khoản: " + e.getMessage();
                         }
-                        // Nếu không khớp verified code, trả về lỗi
-                        else {
-                            codeError = "VerifiedCode không tồn tại!";
-                            req.setAttribute("codeError", codeError);
-                        }
+                    } else {
+                        codeError = "Mã xác thực không tồn tại!";
+                        logger.warn("Mã xác thực không tồn tại cho email: {}", email);
                     }
-                    // Nếu khác số lượng ký tự, trả vè lỗi
-                    else {
-                        codeError = "VerifiedCode không hợp lệ, phải có 8 ký tự!";
-                        req.setAttribute("codeError", codeError);
-                    }
+                } else {
+                    codeError = "Mã xác thực không hợp lệ, phải có 8 ký tự!";
+                    logger.warn("Mã xác thực không đủ 8 ký tự cho email: {}", email);
                 }
-                // Nếu để trống, trả về lỗi
-                else {
-                    codeError = "VerifiedCode không được để trống!";
-                    req.setAttribute("codeError", codeError);
-                }
-                // Trong request đã có id và email của input hidden
-                req.getRequestDispatcher("/web/code-verify.html").forward(req, resp);
+            } else {
+                codeError = "Mã xác thực không được để trống!";
+                logger.warn("Mã xác thực bị bỏ trống cho email: {}", email);
+            }
+
+            if (codeError != null) {
+                model.addAttribute("codeError", codeError);
             }
         }
+
+        return "web/code-verify";
     }
 }

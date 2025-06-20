@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Collections;
 import java.util.UUID;
 
 @Controller
@@ -109,32 +111,58 @@ public class RegisterController {
             // Nếu thành công thì tạo UserDTO và gọi service để đăng ký
             if (isValid) {
                 UserDTO user = new UserDTO();
-                String verifiedCode = UUID.randomUUID().toString();
+                String verifiedCode = UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // Tạo mã 8 ký tự
 
                 user.setEmail(email);
                 user.setPassword(password); // PasswordEncoder sẽ được áp dụng trong service
                 user.setUsername(email); // Sử dụng email làm username
                 user.setStatus(false); // Tài khoản chưa kích hoạt
 
-                // Thêm các trường khác nếu cần
+                // Thêm vai trò mặc định cho người dùng mới (thường là ROLE_USER)
+                user.setRoles(Collections.singletonList("ROLE_USER"));
 
                 try {
+                    // Thêm log để debug
+                    System.out.println("Đang tạo người dùng mới với email: " + email);
+
                     UserDTO createdUser = userService.createUser(user);
+                    System.out.println("Đã tạo người dùng thành công: " + createdUser.getEmail());
 
                     // Lưu mã xác thực vào database
-                    // Giả sử có phương thức setVerificationCode trong service
-                    codeVerifyService.setNewCodeByEmail(email, verifiedCode);
+                    try {
+                        codeVerifyService.setNewCodeByEmail(email, verifiedCode);
+                        System.out.println("Đã lưu mã xác thực cho email: " + email);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        model.addAttribute("error", "Lỗi khi lưu mã xác thực: " + e.getMessage());
+                        return "web/signup";
+                    }
 
                     // Ghi log
-                    logService.log((jakarta.servlet.http.HttpServletRequest) request, "register", LogState.SUCCESS, LogLevel.ALERT, null, createdUser);
+                    try {
+                        logService.log(request, "register", LogState.SUCCESS, LogLevel.ALERT, null, createdUser);
+                        System.out.println("Đã ghi log đăng ký thành công");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        // Không cần dừng quy trình nếu ghi log thất bại
+                    }
 
                     // Gửi verifiedCode về Email
-                    SendEmailUtil.sendVerificationCode(email, verifiedCode);
+                    try {
+                        SendEmailUtil.sendVerificationCode(email, verifiedCode);
+                        System.out.println("Đã gửi email xác thực đến: " + email);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        model.addAttribute("error", "Đã đăng ký thành công nhưng không thể gửi email xác thực. Vui lòng liên hệ hỗ trợ.");
+                        return "web/signup";
+                    }
 
                     // Redirect với thông báo thành công
-                    redirectAttributes.addAttribute("email", email);
-                    return "redirect:/code-verify";
+                    redirectAttributes.addFlashAttribute("email", email);
+                    System.out.println("Chuyển hướng đến trang xác thực mã với email: " + email);
+                    return "redirect:/code-verify"; // Đảm bảo endpoint này đúng
                 } catch (Exception e) {
+                    e.printStackTrace(); // In stack trace để debug
                     model.addAttribute("error", "Đã xảy ra lỗi trong quá trình đăng ký: " + e.getMessage());
                     return "web/signup";
                 }
@@ -142,8 +170,7 @@ public class RegisterController {
                 return "web/signup";
             }
         }
-
-        return "web/signup";
+        return  "web/signup";
     }
 
     @GetMapping("/code-verify")
@@ -151,6 +178,6 @@ public class RegisterController {
         if (email != null) {
             model.addAttribute("email", email);
         }
-        return "/web/code-verify.html";
+        return "/web/code-verify";
     }
 }

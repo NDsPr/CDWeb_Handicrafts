@@ -2,6 +2,8 @@ package com.handicrafts.repository;
 
 import com.handicrafts.dto.ProductImageDTO;
 import com.handicrafts.entity.ImageEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +17,15 @@ import java.util.stream.Collectors;
 @Repository
 public class ImageRepository {
 
+    private static final Logger logger = LoggerFactory.getLogger(ImageRepository.class);
+
     @PersistenceContext
     private EntityManager entityManager;
 
     public ProductImageDTO findImageById(int id) {
         ImageEntity entity = entityManager.find(ImageEntity.class, id);
         if (entity == null) {
+            logger.warn("No image found with ID: {}", id);
             return null;
         }
         return convertToDTO(entity);
@@ -31,6 +36,7 @@ public class ImageRepository {
         ImageEntity entity = convertToEntity(imageDTO);
         entityManager.persist(entity);
         entityManager.flush(); // Để lấy ID được sinh ra
+        logger.info("Inserted new image with ID: {}", entity.getId());
         return entity.getId();
     }
 
@@ -43,6 +49,7 @@ public class ImageRepository {
             dtos.add(convertToDTO(entity));
         }
 
+        logger.info("Found {} images in total", dtos.size());
         return dtos;
     }
 
@@ -50,9 +57,11 @@ public class ImageRepository {
     public boolean deleteImage(int id) {
         ImageEntity entity = entityManager.find(ImageEntity.class, id);
         if (entity == null) {
+            logger.warn("Cannot delete image with ID: {} - not found", id);
             return false;
         }
         entityManager.remove(entity);
+        logger.info("Deleted image with ID: {}", id);
         return true;
     }
 
@@ -60,6 +69,7 @@ public class ImageRepository {
     public boolean updateImage(ProductImageDTO imageDTO) {
         ImageEntity entity = entityManager.find(ImageEntity.class, imageDTO.getId());
         if (entity == null) {
+            logger.warn("Cannot update image with ID: {} - not found", imageDTO.getId());
             return false;
         }
 
@@ -77,6 +87,7 @@ public class ImageRepository {
         entity.setModifiedBy(imageDTO.getModifiedBy());
 
         entityManager.merge(entity);
+        logger.info("Updated image with ID: {}", imageDTO.getId());
         return true;
     }
 
@@ -120,32 +131,56 @@ public class ImageRepository {
             dtos.add(convertToDTO(entity));
         }
 
+        logger.info("Found {} images for product ID: {}", dtos.size(), productId);
         return dtos;
     }
-    public ProductImageDTO findOneByProductId(int productId) {
-        Query query = entityManager.createQuery(
-                "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC"
-        );
-        query.setParameter("productId", productId);
-        query.setMaxResults(1);
 
-        List<ImageEntity> result = query.getResultList();
-        if (result.isEmpty()) {
+    public ProductImageDTO findOneByProductId(int productId) {
+        try {
+            String jpql = "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC";
+            Query query = entityManager.createQuery(jpql);
+            query.setParameter("productId", productId);
+            query.setMaxResults(1);
+
+            // In ra câu truy vấn để debug
+            logger.info("Query for product ID {}: {}", productId, jpql);
+            logger.info("Parameter productId: {}", productId);
+
+            List<ImageEntity> result = query.getResultList();
+
+            // In ra kết quả truy vấn
+            logger.info("Query result size for product {}: {}", productId, result.size());
+
+            if (result.isEmpty()) {
+                logger.warn("Không tìm thấy hình ảnh cho sản phẩm ID: {}", productId);
+                return null;
+            }
+
+            ProductImageDTO dto = convertToDTO(result.get(0));
+            logger.info("Tìm thấy hình ảnh cho sản phẩm {}: {}", productId, dto.getLink());
+            return dto;
+        } catch (Exception e) {
+            logger.error("Lỗi khi tìm hình ảnh cho sản phẩm {}: {}", productId, e.getMessage());
             return null;
         }
-
-        return convertToDTO(result.get(0));
     }
 
     public List<ProductImageDTO> getThumbnailByProductId(int productId) {
-        String jpql = "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC";
-        return entityManager.createQuery(jpql, ImageEntity.class)
-                .setParameter("productId", productId)
-                .setMaxResults(1)
-                .getResultList()
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
+        try {
+            String jpql = "SELECT i FROM ImageEntity i WHERE i.productId = :productId ORDER BY i.id ASC";
+            List<ProductImageDTO> result = entityManager.createQuery(jpql, ImageEntity.class)
+                    .setParameter("productId", productId)
+                    .setMaxResults(1)
+                    .getResultList()
+                    .stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
 
+            logger.info("Found {} thumbnails for product ID: {}", result.size(), productId);
+            return result;
+        } catch (Exception e) {
+            logger.error("Error getting thumbnail for product {}: {}", productId, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
 }

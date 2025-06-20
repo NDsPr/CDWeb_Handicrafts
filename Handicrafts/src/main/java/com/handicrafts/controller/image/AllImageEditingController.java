@@ -30,7 +30,7 @@ public class AllImageEditingController {
     public String showEditForm(@RequestParam("id") int id, Model model) {
         ProductImageDTO image = imageService.findImageById(id);
         model.addAttribute("image", image);
-        return "all-image-editing";
+        return "addmin/all-image-editing";
     }
 
     @PostMapping("/all-image-editing")
@@ -85,6 +85,6 @@ public class AllImageEditingController {
         }
 
         model.addAttribute("image", image);
-        return "all-image-editing";
+        return "addmin/all-image-editing";
     }
 }
