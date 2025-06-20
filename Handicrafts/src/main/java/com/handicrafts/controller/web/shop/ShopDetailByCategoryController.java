@@ -70,6 +70,6 @@ public class ShopDetailByCategoryController {
         model.addAttribute("productMap", productMap);
         model.addAttribute("imageMap", imageMap);
 
-        return "shop-detail"; // trả về file `shop-detail.jsp` hoặc `shop-detail.html`
+        return "web/shop-detail"; // trả về file `shop-detail.jsp` hoặc `shop-detail.html`
     }
 }

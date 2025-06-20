@@ -32,7 +32,7 @@ public class RegisterController {
 
     @GetMapping("/register")
     public String showRegisterPage() {
-        return "signup";
+        return "web/signup";
     }
 
     @PostMapping("/register")
@@ -136,14 +136,14 @@ public class RegisterController {
                     return "redirect:/code-verify";
                 } catch (Exception e) {
                     model.addAttribute("error", "Đã xảy ra lỗi trong quá trình đăng ký: " + e.getMessage());
-                    return "signup";
+                    return "web/signup";
                 }
             } else {
-                return "signup";
+                return "web/signup";
             }
         }
 
-        return "signup";
+        return "web/signup";
     }
 
     @GetMapping("/code-verify")
@@ -151,6 +151,6 @@ public class RegisterController {
         if (email != null) {
             model.addAttribute("email", email);
         }
-        return "code-verify";
+        return "/web/code-verify.html";
     }
 }

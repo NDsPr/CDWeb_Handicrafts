@@ -47,7 +47,7 @@ public class UserInfoController {
 
         model.addAttribute("userInfo", userDTO);
         model.addAttribute("customizeInfo", customizeInfo);
-        return "client-userinfo";
+        return "web/client-userinfo";
     }
 
     @PostMapping
@@ -121,7 +121,7 @@ public class UserInfoController {
 //        UserDTO userDTO = userRepository.findById(sessionUser.getId());
 //        model.addAttribute("userInfo", userDTO);
         model.addAttribute("msg", msg);
-        return "client-userinfo";
+        return "web/client-userinfo";
     }
 
     // Phương thức tiện ích để lấy thông điệp từ Environment

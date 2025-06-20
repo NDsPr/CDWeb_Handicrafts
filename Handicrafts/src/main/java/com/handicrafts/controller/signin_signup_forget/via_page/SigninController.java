@@ -38,7 +38,6 @@ public class SigninController {
         this.logService = logService;
         this.environment = environment;
     }
-
     @GetMapping("/signin")
     public String showSigninPage(
             @RequestParam(value = "message", required = false) String message,
@@ -49,10 +48,10 @@ public class SigninController {
             model.addAttribute("message", environment.getProperty("notify." + message, message));
         }
 
-        // Lấy tên view từ Environment hoặc sử dụng giá trị mặc định
-        String signinView = environment.getProperty("views.signin", "signin");
-        return signinView;
+        // Return the correct path to the template
+        return "web/signin";
     }
+
 
     @PostMapping("/signin")
     public String processSignin(

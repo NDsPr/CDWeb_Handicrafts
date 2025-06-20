@@ -30,7 +30,7 @@ public class ProductEditingController {
     private final LogServiceImp<ProductDTO> logService;
     private final Environment environment;
 
-    @GetMapping("${product.editing.path}")
+    @GetMapping("/admin/product/edit")
     public String showEditForm(@RequestParam("id") int id, Model model) {
         ProductDTO product = productRepository.findProductById(id);
         model.addAttribute(environment.getProperty("model.attribute.images", "images"), mergeUrls(id));
@@ -38,7 +38,7 @@ public class ProductEditingController {
         return environment.getProperty("product.editing.view", "admin/product/edit");
     }
 
-    @PostMapping("${product.editing.path}")
+    @PostMapping("/admin/product/edit")
     public String updateProduct(HttpServletRequest req, Model model) {
         // Lấy tham số từ request
         ProductFormData formData = extractFormData(req);

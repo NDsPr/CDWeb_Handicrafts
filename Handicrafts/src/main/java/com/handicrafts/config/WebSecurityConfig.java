@@ -30,15 +30,23 @@ public class WebSecurityConfig {
     private IUserService userService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Tiêm trực tiếp PasswordEncoder
+    private PasswordEncoder passwordEncoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((authz) ->
-                        authz.requestMatchers("/", "/home", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll()
+                        authz
+                                // Allow all static resources without authentication
+                                .requestMatchers("/", "/home", "/dang-nhap", "/dang-ky").permitAll()
+                                .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/client/css/**").permitAll()
+                                // Allow specific API endpoints
+                                .requestMatchers("/api/auth/**").permitAll()
+                                // Protected paths that require authentication
                                 .requestMatchers("/thanh-toan", "/gio-hang").authenticated()
+                                // Admin-only paths
                                 .requestMatchers("/admin-page/**").hasRole("ADMIN")
+                                // Default rule for other requests
                                 .anyRequest().permitAll())
                 //login and logout
                 .formLogin((formLogin) ->
@@ -77,7 +85,7 @@ public class WebSecurityConfig {
     public DaoAuthenticationProvider authProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder); // Sử dụng trực tiếp PasswordEncoder
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 }

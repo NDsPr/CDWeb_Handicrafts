@@ -260,13 +260,7 @@ public class ProductRepository {
 
     public List<ProductDTO> findThreeProductByCategoryId(int categoryId) {
         List<ProductDTO> products = new ArrayList<>();
-        String sql = "SELECT products.id, products.name, products.categoryTypeId, products.originalPrice, " +
-                "products.discountPrice, products.discountPercent, products.avgRate, products.numReviews " +
-                "FROM products INNER JOIN category_types ON products.categoryTypeId = category_types.id " +
-                "INNER JOIN categories ON category_types.categoryId = categories.id " +
-                "WHERE categories.id = ? AND products.status = 1 " +
-                "ORDER BY products.modifiedDate DESC " +
-                "LIMIT 3";
+        String sql = "SELECT products.id, products.name, products.originalPrice, products.discountPrice, products.discountPercent FROM products WHERE products.categoryId = ? LIMIT 3";
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -286,7 +280,7 @@ public class ProductRepository {
                 productDTO.setOriginalPrice(resultSet.getDouble("originalPrice"));
                 productDTO.setDiscountPrice(resultSet.getDouble("discountPrice"));
                 productDTO.setDiscountPercent(resultSet.getDouble("discountPercent"));
-                productDTO.setAvgRate(resultSet.getDouble("avgRate"));
+//                productDTO.setAvgRate(resultSet.getDouble("avgRate"));
                 productDTO.setNumReviews(resultSet.getInt("numReviews"));
 
                 products.add(productDTO);

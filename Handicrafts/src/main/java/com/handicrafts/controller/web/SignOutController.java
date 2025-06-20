@@ -15,6 +15,6 @@ public class SignOutController {
         session.removeAttribute("user");
 
         // Redirect về trang home
-        return new RedirectView("/home");
+        return new RedirectView("web/home");
     }
 }

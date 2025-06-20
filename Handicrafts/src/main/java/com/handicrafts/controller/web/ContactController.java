@@ -40,7 +40,7 @@ public class ContactController {
     public String showContactPage(Model model) {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
         model.addAttribute("customizeInfo", customizeInfo);
-        return "contact";
+        return "web/contact";
     }
 
     @PostMapping
@@ -84,6 +84,6 @@ public class ContactController {
         }
 
         model.addAttribute("msg", msg);
-        return "contact";
+        return "web/contact";
     }
 }

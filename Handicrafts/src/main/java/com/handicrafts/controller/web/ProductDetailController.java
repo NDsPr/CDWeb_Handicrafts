@@ -56,6 +56,6 @@ public class ProductDetailController {
         model.addAttribute("productSuggest", productSuggest);
         model.addAttribute("reviews", reviews);
 
-        return "product-detail"; // JSP or Thymeleaf view
+        return "web/product-detail"; // JSP or Thymeleaf view
     }
 }

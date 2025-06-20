@@ -71,7 +71,7 @@ public class BlogController {
         // Thêm các thuộc tính phân trang
         model.addAttribute("reverseSortDirection", direction.equals("ASC") ? "DESC" : "ASC");
 
-        return "blog";
+        return "web/blog";
     }
 
     @GetMapping("/blog/{id}")
@@ -93,7 +93,7 @@ public class BlogController {
         List<BlogDTO> relatedBlogs = blogRepository.getBlogsDatatable(0, 3, "createdDate", "DESC", null);
         model.addAttribute("relatedBlogs", relatedBlogs);
 
-        return "blog-detail";
+        return "web/blog-detail";
     }
 
     @GetMapping("/blog/category/{categoryId}")
@@ -125,6 +125,6 @@ public class BlogController {
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalItems", totalRecords);
 
-        return "blog-category";
+        return "web/blog-detail";
     }
 }

@@ -17,6 +17,6 @@ public class OrderHistoryController {
     public String orderHistory(Model model) {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
         model.addAttribute("customizeInfo", customizeInfo);
-        return "order-history";
+        return "web/order-history";
     }
 }

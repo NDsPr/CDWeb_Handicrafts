@@ -107,7 +107,7 @@ public class ChangePwController extends HttpServlet {
                 } else {
                     logService.log(req, "change-password-by-forget", LogState.SUCCESS, LogLevel.WARNING, prevUser, currentUser);
                     linkVerifyService.setEmptyKey(email);
-                    resp.sendRedirect(req.getContextPath() + "/change-success.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/web/change-success.html");
                 }
             }
         }

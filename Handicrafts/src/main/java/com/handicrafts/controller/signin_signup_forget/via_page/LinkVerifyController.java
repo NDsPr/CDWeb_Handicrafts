@@ -29,7 +29,7 @@ public class LinkVerifyController extends HttpServlet {
                     resp.sendRedirect("change-password.jsp?email=" + email + "&key=" + key);
                 }
                 else {
-                    resp.sendRedirect("error-verify.jsp");
+                    resp.sendRedirect("web/error-verify.html");
                 }
             }
         }

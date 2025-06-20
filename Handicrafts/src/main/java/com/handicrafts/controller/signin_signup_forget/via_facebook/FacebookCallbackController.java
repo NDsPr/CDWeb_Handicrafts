@@ -30,7 +30,7 @@ public class FacebookCallbackController {
         this.environment = environment;
     }
 
-    @GetMapping("${facebook.callback.url:/facebook-callback}")
+    @GetMapping({"/facebook-callback", "/fb-callback"})
     public String handleCallback(@RequestParam(value = "code", required = false) String code,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
@@ -52,7 +52,7 @@ public class FacebookCallbackController {
                             // Đăng nhập thành công với tài khoản OAuth
                             UserEntity user = authenticationService.processOAuthLogin(userInfo);
                             session.setAttribute(environment.getProperty("session.attribute.user", "user"), user);
-                            return "redirect:" + environment.getProperty("redirect.home", "/home");
+                            return "redirect:" + environment.getProperty("redirect.home", "/web/home");
 
                         case "notOAuth":
                             // Email đã được đăng ký bằng phương thức thông thường
@@ -60,7 +60,7 @@ public class FacebookCallbackController {
                                     environment.getProperty("redirect.attribute.notify", "notify"),
                                     environment.getProperty("notify.registed-by-page", "registed-by-page")
                             );
-                            return "redirect:" + environment.getProperty("redirect.signin", "/signin");
+                            return "redirect:" + environment.getProperty("redirect.signin", "/web/signin");
 
                         case "error":
                             // Có lỗi xảy ra
@@ -68,13 +68,13 @@ public class FacebookCallbackController {
                                     environment.getProperty("redirect.attribute.notify", "notify"),
                                     environment.getProperty("notify.error-oauth", "error-oauth")
                             );
-                            return "redirect:" + environment.getProperty("redirect.signin", "/signin");
+                            return "redirect:" + environment.getProperty("redirect.signin", "/web/signin");
 
                         default:
                             // Tạo tài khoản mới
                             UserEntity newUser = authenticationService.processOAuthLogin(userInfo);
                             session.setAttribute(environment.getProperty("session.attribute.user", "user"), newUser);
-                            return "redirect:" + environment.getProperty("redirect.home", "/home");
+                            return "redirect:" + environment.getProperty("redirect.home", "/web/home");
                     }
                 } else {
                     // Email không được cung cấp từ Facebook
@@ -82,17 +82,17 @@ public class FacebookCallbackController {
                             environment.getProperty("redirect.attribute.notify", "notify"),
                             environment.getProperty("notify.not-contain-email", "not-contain-email")
                     );
-                    return "redirect:" + environment.getProperty("redirect.signin", "/signin");
+                    return "redirect:" + environment.getProperty("redirect.signin", "/web/signin");
                 }
             } catch (IOException | ExecutionException | InterruptedException e) {
                 redirectAttributes.addAttribute(
                         environment.getProperty("redirect.attribute.notify", "notify"),
                         environment.getProperty("notify.error-oauth", "error-oauth")
                 );
-                return "redirect:" + environment.getProperty("redirect.signin", "/signin");
+                return "redirect:" + environment.getProperty("redirect.signin", "/web/signin");
             }
         }
 
-        return "redirect:" + environment.getProperty("redirect.signin", "/signin");
+        return "redirect:" + environment.getProperty("redirect.signin", "/web/signin");
     }
 }

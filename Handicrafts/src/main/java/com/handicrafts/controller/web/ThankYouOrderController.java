@@ -21,6 +21,6 @@ public class ThankYouOrderController {
     public String showThankYouPage(Model model) {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
         model.addAttribute("customizeInfo", customizeInfo);
-        return "thankyou"; // Tên file thankyou.jsp hoặc thankyou.html nếu dùng Thymeleaf
+        return "web/thankyou"; // Tên file thankyou.jsp hoặc thankyou.html nếu dùng Thymeleaf
     }
 }

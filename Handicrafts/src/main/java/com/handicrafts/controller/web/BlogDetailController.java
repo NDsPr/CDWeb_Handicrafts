@@ -28,6 +28,6 @@ public class BlogDetailController {
         // Lấy chi tiết blog từ repository
         model.addAttribute("blogDetail", blogRepository.findBlogById(blogId));
 
-        return "blog-detail";
+        return "web/blog-detail";
     }
 }

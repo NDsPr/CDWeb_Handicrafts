@@ -73,7 +73,7 @@ public class CheckoutController {
             }
         }
         model.addAttribute("customizeInfo", customizeInfo);
-        return "checkout";
+        return "web/checkout";
     }
 
     @PostMapping
@@ -174,7 +174,7 @@ public class CheckoutController {
                 model.addAttribute("insertError", "ie");
                 CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
                 model.addAttribute("customizeInfo", customizeInfo);
-                return "checkout";
+                return "web/checkout";
             } else {
                 List<OrderDetailDTO> orderDetails = new ArrayList<>();
 
@@ -207,7 +207,7 @@ public class CheckoutController {
             orderLogService.log(request, "order-in-checkout", LogState.FAIL.toString(), LogLevel.ALERT, null, null);
             CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
             model.addAttribute("customizeInfo", customizeInfo);
-            return "checkout";
+            return "web/checkout";
         }
     }
 

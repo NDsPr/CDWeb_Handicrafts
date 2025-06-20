@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+<link href="css/style.css" rel="stylesheet" th:href="@{/client/css/style.css}">
 <head>
-    <th:block th:include="/common/client/using-resource-header.html"></th:block>
+    <th:block th:include="~{/common/client/using-resource-header.html}"></th:block>
     <title>DDD. - Bài viết</title>
 </head>
 
 <body>
-<th:block th:include="/common/client/header.html"></th:block>
+<th:block th:include="~{/common/client/header.html}"></th:block>
 
 <!-- Start Hero Section -->
 <div class="hero blog position-relative-top-84px">
@@ -38,7 +39,7 @@
                             </h3>
                             <div class="meta">
                                 <span>Tác giả: <a href="#">[[${blog.author}]]</a></span>
-                                <span> on <a href="#">[[${#dates.format(blog.createdDate, 'dd/MM/yyyy')]]]</a></span>
+                                <span> on <a href="#">[[${#dates.format(blog.createdDate, 'dd/MM/yyyy')}]]</a></span>
                             </div>
                         </div>
                     </div>
@@ -49,8 +50,8 @@
 </div>
 <!-- End Blog Section -->
 
-<th:block th:include="/common/client/footer.html"></th:block>
+<th:block th:include="~{/common/client/footer.html}"></th:block>
 
-<th:block th:include="/common/client/using-resource-footer.html"></th:block>
+<th:block th:include="~{/common/client/using-resource-footer.html}"></th:block>
 </body>
 </html>

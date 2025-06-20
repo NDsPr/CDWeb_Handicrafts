@@ -31,7 +31,7 @@ public class CodeVerifyController extends HttpServlet {
                 // Thông báo cho người dùng đẫ gửi code mới thông qua 1 String
                 String confirm = "confirm";
                 // Chuyển hướng người dùng
-                resp.sendRedirect(req.getContextPath() + "/code-verify.jsp?id=" + id + "&email=" + email + "&confirm=" + confirm);
+                resp.sendRedirect(req.getContextPath() + "/web/code-verify.html?id=" + id + "&email=" + email + "&confirm=" + confirm);
             }
         }
     }
@@ -56,7 +56,7 @@ public class CodeVerifyController extends HttpServlet {
                             // Nếu khớp, chuyển hướng về trang home và không thực hiện các bước phía dưới nữa (return;)
                             codeVerifyService.activeAccount(email);
                             codeVerifyService.setEmptyCode(email);
-                            resp.sendRedirect(req.getContextPath() + "/verify-success.jsp");
+                            resp.sendRedirect(req.getContextPath() + "/web/verify-success.html");
                             return;
                         }
                         // Nếu không khớp verified code, trả về lỗi
@@ -77,7 +77,7 @@ public class CodeVerifyController extends HttpServlet {
                     req.setAttribute("codeError", codeError);
                 }
                 // Trong request đã có id và email của input hidden
-                req.getRequestDispatcher("/code-verify.jsp").forward(req, resp);
+                req.getRequestDispatcher("/web/code-verify.html").forward(req, resp);
             }
         }
     }

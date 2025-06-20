@@ -1,148 +1,150 @@
-<!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <th:block th:replace="~{common/client/using-resource-header :: header}"></th:block>
-    <title>DDD. - Nghệ thuật mỹ nghệ</title>
-</head>
+    <!doctype html>
+    <html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <link href="scs/style.css" rel="stylesheet" th:href="@{/client/css/style.css}">
 
-<body>
-<!-- Start Header Session -->
-<div th:replace="~{common/client/header :: header}"></div>
-<!-- End Header Session -->
+    <head>
+        <th:block th:replace="~{common/client/using-resource-header :: header}"></th:block>
+        <title>DDD. - Nghệ thuật mỹ nghệ</title>
+    </head>
 
-<!-- Start Hero Section -->
-<div class="hero home position-relative-top-84px">
-    <div class="container">
-        <div class="row justify-content-between">
-            <div class="col-12">
-                <div class="intro-excerpt">
-                    <h1 th:text="${customizeInfo.welcomeTitle}">Welcome Title</h1>
-                    <p class="mb-4 darkred_alpha" th:text="${customizeInfo.welcomeDes}">Welcome Description</p>
-                    <p><a th:href="@{/shop}" class="btn-main btn-secondary me-2">Khám phá ngay</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End Hero Section -->
+    <body>
+    <!-- Start Header Session -->
+    <div th:replace="~{common/client/header :: header}"></div>
+    <!-- End Header Session -->
 
-<!-- Start Product Section -->
-<div class="product-section position-relative-top-84px">
-    <div class="container">
-        <div class="row">
-
-            <!-- Start Column 1 -->
-            <div class="col-md-12 col-lg-3 mb-5 mb-lg-0">
-                <h2 class="mb-4 section-title" th:text="${customizeInfo.productTitle}">Product Title</h2>
-                <p class="mb-4 darkred_alpha" th:text="${customizeInfo.productDes}">Product Description</p>
-                <p><a th:href="@{/shop}" class="btn-main">Khám phá ngay</a></p>
-            </div>
-            <!-- End Column 1 -->
-
-            <!-- Start Column 2 -->
-            <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0" th:each="category : ${listCategories}">
-                <a class="product-item center-text" th:href="@{/shop-detail-by-category(categoryId=${category.id})}">
-                    <img th:src="${category.profilePic}" class="img-fluid product-thumbnail fix-size-thumbnail">
-                    <h3 class="center-text cate-home">Các sản phẩm làm từ</h3>
-                    <strong class="center-text big-category" th:text="${category.name}">Category Name</strong>
-
-                    <span class="btn-pop">
-                        <p class="content-btn-pop">Tìm hiểu ngay!</p>
-                    </span>
-                </a>
-            </div>
-            <!-- End Column 2 -->
-        </div>
-    </div>
-</div>
-<!-- End Product Section -->
-
-<!-- Start Why Choose Us Section -->
-<div class="why-choose-section position-relative-top-84px" th:if="${customizeInfo != null}">
-    <div class="container">
-        <div class="row justify-content-between">
-            <div class="col-lg-6">
-                <h2 class="section-title" th:if="${customizeInfo.prTitle1 != null}" th:text="${customizeInfo.prTitle1}">Why Choose Us</h2>
-                <p class="light-text" th:if="${customizeInfo.prDes1 != null}" th:text="${customizeInfo.prDes1}">Description</p>
-
-                <div class="row my-5" th:if="${listContent1 != null}">
-                    <div class="col-6 col-md-6" th:each="content : ${listContent1}">
-                        <div class="feature">
-                            <div class="icon" th:utext="${content.prIcon1}">Icon</div>
-                            <h3 class="yellow-text" th:text="${content.prContentTitle1}">Content Title</h3>
-                            <p class="light-text" th:text="${content.prContentDes1}">Content Description</p>
-                        </div>
+    <!-- Start Hero Section -->
+    <div class="hero home position-relative-top-84px">
+        <div class="container">
+            <div class="row justify-content-between">
+                <div class="col-12">
+                    <div class="intro-excerpt">
+                        <h1 th:text="${customizeInfo.welcomeTitle}">Welcome Title</h1>
+                        <p class="mb-4 darkred_alpha" th:text="${customizeInfo.welcomeDes}">Welcome Description</p>
+                        <p><a th:href="@{/shop}" class="btn-main btn-secondary me-2">Khám phá ngay</a>
+                        </p>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+    <!-- End Hero Section -->
 
-            <div class="col-lg-5">
-                <div class="img-wrap">
-                    <img src="https://img.freepik.com/free-photo/man-working-cutting-mdf-board_23-2149384827.jpg?t=st=1721241941~exp=1721245541~hmac=b98c7d939be50f3d401d9e9fabe76c0ac5a89916fed054d8bf8722057ea0b7d1&w=360" alt="Image" class="img-fluid">
+    <!-- Start Product Section -->
+    <div class="product-section position-relative-top-84px">
+        <div class="container">
+            <div class="row">
+
+                <!-- Start Column 1 -->
+                <div class="col-md-12 col-lg-3 mb-5 mb-lg-0">
+                    <h2 class="mb-4 section-title" th:text="${customizeInfo.productTitle}">Product Title</h2>
+                    <p class="mb-4 darkred_alpha" th:text="${customizeInfo.productDes}">Product Description</p>
+                    <p><a th:href="@{/shop}" class="btn-main">Khám phá ngay</a></p>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End Why Choose Us Section -->
+                <!-- End Column 1 -->
 
-<!-- Start We Help Section -->
-<div class="we-help-section position-relative-top-84px" th:if="${customizeInfo != null}">
-    <div class="container">
-        <div class="row justify-content-between">
-            <div class="col-lg-5 mb-5 mb-lg-0">
-                <div><img class="img-wrap" src="https://img.freepik.com/free-photo/preparing-sake-japanese-beverage_23-2150158608.jpg?size=626&ext=jpg&ga=GA1.2.2092897014.1721241907&semt=ais_user" alt="DDD."></div>
-            </div>
-            <div class="col-lg-7 ps-lg-5">
-                <h2 class="section-title mb-4" th:if="${customizeInfo.prTitle2 != null}" th:text="${customizeInfo.prTitle2}">We Help</h2>
-                <p class="darkred-text" th:if="${customizeInfo.prDes2 != null}" th:text="${customizeInfo.prDes2}">Description</p>
+                <!-- Start Column 2 -->
+                <div class="col-12 col-md-4 col-lg-3 mb-5 mb-md-0" th:each="category : ${listCategories}">
+                    <a class="product-item center-text" th:href="@{/shop-detail-by-category(categoryId=${category.id})}">
+                        <img th:src="${category.profilePic}" class="img-fluid product-thumbnail fix-size-thumbnail">
+                        <h3 class="center-text cate-home">Các sản phẩm làm từ</h3>
+                        <strong class="center-text big-category" th:text="${category.name}">Category Name</strong>
 
-                <ul class="list-unstyled custom-list my-4" th:if="${prContent2List != null}">
-                    <li class="darkred-text" th:each="content : ${prContent2List}" th:text="${content}">Content</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- End We Help Section -->
-
-<!-- Start Blog Section -->
-<div class="blog-section position-relative-top-84px" th:if="${customizeInfo != null}">
-    <div class="container">
-        <div class="row mb-5">
-            <div class="col-md-6">
-                <h2 class="section-title">Tin tức</h2>
-            </div>
-            <div class="col-md-6 text-start text-md-end">
-                <a th:href="@{/blog}" class="more">Xem tất cả bài viết</a>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12 col-sm-6 col-md-4 mb-4 mb-md-0" th:each="blog : ${listBlogs}">
-                <div class="post-entry">
-                    <a th:href="@{/blog-detail(id=${blog.id})}" class="post-thumbnail">
-                        <img src="#" alt="Image" class="img-fluid">
+                        <span class="btn-pop">
+                            <p class="content-btn-pop">Tìm hiểu ngay!</p>
+                        </span>
                     </a>
-                    <div class="post-content-entry">
-                        <h3><a th:href="@{/blog-detail(id=${blog.id})}" th:text="${blog.title}">Blog Title</a></h3>
-                        <div class="meta">
-                            <span>by <a href="#" th:text="${blog.author}">Author</a></span>
-                            <span> on <a href="#" th:text="${#dates.format(blog.createdDate, 'dd/MM/yyyy')}">Date</a></span>
+                </div>
+                <!-- End Column 2 -->
+            </div>
+        </div>
+    </div>
+    <!-- End Product Section -->
+
+    <!-- Start Why Choose Us Section -->
+    <div class="why-choose-section position-relative-top-84px" th:if="${customizeInfo != null}">
+        <div class="container">
+            <div class="row justify-content-between">
+                <div class="col-lg-6">
+                    <h2 class="section-title" th:if="${customizeInfo.prTitle1 != null}" th:text="${customizeInfo.prTitle1}">Why Choose Us</h2>
+                    <p class="light-text" th:if="${customizeInfo.prDes1 != null}" th:text="${customizeInfo.prDes1}">Description</p>
+
+                    <div class="row my-5" th:if="${listContent1 != null}">
+                        <div class="col-6 col-md-6" th:each="content : ${listContent1}">
+                            <div class="feature">
+                                <div class="icon" th:utext="${content.prIcon1}">Icon</div>
+                                <h3 class="yellow-text" th:text="${content.prContentTitle1}">Content Title</h3>
+                                <p class="light-text" th:text="${content.prContentDes1}">Content Description</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="img-wrap">
+                        <img src="https://img.freepik.com/free-photo/man-working-cutting-mdf-board_23-2149384827.jpg?t=st=1721241941~exp=1721245541~hmac=b98c7d939be50f3d401d9e9fabe76c0ac5a89916fed054d8bf8722057ea0b7d1&w=360" alt="Image" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Why Choose Us Section -->
+
+    <!-- Start We Help Section -->
+    <div class="we-help-section position-relative-top-84px" th:if="${customizeInfo != null}">
+        <div class="container">
+            <div class="row justify-content-between">
+                <div class="col-lg-5 mb-5 mb-lg-0">
+                    <div><img class="img-wrap" src="https://img.freepik.com/free-photo/preparing-sake-japanese-beverage_23-2150158608.jpg?size=626&ext=jpg&ga=GA1.2.2092897014.1721241907&semt=ais_user" alt="DDD."></div>
+                </div>
+                <div class="col-lg-7 ps-lg-5">
+                    <h2 class="section-title mb-4" th:if="${customizeInfo.prTitle2 != null}" th:text="${customizeInfo.prTitle2}">We Help</h2>
+                    <p class="darkred-text" th:if="${customizeInfo.prDes2 != null}" th:text="${customizeInfo.prDes2}">Description</p>
+
+                    <ul class="list-unstyled custom-list my-4" th:if="${prContent2List != null}">
+                        <li class="darkred-text" th:each="content : ${prContent2List}" th:text="${content}">Content</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End We Help Section -->
+
+    <!-- Start Blog Section -->
+    <div class="blog-section position-relative-top-84px" th:if="${customizeInfo != null}">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <h2 class="section-title">Tin tức</h2>
+                </div>
+                <div class="col-md-6 text-start text-md-end">
+                    <a th:href="@{/blog}" class="more">Xem tất cả bài viết</a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-4 mb-4 mb-md-0" th:each="blog : ${listBlogs}">
+                    <div class="post-entry">
+                        <a th:href="@{/blog-detail(id=${blog.id})}" class="post-thumbnail">
+                            <img src="#" alt="Image" class="img-fluid">
+                        </a>
+                        <div class="post-content-entry">
+                            <h3><a th:href="@{/blog-detail(id=${blog.id})}" th:text="${blog.title}">Blog Title</a></h3>
+                            <div class="meta">
+                                <span>by <a href="#" th:text="${blog.author}">Author</a></span>
+                                <span> on <a href="#" th:text="${#dates.format(blog.createdDate, 'dd/MM/yyyy')}">Date</a></span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<!-- End Blog Section -->
+    <!-- End Blog Section -->
 
-<!-- Start Footer Session -->
-<div th:replace="~{common/client/footer :: footer}"></div>
-<!-- End Footer Session -->
+    <!-- Start Footer Session -->
+    <div th:replace="~{common/client/footer :: footer}"></div>
+    <!-- End Footer Session -->
 
-<th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
-</body>
-</html>
+    <th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
+    </body>
+    </html>

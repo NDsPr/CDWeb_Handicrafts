@@ -67,7 +67,7 @@ public class SearchController {
         model.addAttribute("categories", categories);
         model.addAttribute("categoryTypeMap", categoryTypeMap);
 
-        return "search"; // maps to src/main/resources/templates/search.html (or .jsp if configured)
+        return "web/search"; // maps to src/main/resources/templates/search.html (or .jsp if configured)
     }
 
     private double[] getLimitRange(String range) {

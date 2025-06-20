@@ -23,6 +23,6 @@ public class OrderDetailHistoryController {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
         model.addAttribute("customizeInfo", customizeInfo);
         model.addAttribute("orderId", orderId);
-        return "order-detail-history";
+        return "web/order-detail-history";
     }
 }

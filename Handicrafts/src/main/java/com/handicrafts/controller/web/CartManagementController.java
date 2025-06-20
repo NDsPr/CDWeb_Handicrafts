@@ -27,6 +27,6 @@ public class CartManagementController {
         model.addAttribute("customizeInfo", customizeInfo);
         model.addAttribute("cart", cart); // Gửi giỏ hàng sang view nếu cần
 
-        return "cart"; // Trả về cart.jsp hoặc cart.html (tùy bạn dùng JSP hay Thymeleaf)
+        return "web/cart"; // Trả về cart.jsp hoặc cart.html (tùy bạn dùng JSP hay Thymeleaf)
     }
 }

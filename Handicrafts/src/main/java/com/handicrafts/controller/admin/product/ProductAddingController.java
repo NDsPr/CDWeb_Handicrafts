@@ -30,12 +30,12 @@ public class ProductAddingController {
     private final ILogService<ProductDTO> logService;
     private final Environment environment;
 
-    @GetMapping("${product.adding.path}")
+    @GetMapping("/admin/product/add")
     public String showForm() {
         return environment.getProperty("product.adding.view", "admin/product/add");
     }
 
-    @PostMapping("${product.adding.path}")
+    @PostMapping("/admin/product/add")
     public String addProduct(HttpServletRequest req,
                              @RequestParam("name") String name,
                              @RequestParam("description") String description,

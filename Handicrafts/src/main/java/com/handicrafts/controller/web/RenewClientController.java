@@ -9,6 +9,6 @@ public class RenewClientController {
     @GetMapping("/renew-password")
     public String renewPassword() {
         // Trả về tên của template/view
-        return "renew-password-client";
+        return "web/renew-password";
     }
 }

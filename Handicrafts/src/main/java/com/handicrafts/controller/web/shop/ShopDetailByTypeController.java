@@ -74,7 +74,7 @@ public class ShopDetailByTypeController {
         model.addAttribute("categoryTypeMap", categoryTypeMap);
         model.addAttribute("imageMap", imageMap);
 
-        return "shop-detail-type"; // JSP hoặc Thymeleaf
+        return "web/shop-detail-type"; // JSP hoặc Thymeleaf
     }
 
     private double[] getLimitRange(String range) {
