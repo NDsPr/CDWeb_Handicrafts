@@ -72,6 +72,8 @@ public class UserServiceImp implements IUserService {
         // Sử dụng EncryptPasswordUtil thay vì passwordEncoder
         userEntity.setPassword(EncryptPasswordUtil.encryptPassword(userDTO.getPassword()));
         userEntity.setStatus(1); // Mặc định là active
+
+        userEntity.setRoleId(1);
         userEntity.setCreatedDate(new Timestamp(System.currentTimeMillis()));
 
         UserEntity savedUser = userRepository.save(userEntity);
