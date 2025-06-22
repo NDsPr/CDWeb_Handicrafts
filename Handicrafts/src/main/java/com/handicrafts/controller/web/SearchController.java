@@ -34,14 +34,14 @@ public class SearchController {
     @Autowired
     private ImageRepository imageRepository;
 
+    private static final int PAGE_SIZE = 8;
+
     @GetMapping
     public String search(@RequestParam(name = "key", required = false) String key,
-                         @RequestParam(name = "page", defaultValue = "1") int page,
-                         @RequestParam(name = "sort", required = false) String sort,
+                         @RequestParam(name = "recentPage", defaultValue = "1") int page,
+                         @RequestParam(name = "sort", defaultValue = "none") String sort,
                          @RequestParam(name = "range", defaultValue = "none") String range,
                          Model model) {
-
-        int totalPages = getTotalPages();
 
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
 
@@ -49,8 +49,11 @@ public class SearchController {
         Map<Integer, List<CategoryTypeDTO>> categoryTypeMap = new HashMap<>();
 
         double[] rangeLimit = getLimitRange(range);
-        List<ProductDTO> products = productRepository.findByKeyAndLimit(
-                key, rangeLimit, sort, getStartLimit(page), 2);
+        int offset = getStartLimit(page);
+
+        List<ProductDTO> products = productRepository.findByKeyAndLimit(key, rangeLimit, sort, offset, PAGE_SIZE);
+        int totalItems = productRepository.countByKeyAndLimit(key, rangeLimit);
+        int totalPages = (int) Math.ceil((double) totalItems / PAGE_SIZE);
 
         for (CategoryDTO category : categories) {
             List<CategoryTypeDTO> types = categoryTypeRepository.findCategoryTypeByCategoryId(category.getId());
@@ -67,7 +70,7 @@ public class SearchController {
         model.addAttribute("categories", categories);
         model.addAttribute("categoryTypeMap", categoryTypeMap);
 
-        return "web/search"; // maps to src/main/resources/templates/search.html (or .jsp if configured)
+        return "web/search";
     }
 
     private double[] getLimitRange(String range) {
@@ -97,12 +100,7 @@ public class SearchController {
         }
     }
 
-    private int getTotalPages() {
-        int totalItems = productRepository.getTotalItems();
-        return (int) Math.ceil((double) totalItems / 2);
-    }
-
     private int getStartLimit(int page) {
-        return 2 * (page - 1);
+        return PAGE_SIZE * (page - 1);
     }
 }

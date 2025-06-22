@@ -63,7 +63,7 @@
               <div class="col-12 col-md-6 col-lg-3 mb-5">
                 <div class="product-item">
                   <th:block th:if="${imageMap[product.id] != null}">
-                    <img th:src="@{${imageMap[product.id].link}}" class="img-fluid product-thumbnail" alt="">
+                    <img th:src="${imageMap[product.id].link}" class="img-fluid product-thumbnail" alt="">
                   </th:block>
                   <input type="hidden" name="productId" th:value="${product.id}">
                   <h3 class="product-title" th:text="${product.name}"></h3>
@@ -104,6 +104,6 @@
 </svg>
 
 <th:block th:include="/common/client/using-resource-footer.html"></th:block>
-<script th:src="@{/templates/client/js/ajax/cart/cart-add.js}"></script>
+<script th:src="@{/client/js/ajax/cart/cart-add.js}"></script>
 </body>
 </html>

@@ -152,6 +152,10 @@
 <script th:inline="javascript">
   let currentPage = [[${serverPage} ?: 1]];
   let totalPages = [[${serverTotalPages} ?: 1]];
+  let categoryTypeId = [[${categoryTypeId} ?: 0]];
+  let key = [[${key} != null ? '\'' + ${key} + '\'' : 'undefined']];
+  let sort = [[${sort} != null ? '\'' + ${sort} + '\'' : "'none'"]];
+  let range = [[${range} != null ? '\'' + ${range} + '\'' : "'none'"]];
 
   $(document).ready(function () {
     window.pagObj = $('#pagination').twbsPagination({

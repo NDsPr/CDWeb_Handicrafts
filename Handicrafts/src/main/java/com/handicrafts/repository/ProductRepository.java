@@ -1037,4 +1037,53 @@ public class ProductRepository {
         }
     }
 
+    public int countByKeyAndLimit(String key, double[] range) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total FROM products WHERE status = 1");
+
+        // Thêm điều kiện tìm kiếm theo key nếu có
+        if (key != null && !key.trim().isEmpty()) {
+            sql.append(" AND (name LIKE ? OR keyword LIKE ?)");
+        }
+
+        // Thêm điều kiện lọc theo khoảng giá nếu có
+        if (range != null && range.length == 2) {
+            sql.append(" AND discountPrice BETWEEN ? AND ?");
+        }
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        int total = 0;
+
+        try {
+            connection = openConnectionUtil.openConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+
+            int index = 1;
+
+            if (key != null && !key.trim().isEmpty()) {
+                String likeKey = "%" + key.trim() + "%";
+                preparedStatement.setString(index++, likeKey);
+                preparedStatement.setString(index++, likeKey);
+            }
+
+            if (range != null && range.length == 2) {
+                preparedStatement.setDouble(index++, range[0]);
+                preparedStatement.setDouble(index, range[1]);
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                total = resultSet.getInt("total");
+            }
+        } catch (SQLException e) {
+            logger.error("Error counting products by key and range", e);
+        } finally {
+            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
+        }
+
+        return total;
+    }
+
+
 }

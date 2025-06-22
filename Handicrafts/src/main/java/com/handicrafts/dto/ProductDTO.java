@@ -1,8 +1,10 @@
 package com.handicrafts.dto;
 
+import lombok.Data;
+
 import java.sql.Timestamp;
 import java.util.List;
-
+@Data
 public class ProductDTO {
     private int id;
     private String name;
