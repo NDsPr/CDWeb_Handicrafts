@@ -96,7 +96,7 @@
 
                             <!-- Hiển thị ảnh mặc định khi không có ảnh -->
                           <th:block th:unless="${imageMap != null && #maps.containsKey(imageMap, product.id) && imageMap.get(product.id) != null && imageMap.get(product.id).link != null}">
-                            <img th:src="@{/client/images/no-image.png}" alt="No image available" class="img-fluid product-thumbnail">
+                            <img th:src="@{/client/images/knitting/tui_sen.jpg}" alt="No image available" class="img-fluid product-thumbnail">
                           </th:block>
 
                           <h3 class="product-title" th:text="${product.name != null ? product.name : 'Sản phẩm'}"></h3>
@@ -163,6 +163,6 @@
 
 <th:block th:replace="~{common/client/footer :: footer}"></th:block>
 
-<script th:src="@{/client/ajax/cart/cart-add.js}"></script>
+<script th:src="@{/client/js/ajax/cart/cart-add.js}"></script>
 </body>
 </html>
