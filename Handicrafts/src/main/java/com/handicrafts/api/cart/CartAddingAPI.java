@@ -31,68 +31,67 @@ public class CartAddingAPI {
 
     @PostMapping("/cart-adding")
     public ResponseEntity<Map<String, Object>> addToCart(
-            @RequestParam("id") int id,
+            @RequestParam("productId") int productId,
             @RequestParam(value = "quantity", defaultValue = "1") int quantity,
             HttpServletRequest request) throws IOException {
 
         request.setCharacterEncoding("UTF-8");
-
         Map<String, Object> response = new HashMap<>();
 
-        ProductDTO product = productDAO.findProductById(id);
+        try {
+            // Lấy thông tin sản phẩm
+            ProductDTO product = productDAO.findProductById(productId);
 
-        // Sửa lại phần lấy hình ảnh
-        List<ProductImageDTO> images = imageDAO.findImagesByProductId(id);
-        String imageLink = "";
-        if (images != null && !images.isEmpty()) {
-            imageLink = images.get(0).getLink();
-        }
+            if (product == null) {
+                response.put("success", "false");
+                response.put("message", "Sản phẩm không tồn tại!");
+                return ResponseEntity.badRequest().body(response);
+            }
 
-        if (product == null) {
-            response.put("status", "error");
-            response.put("notify", "Sản phẩm không tồn tại!");
+            if (product.getQuantity() <= 0) {
+                response.put("success", "false");
+                response.put("message", "Sản phẩm đã hết hàng!");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Lấy cart từ session
+            HttpSession session = request.getSession();
+            CartDTO cart = (CartDTO) session.getAttribute("cart");
+
+            if (cart == null) {
+                cart = new CartDTO();
+            }
+
+            // Tạo ItemDTO mới
+            ItemDTO item = new ItemDTO();
+            item.setProduct(product);
+            item.setQuantity(quantity);
+            item.setTotal(product.getOriginalPrice() * quantity);
+
+            // Thiết lập giá có giảm giá
+            if (product.getDiscountPrice() > 0) {
+                item.setTotalWithDiscount(product.getDiscountPrice() * quantity);
+            } else {
+                item.setTotalWithDiscount(item.getTotal());
+            }
+
+            // Thêm item vào cart
+            cart.addItem(item);
+
+            // Lưu cart vào session
+            session.setAttribute("cart", cart); //
+
+            // Trả về response thành công
+            response.put("success", "true"); //
+            response.put("message", "Thêm vào giỏ hàng thành công!");
+            response.put("totalItems", cart.getTotalItem()); //
+
             return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", "false");
+            response.put("message", "Có lỗi xảy ra: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
-
-        if (product.getQuantity() <= 0) {
-            response.put("status", "error");
-            response.put("notify", "Sản phẩm đã hết hàng!");
-            return ResponseEntity.ok(response);
-        }
-
-        HttpSession session = request.getSession();
-        CartDTO cart = (CartDTO) SessionUtil.getInstance().getValue(request, "CART");
-
-        if (cart == null) {
-            cart = new CartDTO();
-        }
-
-        // Tạo ItemDTO mới
-// Vì constructor không thực hiện gì, nên tốt hơn là dùng constructor mặc định
-        ItemDTO item = new ItemDTO();
-
-// Thiết lập các giá trị thủ công
-        item.setProduct(product);
-        item.setQuantity(quantity);
-        item.setTotal(product.getOriginalPrice() * quantity);
-
-// Kiểm tra và thiết lập giá có giảm giá
-// Với kiểu double, cần kiểm tra giá trị khác 0 hoặc dùng một giá trị đặc biệt để biểu thị không giảm giá
-        if (product.getDiscountPrice() > 0) {
-            item.setTotalWithDiscount(product.getDiscountPrice() * quantity);
-        } else {
-            item.setTotalWithDiscount(item.getTotal());
-        }
-
-        cart.addItem(item);
-        SessionUtil.getInstance().setValue(request, "CART", cart);
-
-
-
-        response.put("status", "success");
-        response.put("notify", "Thêm vào giỏ hàng thành công!");
-        response.put("quantity", cart.getTotalItem());
-
-        return ResponseEntity.ok(response);
     }
 }

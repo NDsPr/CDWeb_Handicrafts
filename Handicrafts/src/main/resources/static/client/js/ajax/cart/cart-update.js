@@ -1,79 +1,77 @@
-const updateCartUrl = `http://localhost:8080${contextPath}/api/cart-updating`;
+
+console.log("cart-update.js loaded!");
+
+// Sử dụng contextPath đã được định nghĩa global
+console.log("contextPath:", window.contextPath);
+console.log("origin:", window.location.origin);
+
+// cách tạo URL để tránh double slash
+const updateCartUrl = window.contextPath === '/'
+    ? `${window.location.origin}/api/cart-updating`
+    : `${window.location.origin}${window.contextPath}/api/cart-updating`;
+
+console.log("updateCartUrl:", updateCartUrl);
 
 // Hàm update số lượng và giá tiền khi bấm nút tăng giảm
-$(() => {
-    // on là hàm event delegate, nghĩa là khi tạo mới thì hàm on sẽ
-    // gán sự kiện của nút đó cho elememt mới được render ra
-    // Chỗ function không được xài arrow function, sẽ không nhận được giá trị (?????)
-    $("#table-content").on("click", ".increase, .decrease", function () {
+$(document).ready(function() {
+    console.log("Document ready!");
+
+    $("#table-content").on("click", ".increase, .decrease", function (e) {
+        e.preventDefault();
+        console.log("Button clicked!");
+        // on là hàm event delegate, nghĩa là khi tạo mới thì hàm on sẽ
+        // gán sự kiện của nút đó cho elememt mới được render ra
+        // Chỗ function không được xài arrow function, sẽ không nhận được giá trị (?????)
+        // Hàm update số lượng và giá tiền khi bấm nút tăng giảm
+
         // Lấy giá trị số lượng từ ô input tương ứng
-        let quantity = $(this).closest('.quantity-container').find('.quantity-amount').val();
-        let productId = $(this).closest('.quantity-container').find('.productId').val();
+        let quantity = parseInt($(this).closest('.quantity-container').find('.quantity-amount').val());
+        let productId = parseInt($(this).closest('.quantity-container').find('.productId').val());
+
+        console.log("Before:", {productId, quantity});
 
         // Kiểm tra xem nút được nhấn là tăng hay giảm số lượng
         if ($(this).hasClass("increase")) {
             quantity++;
         } else if ($(this).hasClass("decrease")) {
-            if (quantity > 0) {
+            if (quantity > 1) {
                 quantity--;
+            } else {
+                console.log("Cannot decrease below 1");
+                return;
             }
         }
 
-        // Gửi yêu cầu AJAX đến Servlet
-        $.ajax({
-            type: "POST",
-            url: updateCartUrl,
-            dataType: "json",
-            data: {
-                productId: productId,
-                quantity: quantity
-            },
-            success: (cart) => {
-                updateUI(cart);
-            },
-            error: () => {
-                console.log("Lỗi xảy ra khi gửi yêu cầu AJAX!");
-            }
-        });
-    });
-});
-
-// Hàm update số lượng và giá tiền khi nhập vào input
-$(() => {
-    $("#table-content").on("blur", ".quantity-amount", function () {
-        let quantity = $(this).closest('.quantity-container').find('.quantity-amount').val();
-        let productId = $(this).closest('.quantity-container').find('.productId').val();
+        console.log("After:", {productId, quantity});
+        console.log("Sending request to URL:", updateCartUrl);
 
         // Gửi yêu cầu AJAX đến Servlet
         $.ajax({
             type: "POST",
             url: updateCartUrl,
-            dataType: "json",
+            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             data: {
                 productId: productId,
                 quantity: quantity
             },
-            success: (cart) => {
+            beforeSend: function() {
+                console.log("Sending AJAX request...");
+            },
+            success: function (cart) {
+                console.log("Success:", cart);
                 updateUI(cart);
             },
-            error: () => {
-                console.log("Lỗi xảy ra khi gửi yêu cầu AJAX!");
+            error: function (xhr, status, error) {
+                console.log("Error details:", {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
             }
         });
     });
 });
-
-// Hàm convert định dạng số
-$(() => {
-    // Bắt sự kiện khi trang được tải
-    $(".main-price, .original-price, .discount-percent, .total").each(() => {
-        // Lấy giá trị ban đầu từ text
-        let price = parseFloat($(this).text().replace(/\D/g, '')) / 100; // Chuyển đổi từ đơn vị tiền tệ sang số
-        // Định dạng lại số tiền và gán vào lại text
-        $(this).text(formatCurrency(price));
-    });
-});
-
 function updateUI(cart) {
     const cartTableContainer = $("#table-content");
     // Làm rỗng tbody
@@ -85,10 +83,11 @@ function updateUI(cart) {
             cartTableContainer.append(`
                <tr>
                     <td>
-                        <a href="${contextPath}/cart-deleting?productId=${item.product.id}" class="btn btn-black btn-sm">X</a></td>
+                        <button class="btn btn-black btn-sm delete-item" data-product-id="${item.product.id}">X</button>
+                    </td>
                     <td class="product-name">
                         <div class="d-flex align-items-center">
-                            <img src="${item.product.images[0].link}" alt="Image" class="img-config">
+                            <img src="${item.product.images && item.product.images.length > 0 ? item.product.images[0].link : 'https://via.placeholder.com/80x80?text=No+Image'}" alt="Image" class="img-config">
                             <h2 class="h5 m-0 ps-4 text-black">${item.product.name}</h2>
                         </div>
                     </td>
@@ -113,7 +112,7 @@ function updateUI(cart) {
                             <input type="hidden" class="productId" name="productId"
                                    value="${item.product.id}">
                             <input type="text" class="form-control text-center quantity-amount"
-                                   name="quantity-<%=i+1%>" value="${item.quantity}"
+                                   name="quantity" value="${item.quantity}"
                                    placeholder="" aria-label="Example text with button addon"
                                    aria-describedby="button-addon1">
                             <div class="input-group-append">
@@ -156,4 +155,3 @@ function formatCurrency(number) {
     let convertNumber = parseInt(number);
     return convertNumber.toLocaleString('en-US');
 }
-

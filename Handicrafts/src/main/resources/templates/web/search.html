@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <th:block th:replace="common/client/using-resource-header :: head"></th:block>
+  <th:block th:replace="~{common/client/using-resource-header :: head}"></th:block>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twbs-pagination/1.4.2/jquery.twbsPagination.min.js"></script>
   <title>DDD. - Tìm kiếm "<span th:text="${key}"></span>"</title>
 </head>
 
 <body>
-<th:block th:replace="common/client/header :: header"></th:block>
+<th:block th:replace="~{common/client/header :: header}"></th:block>
 
 <!-- Start Hero Section -->
 <div class="hero shop position-relative-top-84px">
@@ -147,15 +147,15 @@
 </div>
 
 <!-- End Wood Section -->
-<th:block th:replace="common/client/footer :: footer"></th:block>
+<th:block th:replace="~{common/client/footer :: footer}"></th:block>
 
 <script th:inline="javascript">
-  let currentPage = [[${serverPage} ?: 1]];
-  let totalPages = [[${serverTotalPages} ?: 1]];
-  let categoryTypeId = [[${categoryTypeId} ?: 0]];
-  let key = [[${key} != null ? '\'' + ${key} + '\'' : 'undefined']];
-  let sort = [[${sort} != null ? '\'' + ${sort} + '\'' : "'none'"]];
-  let range = [[${range} != null ? '\'' + ${range} + '\'' : "'none'"]];
+  let key = [[${key != null ? "'" + key + "'" : 'undefined'}]];
+  let currentPage = [[${serverPage ?: 1}]];
+  let totalPages = [[${serverTotalPages ?: 1}]];
+  let categoryTypeId = [[${categoryTypeId ?: 0}]];
+  let sort = [[${sort != null ? "'" + sort + "'" : "'none'"}]];
+  let range = [[${range != null ? "'" + range + "'" : "'none'"}]];
 
   $(document).ready(function () {
     window.pagObj = $('#pagination').twbsPagination({
@@ -173,6 +173,7 @@
   });
 </script>
 
-<th:block th:replace="common/client/using-resource-footer :: footer-resources"></th:block>
+
+<th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
 </body>
 </html>

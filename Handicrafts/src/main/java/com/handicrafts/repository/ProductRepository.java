@@ -960,35 +960,60 @@ public class ProductRepository {
     }
     public List<ProductDTO> findProductsByCategoryTypeId(int categoryTypeId) {
         List<ProductDTO> products = new ArrayList<>();
-        // Loại bỏ avgRate khỏi truy vấn SQL
-        String sql = "SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent " +
+        String sql = "SELECT id, name, categoryTypeId, originalPrice, discountPrice, discountPercent, " +
+                "quantity, soldQuantity, description, size, otherSpec, keyword, status " +
                 "FROM products WHERE categoryTypeId = ? AND status = 1 " +
                 "ORDER BY modifiedDate DESC";
 
-        try (Connection connection = openConnectionUtil.openConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
 
-            preparedStatement.setInt(1, categoryTypeId);
-            ResultSet resultSet = preparedStatement.executeQuery();
+        try {
+            connection = openConnectionUtil.openConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            SetParameterUtil.setParameter(preparedStatement, categoryTypeId);
+
+            // Log để debug
+            logger.info("Executing query for categoryTypeId: {}", categoryTypeId);
+
+            resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                ProductDTO product = new ProductDTO();
-                product.setId(resultSet.getInt("id"));
-                product.setName(resultSet.getString("name"));
-                // Thiết lập các thuộc tính khác
+                ProductDTO productDTO = new ProductDTO();
+                productDTO.setId(resultSet.getInt("id"));
+                productDTO.setName(resultSet.getString("name"));
+                productDTO.setCategoryTypeId(resultSet.getInt("categoryTypeId"));
+                productDTO.setOriginalPrice(resultSet.getDouble("originalPrice"));
+                productDTO.setDiscountPrice(resultSet.getDouble("discountPrice"));
+                productDTO.setDiscountPercent(resultSet.getDouble("discountPercent"));
+                productDTO.setQuantity(resultSet.getInt("quantity"));
+                productDTO.setSoldQuantity(resultSet.getInt("soldQuantity"));
+                productDTO.setDescription(resultSet.getString("description"));
+                productDTO.setSize(resultSet.getString("size"));
+                productDTO.setOtherSpec(resultSet.getString("otherSpec"));
+                productDTO.setKeyword(resultSet.getString("keyword"));
+                productDTO.setStatus(resultSet.getInt("status"));
 
-                // Đặt giá trị mặc định cho avgRate
-                product.setAvgRate(0.0);
-                product.setNumReviews(0);
+                // Đặt giá trị mặc định cho avgRate và numReviews
+                productDTO.setAvgRate(0.0);
+                productDTO.setNumReviews(0);
 
-                products.add(product);
+                products.add(productDTO);
             }
+
+            // Log số lượng sản phẩm tìm thấy
+            logger.info("Found {} products for categoryTypeId: {}", products.size(), categoryTypeId);
+
         } catch (SQLException e) {
-            logger.error("Error finding products by category type ID: " + categoryTypeId, e);
+            logger.error("Error finding products by category type ID: {}", categoryTypeId, e);
+        } finally {
+            CloseResourceUtil.closeResource(resultSet, preparedStatement, connection);
         }
 
         return products;
     }
+
 
 
     public boolean testDatabaseConnection() {

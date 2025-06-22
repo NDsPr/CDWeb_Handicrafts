@@ -1,13 +1,14 @@
 package com.handicrafts.controller.web;
 
+import com.handicrafts.dto.CartDTO;
 import com.handicrafts.dto.CustomizeDTO;
 import com.handicrafts.repository.CustomizeRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.servlet.http.HttpSession;
 
 @Controller
 public class CartManagementController {
@@ -22,11 +23,28 @@ public class CartManagementController {
     @GetMapping("/cart-management")
     public String showCartPage(Model model, HttpSession session) {
         CustomizeDTO customizeInfo = customizeRepository.getCustomizeInfo();
-        Object cart = session.getAttribute("cart");
+
+        // Lấy giỏ hàng từ session
+        Object cartObj = session.getAttribute("cart");
+
+        // Đảm bảo luôn có một đối tượng Cart hợp lệ
+        CartDTO cart;
+        if (cartObj == null) {
+            cart = new CartDTO(); // Đảm bảo lớp Cart của bạn có constructor không tham số
+            session.setAttribute("cart", cart);
+        } else {
+            try {
+                cart = (CartDTO) cartObj;
+            } catch (ClassCastException e) {
+                // Xử lý trường hợp đối tượng trong session không phải là Cart
+                cart = new CartDTO();
+                session.setAttribute("cart", cart);
+            }
+        }
 
         model.addAttribute("customizeInfo", customizeInfo);
-        model.addAttribute("cart", cart); // Gửi giỏ hàng sang view nếu cần
+        model.addAttribute("cart", cart);
 
-        return "web/cart"; // Trả về cart.jsp hoặc cart.html (tùy bạn dùng JSP hay Thymeleaf)
+        return "web/cart";
     }
 }

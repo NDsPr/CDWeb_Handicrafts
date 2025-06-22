@@ -22,7 +22,9 @@ public class SessionUtil {
         HttpSession session = request.getSession(false);
         return (session != null) ? session.getAttribute(key) : null;
     }
-
+    public void putValue(HttpServletRequest request, String key, Object value) {
+        request.getSession().setAttribute(key, value);
+    }
     public void remove(HttpServletRequest request, String key) {
         HttpSession session = request.getSession(false);
         if (session != null) {

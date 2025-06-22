@@ -1,28 +1,53 @@
-const deletingCartUrl = `http://localhost:8080${contextPath}/api/cart-deleting`;
-let isPopupVisible = false; // Biến để kiểm tra xem một thông báo có đang hiển thị hay không
-let previousPopup = null; // Biến lưu trữ thông báo trước đó (nếu có)
+console.log("cart-delete.js loaded!");
 
-$(() => {
-    $(".btn.btn-black.btn-sm").click(function (event) {
+// Sử dụng contextPath từ window object
+const contextPath = window.contextPath || '';
+const deletingCartUrl = contextPath === '/'
+    ? `${window.location.origin}/api/cart-deleting`
+    : `${window.location.origin}${contextPath}/api/cart-deleting`;
+
+console.log("Delete URL:", deletingCartUrl);
+
+let isPopupVisible = false;
+let previousPopup = null;
+
+$(document).ready(function() {
+    console.log("Delete script ready!");
+    console.log("Found delete buttons:", $(".btn.btn-black.btn-sm").length);
+
+    // Sử dụng event delegation
+    $(document).on("click", ".btn.btn-black.btn-sm", function (event) {
         event.preventDefault();
+        console.log("Delete button clicked!");
+
         let itemElement = $(this).closest('tr');
-        let productId = itemElement.find('input[name="productId"]').val();
+        let productId = $(this).data('product-id') || itemElement.find('input[name="productId"]').val();
+
+        console.log("Deleting product ID:", productId);
+        console.log("Delete URL:", deletingCartUrl);
 
         $.ajax({
             type: "POST",
             url: deletingCartUrl,
             dataType: "json",
             data: {productId: productId},
+            beforeSend: function() {
+                console.log("Sending delete request...");
+            },
             success: (response) => {
-                // Xử lý phản hồi từ Servlet (nếu cần)
+                console.log("Delete success:", response);
                 const totalItems = response.totalItems;
                 itemElement.remove();
                 notify(response.serverResponse);
                 updateTotalItem(totalItems);
             },
             error: (xhr, status, error) => {
-                // Xử lý lỗi (nếu có)
-                console.error(xhr.responseText);
+                console.error("Delete error:", {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText,
+                    error: error
+                });
             }
         });
     });
@@ -66,22 +91,20 @@ const notify = (serverResponse) => {
     }
 
     if (!isPopupVisible) {
-        // Nếu không có thông báo nào hiển thị, hiển thị thông báo mới
         $('body').append(popup);
         isPopupVisible = true;
+        previousPopup = popup;
     } else {
-        // Nếu có thông báo đang hiển thị, xóa thông báo cũ khỏi DOM
-        previousPopup.remove();
-        // Hiển thị thông báo mới
+        if (previousPopup) {
+            previousPopup.remove();
+        }
         $('body').append(popup);
-        // Cập nhật thông báo trước đó với thông báo mới
         previousPopup = popup;
     }
 
-    // Đóng popup sau 3s
     setTimeout(() => {
         $("#autoDismissAlert").alert('close');
-        isPopupVisible = false; // Cập nhật trạng thái hiển thị thông báo
+        isPopupVisible = false;
     }, 3000);
 }
 
