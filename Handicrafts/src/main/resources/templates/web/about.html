@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:replace="common/client/using-resource-header :: head"></th:block>
+    <th:block th:replace="~{common/client/using-resource-header :: header}"></th:block>
     <title>DDD. - Nghệ thuật mỹ nghệ</title>
 </head>
 
 <body>
-<th:block th:replace="common/client/header :: header"></th:block>
+<div th:replace="~{common/client/header :: header}"></div>
 
 <!-- Start Hero Section -->
 <div class="hero aboutus position-relative-top-84px">
@@ -45,9 +45,9 @@
 </div>
 <!-- End Team Section -->
 
-<th:block th:replace="common/client/footer :: footer"></th:block>
+<div th:replace="~{common/client/footer :: footer}"></div>
 
-<th:block th:replace="common/client/using-resource-footer :: footer-resources"></th:block>
+<th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
 </body>
 
 </html>
