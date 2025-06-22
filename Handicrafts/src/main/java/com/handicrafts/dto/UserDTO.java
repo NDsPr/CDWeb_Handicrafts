@@ -23,6 +23,11 @@ public class UserDTO {
     private Date createdAt;
     private Date updatedAt;
     private List<String> roles;
+    private String addressLine;
+    private String addressWard;
+    private String addressDistrict;
+    private String addressProvince;
+
 
     // Constructor mặc định
     public UserDTO() {
@@ -122,5 +127,37 @@ public class UserDTO {
 
     public void setEnable(Boolean enable) {
         isEnable = enable;
+    }
+
+    public String getAddressProvince() {
+        return addressProvince;
+    }
+
+    public void setAddressProvince(String addressProvince) {
+        this.addressProvince = addressProvince;
+    }
+
+    public String getAddressDistrict() {
+        return addressDistrict;
+    }
+
+    public void setAddressDistrict(String addressDistrict) {
+        this.addressDistrict = addressDistrict;
+    }
+
+    public String getAddressWard() {
+        return addressWard;
+    }
+
+    public void setAddressWard(String addressWard) {
+        this.addressWard = addressWard;
+    }
+
+    public String getAddressLine() {
+        return addressLine;
+    }
+
+    public void setAddressLine(String addressLine) {
+        this.addressLine = addressLine;
     }
 }

@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link href="scs/style.css" rel="stylesheet" th:href="@{/client/css/style.css}">
+
 <head>
   <title>DDD. - <span th:text="${productDetail.name}"></span></title>
   <th:block th:replace="~{/common/client/using-resource-header :: header}"></th:block>
@@ -200,7 +202,7 @@
 <!-- Scripts -->
 <script th:src="@{/client/js/render-rating.js}"></script>
 <script th:src="@{/client/ajax/cart/cart-add.js}"></script>
-<script th:src="@{/templates/client/js/ajax/cart/cart-action.js}"></script>
+<script th:src="@{/client/js/ajax/cart/cart-action.js}"></script>
 
 </body>
 </html>

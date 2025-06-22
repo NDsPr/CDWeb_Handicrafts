@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<link href="scs/style.css" rel="stylesheet" th:href="@{/client/css/style.css}">
+
 <head>
-    <th:block th:include="common/client/using-resource-header :: header"/>
+
+    <th:block th:replace="~{common/client/using-resource-header :: header}"></th:block>
     <title>DDD. - Thông tin tài khoản</title>
 </head>
 
 <body>
 
 <!-- Start Header/Navigation -->
-<th:block th:include="common/client/header :: header"/>
+<div th:replace="~{common/client/header :: header}"></div>
 <!-- End Header/Navigation -->
 
 <!-- Start Hero Section -->
@@ -113,8 +116,8 @@
 </div>
 <!-- End Renew Password -->
 
-<th:block th:include="common/client/footer :: footer"/>
-<th:block th:include="common/client/using-resource-footer :: footer"/>
+<div th:replace="~{common/client/footer :: footer}"></div>
+<th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
 
 </body>
 </html>

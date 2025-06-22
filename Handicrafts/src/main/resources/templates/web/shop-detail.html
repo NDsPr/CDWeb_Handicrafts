@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <th:block th:include="/common/client/using-resource-header.html"></th:block>
+  <th:block th:replace="~{common/client/using-resource-header :: header}"></th:block>
   <title>DDD. - Danh mục sản phẩm</title>
 </head>
 <body>
-<th:block th:include="/common/client/header.html"></th:block>
+<div th:replace="~{common/client/header :: header}"></div>
 
 <!-- Start Hero Section -->
 <div class="hero shop position-relative-top-84px">
@@ -29,28 +29,24 @@
         <div class="nav-left-block mb-5">
           <p class="nav-left-title">Danh mục sản phẩm</p>
           <ul class="nav-left-list">
-            <th:block th:each="category : ${categories}">
-              <li class="nav-left-item">
-                <a th:href="@{/shop-detail-by-category(categoryId=${category.id})}" class="nav-left-link">Sản phẩm
-                  <span th:text="${category.name}"></span>
-                </a>
-                <ul class="pop-right">
-                  <th:block th:each="categoryType : ${categoryTypeMap[category.id]}">
-                    <li class="pop-right-item">
-                      <a th:href="@{/shop-detail-by-type(categoryTypeId=${categoryType.id}, recentPage=1, sort='none', range='none')}" class="pop-right-link">
-                        <span th:text="${categoryType.name}"></span>
-                      </a>
-                    </li>
-                  </th:block>
-                </ul>
-              </li>
-            </th:block>
+            <li class="nav-left-item" th:each="category : ${categories}">
+              <a th:href="@{/shop-detail-by-category(categoryId=${category.id})}" class="nav-left-link">
+                Sản phẩm [[${category.name}]]
+              </a>
+              <ul class="pop-right">
+                <li class="pop-right-item" th:each="categoryType : ${categoryTypeMap.get(category.id)}">
+                  <a th:href="@{/shop-detail-by-type(categoryTypeId=${categoryType.id}, recentPage=1, sort='none', range='none')}" class="pop-right-link">
+                    [[${categoryType.name}]]
+                  </a>
+                </li>
+              </ul>
+            </li>
           </ul>
         </div>
       </div>
 
       <div class="col-9">
-        <th:block th:each="categoryType : ${categoryTypeForProduct}">
+        <div th:each="categoryType : ${categoryTypeForProduct}">
           <div class="row">
             <div class="col-12" id="luc-binh-go">
               <h1 class="product-type-title" th:text="${categoryType.name.toUpperCase()}"></h1>
@@ -59,51 +55,66 @@
           </div>
 
           <div class="row">
-            <th:block th:each="product : ${productMap[categoryType.id]}">
-              <div class="col-12 col-md-6 col-lg-3 mb-5">
-                <div class="product-item">
-                  <th:block th:if="${imageMap[product.id] != null}">
-                    <img th:src="${imageMap[product.id].link}" class="img-fluid product-thumbnail" alt="">
-                  </th:block>
-                  <input type="hidden" name="productId" th:value="${product.id}">
-                  <h3 class="product-title" th:text="${product.name}"></h3>
-                  <strong class="product-price" th:text="${#numbers.formatDecimal(product.discountPrice, 0, 'COMMA')} + '₫'"></strong>
-                  <div class="origin-price-and-discount">
-                    <del th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'COMMA')} + '₫'"></del>
-                    <label th:text="${#numbers.formatDecimal(product.discountPercent, 0)} + '%'"></label>
-                  </div>
-                  <button class="btn-pop-mini left">
-                    <i class="fa-solid fa-cart-plus fa-xl" style="color: #2a1710"></i>
-                    <p class="content-btn-mini">Thêm vào giỏ hàng</p>
-                  </button>
-                  <a th:href="@{/product-detail(id=${product.id})}" class="btn-pop-mini right">
-                    <i class="fa-solid fa-info fa-xl" style="color: #2a1710"></i>
-                    <p class="content-btn-mini">Chi tiết sản phẩm</p>
-                  </a>
+            <!-- Start Column 1 -->
+            <!-- Sử dụng toán tử điều hướng an toàn và toán tử Elvis -->
+            <div class="col-12 col-md-6 col-lg-3 mb-5" th:each="product : ${productMap.get(categoryType.id)}">
+              <div class="product-item">
+                <input type="hidden" name="productId" th:value="${product.id}">
+                <!-- Xử lý null cho imageMap.get(product.id) -->
+                <img th:if="${imageMap.get(product.id) != null}"
+                     th:src="${imageMap.get(product.id).link}"
+                     class="img-fluid product-thumbnail" alt="">
+                <!-- Hiển thị hình ảnh mặc định nếu không có hình ảnh -->
+                <img th:unless="${imageMap.get(product.id) != null}"
+                     th:src="@{/images/default-product-image.jpg}"
+                     class="img-fluid product-thumbnail" alt="">
+                <h3 class="product-title" th:text="${product.name}"></h3>
+                <strong class="product-price" th:text="${#numbers.formatDecimal(product.discountPrice, 0, 'POINT', 0, 'COMMA')} + '₫'"></strong>
+                <div class="origin-price-and-discount">
+                  <del th:text="${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA')} + '₫'"></del>
+                  <label th:text="${#numbers.formatInteger(product.discountPercent, 0)} + '%'"></label>
                 </div>
+                <button class="btn-pop-mini left">
+                  <i class="fa-solid fa-cart-plus fa-xl" style="color: #2a1710"></i>
+                  <p class="content-btn-mini">Thêm vào giỏ hàng</p>
+                </button>
+                <a th:href="@{/product-detail(id=${product.id})}" class="btn-pop-mini right">
+                  <i class="fa-solid fa-info fa-xl" style="color: #2a1710"></i>
+                  <p class="content-btn-mini">Chi tiết sản phẩm</p>
+                </a>
               </div>
-            </th:block>
-          </div>
+            </div>
 
+            <!-- End Column 1 -->
+          </div>
           <div class="row">
             <div class="d-flex justify-content-center mb-5">
               <a th:href="@{/shop-detail-by-type(categoryTypeId=${categoryType.id}, recentPage=1, sort='none', range='none')}" class="more">Xem thêm -></a>
             </div>
           </div>
-        </th:block>
+        </div>
       </div>
     </div>
   </div>
 </div>
 <!-- End Wood Section -->
 
-<th:block th:include="/common/client/footer.html"></th:block>
+<div th:replace="~{common/client/footer :: footer}"></div>
 
+<!-- Icon -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-  <!-- SVG icons -->
+  <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"></path>
+  </symbol>
+  <symbol id="info-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"></path>
+  </symbol>
+  <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path>
+  </symbol>
 </svg>
 
-<th:block th:include="/common/client/using-resource-footer.html"></th:block>
-<script th:src="@{/client/js/ajax/cart/cart-add.js}"></script>
+<th:block th:replace="~{common/client/using-resource-footer :: footer}"></th:block>
+<script th:src="@{/static/client/js/ajax/cart/cart-add.js}"></script>
 </body>
 </html>
